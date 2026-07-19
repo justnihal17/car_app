@@ -1,11 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Shield, Settings, Trash2, Edit2, AlertCircle } from 'lucide-react';
+
+import api from '../../api/axios';
+import toast from 'react-hot-toast';
 
 const TABS = ['Overview', 'Orders', 'Payments', 'Wallet', 'Addresses', 'Activity', 'Security'];
 
 export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBack: () => void }) {
   const [activeTab, setActiveTab] = useState('Overview');
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await api.get(`/customer/customer/${userId}`);
+        setUser(response.data.data);
+      } catch (error) {
+        console.error("Failed to fetch customer details", error);
+      }
+    };
+    if (userId) {
+      fetchUser();
+    }
+  }, [userId]);
+
+  const handleToggleBlock = async () => {
+    if (!user) return;
+    if (window.confirm(`Are you sure you want to ${user.blocked ? 'unblock' : 'block'} this customer?`)) {
+      try {
+        const newBlockedStatus = !user.blocked;
+        const response = await api.put(`/customer/customer/admin/${user._id}`, { blocked: newBlockedStatus });
+        toast.success(response.data?.message || `Customer ${newBlockedStatus ? 'blocked' : 'unblocked'} successfully`);
+        setUser({ ...user, blocked: newBlockedStatus });
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || 'Failed to update customer status');
+      }
+    }
+  };
+
+  if (!user) {
+    return <div className="p-8">Loading...</div>;
+  }
 
   return (
     <div className="p-8 space-y-6 bg-slate-50 min-h-screen w-full">
@@ -23,12 +59,17 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
                 </div>
             </div>
             <div className="mb-2">
-                <h1 className="text-2xl font-bold text-slate-900">Alice Johnson</h1>
-                <p className="text-slate-500">{userId}</p>
+                <h1 className="text-2xl font-bold text-slate-900">{user.fullName || 'Unknown User'}</h1>
+                <p className="text-slate-500">{user.customerId || userId}</p>
             </div>
             <div className="ml-auto flex gap-3 mb-2">
                 <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200">Edit</button>
-                <button className="px-4 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100">Suspend</button>
+                <button 
+                  onClick={handleToggleBlock}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${user.blocked ? 'bg-orange-50 text-orange-700 hover:bg-orange-100' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}
+                >
+                  {user.blocked ? 'Unblock' : 'Suspend'}
+                </button>
             </div>
           </div>
         </div>
@@ -49,12 +90,12 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
             <h2 className="text-lg font-semibold text-slate-900 mb-6">Personal Information</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
                 {[
-                    { label: 'Full Name', value: 'Alice Johnson' },
-                    { label: 'Email', value: 'alice@example.com' },
-                    { label: 'Phone', value: '+1234567890' },
-                    { label: 'City', value: 'New York' },
-                    { label: 'Member Since', value: 'Jan 15, 2026' },
-                    { label: 'Status', value: 'Active' },
+                    { label: 'Full Name', value: user.fullName || 'N/A' },
+                    { label: 'Email', value: user.email || 'N/A' },
+                    { label: 'Phone', value: user.phone || 'N/A' },
+                    { label: 'City', value: 'N/A' }, // City not in customer payload currently
+                    { label: 'Member Since', value: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' },
+                    { label: 'Status', value: user.active ? 'Active' : (user.blocked ? 'Blocked' : 'Pending') },
                 ].map(item => (
                     <div key={item.label}>
                         <p className="text-slate-500">{item.label}</p>

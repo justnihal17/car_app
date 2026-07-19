@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Car, UserCheck, UserMinus, UserX, Clock, Star, Plus, Download, Search, Filter, MoreHorizontal, RefreshCw, Briefcase, FileText, ChevronDown, X, Trash2, Edit2 } from 'lucide-react';
+import { Car, UserCheck, UserMinus, UserX, Clock, Star, Plus, Download, Search, Filter, MoreHorizontal, RefreshCw, Briefcase, FileText, ChevronDown, X, Trash2, Edit2, Eye } from 'lucide-react';
 import { AnalyticsCard } from '../common/AnalyticsCard';
 import { SlidePanel } from '../common/SlidePanel';
 import { StatusBadge } from '../StatusBadge';
@@ -44,6 +44,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     fetchAgents();
   }, []);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<"register" | "view" | "edit">("register");
   const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
@@ -93,29 +94,51 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   };
 
   const handleEdit = (e: React.MouseEvent, agent: any) => {
-    e.stopPropagation();
-    setEditingAgentId(agent.id);
-    
-    // Simulate setting data. If agent data structure is different, map accordingly
-    setFormData({
-        fullName: agent.name || '',
-        email: agent.email || '',
-        phone: agent.phone || '',
-        employeeCode: '',
-        role: 'service_agent',
-        gender: '',
-        userId: '',
-        password: '',
-        city: 'Delhi',
-        country: 'India',
-        joiningDate: new Date().toISOString().split('T')[0]
-    });
-    setPhoto(agent.profileImage || null);
-    setSelectedSkills(agent.skills || []);
-    setIsDrawerOpen(true);
+      e.stopPropagation();
+      setDrawerMode("edit");
+      setEditingAgentId(agent.id);
+      setFormData({
+          fullName: agent.name || '',
+          email: agent.email || '',
+          phone: agent.phone || '',
+          employeeCode: agent.employeeCode || '',
+          role: agent.role || 'service_agent',
+          gender: agent.gender || '',
+          userId: agent.userId || '',
+          password: '',
+          city: agent.city || 'Delhi',
+          country: agent.country || 'India',
+          joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+      });
+      setPhoto(agent.profileImage || null);
+      setSelectedSkills(agent.skills || []);
+      setIsDrawerOpen(true);
+  };
+
+  const handleViewDrawer = (e: React.MouseEvent, agent: any) => {
+      e.stopPropagation();
+      setDrawerMode("view");
+      setEditingAgentId(agent.id);
+      setFormData({
+          fullName: agent.name || '',
+          email: agent.email || '',
+          phone: agent.phone || '',
+          employeeCode: agent.employeeCode || '',
+          role: agent.role || 'service_agent',
+          gender: agent.gender || '',
+          userId: agent.userId || '',
+          password: '********',
+          city: agent.city || 'Delhi',
+          country: agent.country || 'India',
+          joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+      });
+      setPhoto(agent.profileImage || null);
+      setSelectedSkills(agent.skills || []);
+      setIsDrawerOpen(true);
   };
 
   const openRegister = () => {
+    setDrawerMode("register");
     setEditingAgentId(null);
     setFormData({
         fullName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
@@ -209,16 +232,14 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 <td className="p-4 text-slate-600">{agent.rating}</td>
                 <td className="p-4"><StatusBadge status={agent.status as any} /></td>
                 <td className="p-4 flex gap-2 items-center">
-                  <button onClick={(e) => handleEdit(e, agent)} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Agent">
-                    <Edit2 className="w-5 h-5" />
-                  </button>
-                  <button onClick={(e) => handleBlockToggle(e, agent.id, agent.blocked || false)} className={`p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors ${agent.blocked ? 'hover:text-green-500 text-red-500' : 'hover:text-amber-500'}`} title={agent.blocked ? "Unblock Agent" : "Block Agent"}>
-                    {agent.blocked ? <UserCheck className="w-5 h-5" /> : <UserX className="w-5 h-5" />}
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); handleDelete(agent.id, agent.name); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete Agent">
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                  <MoreHorizontal className="w-5 h-5 text-slate-400" />
+                  <button onClick={(e) => handleViewDrawer(e, agent)} className="text-blue-600 hover:text-blue-800 p-1" title="View Details"><Eye className="w-4 h-4"/></button>
+                  <button onClick={(e) => handleEdit(e, agent)} className="text-blue-600 hover:text-blue-800 p-1" title="Edit Agent"><Edit2 className="w-4 h-4"/></button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(agent.id, agent.name); }} className="text-red-600 hover:text-red-800 p-1" title="Delete Agent"><Trash2 className="w-4 h-4"/></button>
+                  {agent.blocked ? (
+                    <button onClick={(e) => handleBlockToggle(e, agent.id, true)} className="text-emerald-600 hover:text-emerald-900 p-1" title="Unblock Agent"><UserCheck className="w-4 h-4"/></button>
+                  ) : (
+                    <button onClick={(e) => handleBlockToggle(e, agent.id, false)} className="text-slate-600 hover:text-slate-900 p-1" title="Block Agent"><UserX className="w-4 h-4"/></button>
+                  )}
                 </td>
               </motion.tr>
             ))}
@@ -226,69 +247,109 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
         </table>
       </div>
 
-      <SlidePanel isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} title={editingAgentId ? "Edit Service Agent" : "Register New Service Agent"}>
-        <div className="p-6 space-y-8">
-          <label className="block cursor-pointer text-center p-6 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 hover:border-blue-400 transition-colors">
-            <input type="file" className="hidden" onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setPhoto(URL.createObjectURL(e.target.files[0]));
-              }
-            }} />
-            {photo ? (
-              <img src={photo} className="w-24 h-24 rounded-full mx-auto object-cover border-2 border-white shadow-sm" alt="Preview" />
-            ) : (
-              <div className="w-24 h-24 mx-auto bg-white rounded-full mb-4 flex items-center justify-center border-2 border-slate-100 shadow-sm">
-                  <Car className="w-10 h-10 text-slate-400" />
-              </div>
-            )}
-            <p className="text-sm font-medium text-blue-600 mt-2">Upload Agent Photo</p>
-          </label>
-          
-          <div className="space-y-4">
-              <input type="text" placeholder="Full Name" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
-              <div className="grid grid-cols-2 gap-4">
-                <input type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
-                <input type="tel" placeholder="Phone Number" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                  <select value={formData.gender} onChange={(e) => setFormData({...formData, gender: e.target.value})} className={`w-full p-4 bg-slate-50 border border-slate-200 rounded-xl ${!formData.gender ? 'text-slate-500' : 'text-slate-900'}`}>
-                      <option value="" disabled>Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                  </select>
-                  <input type="date" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
-              </div>
-              <input type="password" placeholder="Password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
-              
-              <div className="relative">
-                <button onClick={() => setIsSkillsOpen(!isSkillsOpen)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-left flex justify-between items-center">
-                    <span className={selectedSkills.length === 0 ? 'text-slate-400' : 'text-slate-900'}>
-                        {selectedSkills.length > 0 ? selectedSkills.join(', ') : 'Select Skills'}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
-                </button>
-                {isSkillsOpen && (
-                    <div className="absolute z-10 w-full bg-white border border-slate-200 rounded-xl shadow-lg mt-1 max-h-40 overflow-y-auto">
-                        {AVAILABLE_SKILLS.filter(s => !selectedSkills.includes(s)).map(s => (
-                            <button key={s} onClick={() => { setSelectedSkills([...selectedSkills, s]); setIsSkillsOpen(false); }} className="w-full p-3 text-left hover:bg-blue-50 text-sm">
-                                {s}
-                            </button>
-                        ))}
-                    </div>
+      <SlidePanel isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} title={drawerMode === "view" ? "View Service Agent" : (drawerMode === "edit" ? "Edit Service Agent" : "Register New Service Agent")}>
+        <div className="space-y-8 h-full flex flex-col">
+          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+            {/* Profile Image */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700">Profile Image</label>
+            <label className={`block w-full border-2 border-dashed border-blue-300 rounded-xl p-8 flex flex-col items-center justify-center bg-blue-50/50 transition-colors ${drawerMode === "view" ? 'cursor-default' : 'cursor-pointer hover:bg-blue-50'}`}>
+              <input type="file" disabled={drawerMode === "view"} className="hidden" onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setPhoto(URL.createObjectURL(e.target.files[0]));
+                }
+              }} />
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border border-slate-100 shadow-sm mb-3 overflow-hidden">
+                {photo ? (
+                  <img src={photo} className="w-full h-full object-cover" alt="Preview" />
+                ) : (
+                  <Car className="w-8 h-8 text-blue-400" />
                 )}
               </div>
-              
-              <div className="p-4 border-2 border-dashed border-slate-200 rounded-xl text-center text-slate-400">Upload Documents</div>
-              <div className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <span className="font-medium text-slate-700">Active Status</span>
-                <input type="checkbox" className="w-6 h-6" defaultChecked />
+              {drawerMode !== "view" && <span className="text-sm font-semibold text-blue-600">Upload Agent Photo</span>}
+            </label>
+          </div>
+          
+          {/* Basic Info */}
+          <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Basic Information</h4>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input type="text" placeholder="Enter full name" disabled={drawerMode === "view"} value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                  <input type="email" placeholder="name@example.com" disabled={drawerMode === "view"} value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                  <input type="tel" placeholder="+1 234 567 8900" disabled={drawerMode === "view"} value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Gender</label>
+                    <select disabled={drawerMode === "view"} value={formData.gender} onChange={(e) => setFormData({...formData, gender: e.target.value})} className={`w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50 ${!formData.gender ? 'text-slate-500' : 'text-slate-900'}`}>
+                        <option value="" disabled>Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Joining Date</label>
+                    <input type="date" disabled={drawerMode === "view"} className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50" />
+                  </div>
               </div>
           </div>
 
-          <div className="flex gap-4 pt-4 border-t">
-            <button onClick={() => setIsDrawerOpen(false)} className="flex-1 p-4 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200">Cancel</button>
-            <button onClick={handleSubmit} className="flex-1 p-4 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-lg shadow-blue-200">{editingAgentId ? "Update Agent" : "Register Agent"}</button>
+          {/* Security & Access */}
+          <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Security & Access</h4>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                <input type="password" placeholder="••••••••" disabled={drawerMode === "view"} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50" />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Skills</label>
+                <div className="relative">
+                  <button disabled={drawerMode === "view"} onClick={() => setIsSkillsOpen(!isSkillsOpen)} className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all bg-white disabled:opacity-70 disabled:bg-slate-50 text-left flex justify-between items-center">
+                      <span className={selectedSkills.length === 0 ? 'text-slate-400' : 'text-slate-900'}>
+                          {selectedSkills.length > 0 ? selectedSkills.join(', ') : 'Select Skills'}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                  </button>
+                  {isSkillsOpen && (
+                      <div className="absolute z-10 w-full bg-white border border-slate-200 rounded-lg shadow-lg mt-1 max-h-40 overflow-y-auto">
+                          {AVAILABLE_SKILLS.filter(s => !selectedSkills.includes(s)).map(s => (
+                              <button key={s} onClick={() => { setSelectedSkills([...selectedSkills, s]); setIsSkillsOpen(false); }} className="w-full p-3 text-left hover:bg-blue-50 text-sm">
+                                  {s}
+                              </button>
+                          ))}
+                      </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="p-4 border-2 border-dashed border-slate-300 rounded-lg text-center text-sm text-slate-500">Upload Documents</div>
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <span className="text-sm font-medium text-slate-700">Active Status</span>
+                <input type="checkbox" disabled={drawerMode === "view"} className="w-5 h-5 accent-blue-600 disabled:opacity-70" defaultChecked />
+              </div>
+          </div>
+          </div>
+
+          <div className="flex gap-4 pt-4 border-t border-slate-200 mt-auto bg-white">
+            {drawerMode === "view" ? (
+              <button onClick={() => setIsDrawerOpen(false)} className="flex-1 p-4 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200">Close</button>
+            ) : (
+              <>
+                <button onClick={() => setIsDrawerOpen(false)} className="flex-1 p-4 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200">Cancel</button>
+                <button onClick={handleSubmit} className="flex-1 p-4 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-lg shadow-blue-200">{drawerMode === "edit" ? "Update Agent" : "Register Agent"}</button>
+              </>
+            )}
           </div>
         </div>
       </SlidePanel>

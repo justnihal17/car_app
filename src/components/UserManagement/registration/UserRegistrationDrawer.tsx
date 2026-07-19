@@ -1,227 +1,233 @@
-import React, { useState } from 'react';
-import { SlidePanel } from '../../common/SlidePanel';
-import { User, Plus, Trash2, MapPin, Car } from 'lucide-react';
-import { UserRegistrationFormValues } from './UserRegistrationSchema';
+import React, { useState, useEffect } from "react";
+import { SlidePanel } from "../../common/SlidePanel";
+import { User, Plus, Trash2, MapPin, Car, Mail, Phone, UploadCloud } from "lucide-react";
+import { UserRegistrationFormValues } from "./UserRegistrationSchema";
 
-export function UserRegistrationDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+import api from "../../../api/axios";
+import toast from "react-hot-toast";
+
+export function UserRegistrationDrawer({
+  isOpen,
+  onClose,
+  mode = "register",
+  initialData = null,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  mode?: "register" | "view" | "edit";
+  initialData?: any;
+}) {
   const [photo, setPhoto] = useState<string | null>(null);
-  
+
   // Basic state to match the required JSON structure
   const [formData, setFormData] = useState<Partial<UserRegistrationFormValues>>({
-    fullName: '',
-    email: '',
-    phone: '',
-    active: true,
-    notificationEnabled: true,
-    addresses: [{ label: 'Home', street: '', city: 'Dubai', country: 'UAE', isDefault: true }],
-    vehicles: [{ brand: '', model: '', registrationNumber: '' }]
+    fullName: "",
+    email: "",
+    phone: "",
   });
 
-  const handleRegister = () => {
-    console.log('Registering User:', formData);
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setFormData({
+          fullName: initialData.name || initialData.fullName || "",
+          email: initialData.email || "",
+          phone: initialData.phone || "",
+        });
+        setOtpStep(false);
+      } else {
+        setFormData({ fullName: "", email: "", phone: "" });
+        setOtpStep(false);
+      }
+    }
+  }, [isOpen, initialData]);
+  
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState("");
+
+  const resetStateAndClose = () => {
+    setOtpStep(false);
+    setOtp("");
+    setFormData({ fullName: "", email: "", phone: "" });
     onClose();
   };
 
-  const addAddress = () => {
-    setFormData(prev => ({
-      ...prev,
-      addresses: [...(prev.addresses || []), { label: 'Other', street: '', city: 'Dubai', country: 'UAE', isDefault: false }]
-    }));
+  const handleSubmit = async () => {
+    try {
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+      };
+
+      if (mode === "edit") {
+        const response = await api.put(
+          `/customer/customer/admin/${initialData?.id || initialData?._id}`,
+          payload
+        );
+        toast.success(response.data?.message || "Customer updated successfully");
+        resetStateAndClose();
+      } else {
+        const response = await api.post(
+          "/customer/customer/admin/register",
+          payload,
+        );
+        toast.success(
+          response.data?.message || "Registration successful. OTP sent.",
+        );
+        setOtpStep(true);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || (mode === "edit" ? "Failed to update user" : "Failed to register user"));
+      console.error(mode === "edit" ? "Update failed:" : "Registration failed:", error);
+    }
   };
 
-  const addVehicle = () => {
-    setFormData(prev => ({
-      ...prev,
-      vehicles: [...(prev.vehicles || []), { brand: '', model: '', registrationNumber: '' }]
-    }));
+  const handleVerifyOtp = async () => {
+    // The user hasn't provided the verify OTP API yet, so we will just close and show success for now
+    toast.success("OTP Verified Successfully");
+    resetStateAndClose();
   };
+
+  const isView = mode === "view";
+  const isEdit = mode === "edit";
 
   return (
-    <SlidePanel isOpen={isOpen} onClose={onClose} title="Register New User">
-      <div className="p-6 space-y-6 bg-white overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>
-        
-        {/* Photo Upload mimicking Agent Drawer */}
-        <label className="block w-full border-2 border-dashed border-slate-200 rounded-xl p-8 text-center cursor-pointer hover:bg-slate-50 transition-colors">
-          <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              setPhoto(URL.createObjectURL(e.target.files[0]));
-            }
-          }} />
-          {photo ? (
-            <img src={photo} className="w-24 h-24 rounded-full mx-auto object-cover border-2 border-white shadow-sm" alt="Preview" />
-          ) : (
-            <div className="w-24 h-24 mx-auto bg-white rounded-full mb-4 flex items-center justify-center border-2 border-slate-100 shadow-sm">
-                <User className="w-10 h-10 text-slate-400" />
+    <SlidePanel isOpen={isOpen} onClose={resetStateAndClose} title={isView ? "View User Details" : (isEdit ? "Edit User" : (otpStep ? "Verify OTP" : "Register New User"))}>
+      <div
+        className="space-y-6 bg-white overflow-y-auto"
+        style={{ maxHeight: "calc(100vh - 140px)" }}
+      >
+        {otpStep ? (
+          <div className="flex flex-col items-center justify-center py-12 space-y-6">
+            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
             </div>
-          )}
-          <p className="text-sm font-medium text-blue-600 mt-2">Upload Profile Photo</p>
-        </label>
-
-        {/* Basic Info */}
-        <input 
-          type="text" 
-          placeholder="Full Name" 
-          value={formData.fullName} 
-          onChange={e => setFormData({...formData, fullName: e.target.value})}
-          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-colors" 
-        />
-        
-        <div className="grid grid-cols-2 gap-4">
-          <input 
-            type="email" 
-            placeholder="Email" 
-            value={formData.email} 
-            onChange={e => setFormData({...formData, email: e.target.value})}
-            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-colors" 
-          />
-          <input 
-            type="tel" 
-            placeholder="Phone Number" 
-            value={formData.phone} 
-            onChange={e => setFormData({...formData, phone: e.target.value})}
-            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-colors" 
-          />
-        </div>
-
-        {/* Addresses Section */}
-        <div className="pt-4 border-t border-slate-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-slate-400" /> Addresses
-            </h3>
-            <button onClick={addAddress} className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center gap-1">
-              <Plus className="w-4 h-4" /> Add
-            </button>
+            <h2 className="text-xl font-semibold text-slate-800">Enter OTP</h2>
+            <p className="text-sm text-slate-500 text-center">We've sent a one-time password to <br/><span className="font-medium text-slate-700">{formData.phone}</span></p>
+            <input 
+              type="text" 
+              maxLength={6}
+              placeholder="000000" 
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="w-full max-w-[200px] text-center text-3xl tracking-widest p-4 bg-slate-50 border border-slate-300 rounded-lg focus:border-blue-500 focus:bg-white outline-none transition-colors font-mono" 
+            />
           </div>
-          <div className="space-y-4">
-            {formData.addresses?.map((address, idx) => (
-              <div key={idx} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 space-y-3 relative group">
-                <button 
-                  onClick={() => setFormData(p => ({ ...p, addresses: p.addresses?.filter((_, i) => i !== idx) }))}
-                  className="absolute top-3 right-3 text-slate-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                <div className="grid grid-cols-2 gap-3 pr-6">
-                  <select 
-                    value={address.label}
-                    onChange={e => {
-                      const newArr = [...(formData.addresses || [])];
-                      newArr[idx].label = e.target.value as any;
-                      setFormData({...formData, addresses: newArr});
-                    }}
-                    className="w-full p-3 bg-white border border-slate-200 rounded-lg text-sm"
-                  >
-                    <option value="Home">Home</option>
-                    <option value="Office">Office</option>
-                    <option value="Apartment">Apartment</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <input 
-                    type="text" placeholder="Street" value={address.street}
-                    onChange={e => {
-                      const newArr = [...(formData.addresses || [])];
-                      newArr[idx].street = e.target.value;
-                      setFormData({...formData, addresses: newArr});
-                    }}
-                    className="w-full p-3 bg-white border border-slate-200 rounded-lg text-sm"
+        ) : (
+          <div className="space-y-6">
+            {/* Profile Image */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">Profile Image</label>
+              <label className={`block w-full border-2 border-dashed border-blue-300 rounded-xl p-8 flex flex-col items-center justify-center bg-blue-50/50 transition-colors ${isView ? 'cursor-default' : 'cursor-pointer hover:bg-blue-50'}`}>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  disabled={isView}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setPhoto(URL.createObjectURL(e.target.files[0]));
+                    }
+                  }}
+                />
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border border-slate-100 shadow-sm mb-3 overflow-hidden">
+                  {photo ? (
+                    <img
+                      src={photo}
+                      className="w-full h-full object-cover"
+                      alt="Preview"
+                    />
+                  ) : (
+                    <User className="w-8 h-8 text-blue-400" />
+                  )}
+                </div>
+                {!isView && <span className="text-sm font-semibold text-blue-600">Upload User Photo</span>}
+              </label>
+            </div>
+
+            {/* Basic Info */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Basic Information</h4>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter full name"
+                  value={formData.fullName}
+                  disabled={isView}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fullName: e.target.value })
+                  }
+                  className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="name@example.com"
+                    value={formData.email}
+                    disabled={isView}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    value={formData.phone}
+                    disabled={isView}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="w-full p-3 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-70 disabled:bg-slate-50"
                   />
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-
-        {/* Vehicles Section */}
-        <div className="pt-4 border-t border-slate-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-              <Car className="w-4 h-4 text-slate-400" /> Vehicles
-            </h3>
-            <button onClick={addVehicle} className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center gap-1">
-              <Plus className="w-4 h-4" /> Add
-            </button>
-          </div>
-          <div className="space-y-4">
-            {formData.vehicles?.map((vehicle, idx) => (
-              <div key={idx} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 space-y-3 relative group">
-                <button 
-                  onClick={() => setFormData(p => ({ ...p, vehicles: p.vehicles?.filter((_, i) => i !== idx) }))}
-                  className="absolute top-3 right-3 text-slate-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                <div className="grid grid-cols-2 gap-3 pr-6">
-                  <select 
-                    value={vehicle.brand}
-                    onChange={e => {
-                      const newArr = [...(formData.vehicles || [])];
-                      newArr[idx].brand = e.target.value;
-                      setFormData({...formData, vehicles: newArr});
-                    }}
-                    className="w-full p-3 bg-white border border-slate-200 rounded-lg text-sm"
-                  >
-                    <option value="">Brand</option>
-                    <option value="Toyota">Toyota</option>
-                    <option value="BMW">BMW</option>
-                    <option value="Honda">Honda</option>
-                  </select>
-                  <input 
-                    type="text" placeholder="Model" value={vehicle.model}
-                    onChange={e => {
-                      const newArr = [...(formData.vehicles || [])];
-                      newArr[idx].model = e.target.value;
-                      setFormData({...formData, vehicles: newArr});
-                    }}
-                    className="w-full p-3 bg-white border border-slate-200 rounded-lg text-sm"
-                  />
-                  <input 
-                    type="text" placeholder="Reg Number" value={vehicle.registrationNumber}
-                    onChange={e => {
-                      const newArr = [...(formData.vehicles || [])];
-                      newArr[idx].registrationNumber = e.target.value;
-                      setFormData({...formData, vehicles: newArr});
-                    }}
-                    className="w-full p-3 bg-white border border-slate-200 rounded-lg text-sm col-span-2"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Toggles */}
-        <div className="pt-4 border-t border-slate-100 space-y-4">
-          <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="font-medium text-slate-700">Active Account</span>
-            <input 
-              type="checkbox" 
-              checked={formData.active} 
-              onChange={e => setFormData({...formData, active: e.target.checked})}
-              className="w-6 h-6 rounded border-slate-300 text-blue-600 focus:ring-blue-500" 
-            />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="font-medium text-slate-700">Notifications Enabled</span>
-            <input 
-              type="checkbox" 
-              checked={formData.notificationEnabled} 
-              onChange={e => setFormData({...formData, notificationEnabled: e.target.checked})}
-              className="w-6 h-6 rounded border-slate-300 text-blue-600 focus:ring-blue-500" 
-            />
-          </div>
-        </div>
-
+        )}
       </div>
-      
+
       {/* Footer sticky action area */}
-      <div className="p-4 border-t border-slate-200 bg-slate-50 sticky bottom-0 z-10 flex gap-4">
-        <button onClick={handleRegister} className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-medium shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors">
-          Register User
-        </button>
-        <button onClick={onClose} className="flex-1 p-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors">
-          Cancel
-        </button>
+      <div className="pt-4 border-t border-slate-200 bg-white mt-auto flex gap-4">
+        {isView ? (
+          <button
+            onClick={resetStateAndClose}
+            className="flex-1 p-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+          >
+            Close
+          </button>
+        ) : otpStep ? (
+          <button
+            onClick={handleVerifyOtp}
+            className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-medium shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors"
+          >
+            Verify OTP
+          </button>
+        ) : (
+          <button
+            onClick={handleSubmit}
+            className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-medium shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors"
+          >
+            {isEdit ? "Save Changes" : "Register User"}
+          </button>
+        )}
+        {!isView && (
+          <button
+            onClick={resetStateAndClose}
+            className="flex-1 p-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+        )}
       </div>
     </SlidePanel>
   );

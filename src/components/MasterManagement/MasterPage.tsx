@@ -147,7 +147,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                              <span>{editingItem[f.name] || 'Inactive'}</span>
                         </div>
                     ) : (
-                        <input disabled={mode === 'view'} required value={editingItem[f.name] || ''} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} placeholder={f.label} className="w-full p-4 border rounded-xl" />
+                        <input type={f.type || 'text'} disabled={mode === 'view'} required value={editingItem[f.name] || ''} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} placeholder={f.label} className="w-full p-4 border rounded-xl" />
                     )}
                 </div>
             ))}

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Users, UserCheck, UserX, UserMinus, UserPlus, LogIn, Plus, Download, Search, Filter, MoreHorizontal, Settings, RefreshCw } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, UserCheck, UserX, UserMinus, UserPlus, LogIn, Plus, Download, Search, Filter, MoreHorizontal, Settings, RefreshCw, Trash2, Eye, Edit2 } from 'lucide-react';
 import { AnalyticsCard } from '../common/AnalyticsCard';
 import { SlidePanel } from '../common/SlidePanel';
 import { StatusBadge } from '../StatusBadge';
@@ -11,9 +11,66 @@ const USERS = [
 ];
 
 import { UserRegistrationDrawer } from './registration/UserRegistrationDrawer';
+import api from '../../api/axios';
+import toast from 'react-hot-toast';
 
 export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => void }) {
+  const [usersList, setUsersList] = useState<any[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<"register" | "view">("register");
+  const [selectedUserForDrawer, setSelectedUserForDrawer] = useState<any>(null);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/customer/customer');
+      const mapped = response.data.data.map((user: any) => ({
+        id: user._id,
+        name: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        city: 'N/A', // Assuming city isn't in backend payload right now
+        status: user.active ? 'Active' : (user.blocked ? 'Blocked' : 'Pending'),
+        orders: 0,
+        membership: 'Standard',
+        ...user
+      }));
+      setUsersList(mapped);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to fetch customers');
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleDelete = async (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+      try {
+        const response = await api.delete(`/customer/customer/${id}`);
+        toast.success(response.data?.message || 'Customer soft deleted successfully');
+        setUsersList(usersList.filter(u => u.id !== id));
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || 'Failed to delete customer');
+      }
+    }
+  };
+
+  const handleBlockToggle = async (e: React.MouseEvent, user: any) => {
+    e.stopPropagation();
+    const isCurrentlyBlocked = user.status === 'Blocked';
+    if (window.confirm(`Are you sure you want to ${isCurrentlyBlocked ? 'unblock' : 'block'} ${user.name}?`)) {
+      try {
+      const newBlockedStatus = !(user.status === 'Blocked');
+      const response = await api.put(`/customer/customer/admin/${user.id}`, { blocked: newBlockedStatus });
+      toast.success(response.data?.message || `Customer ${newBlockedStatus ? 'blocked' : 'unblocked'} successfully`);
+      setUsersList(usersList.map(u => u.id === user.id ? { ...u, status: newBlockedStatus ? 'Blocked' : 'Active' } : u));
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update customer status');
+    }
+  }
+};
 
   return (
     <div className="p-8 space-y-8 bg-slate-50 min-h-screen">
@@ -24,7 +81,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
           <p className="text-slate-600 mt-1">Manage all registered users, permissions, account status and activity.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => setIsDrawerOpen(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium text-sm transition-all shadow-lg shadow-blue-200">
+          <button onClick={() => { setDrawerMode("register"); setSelectedUserForDrawer(null); setIsDrawerOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium text-sm transition-all shadow-lg shadow-blue-200">
             <Plus className="w-4 h-4" /> Register User
           </button>
           <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 font-medium text-sm transition-all">
@@ -37,12 +94,12 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
-        <AnalyticsCard title="Total Users" value="2,400" icon={Users} trend="12%" trendUp />
-        <AnalyticsCard title="Active" value="2,100" icon={UserCheck} trend="5%" trendUp />
-        <AnalyticsCard title="Inactive" value="250" icon={UserMinus} trend="2%" />
-        <AnalyticsCard title="Blocked" value="50" icon={UserX} trend="1%" />
-        <AnalyticsCard title="Pending" value="100" icon={LogIn} trend="3%" />
-        <AnalyticsCard title="Today" value="20" icon={Plus} trend="8%" trendUp />
+        <AnalyticsCard title="Total Users" value={usersList.length.toString()} icon={Users} />
+        <AnalyticsCard title="Active" value={usersList.filter(u => u.status === 'Active').length.toString()} icon={UserCheck} />
+        <AnalyticsCard title="Inactive" value={usersList.filter(u => u.status === 'Inactive').length.toString()} icon={UserMinus} />
+        <AnalyticsCard title="Blocked" value={usersList.filter(u => u.status === 'Blocked').length.toString()} icon={UserX} />
+        <AnalyticsCard title="Pending" value={usersList.filter(u => u.status === 'Pending').length.toString()} icon={LogIn} />
+        <AnalyticsCard title="Today" value={usersList.filter(u => u.createdAt && new Date(u.createdAt).toDateString() === new Date().toDateString()).length.toString()} icon={Plus} />
       </div>
 
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
@@ -69,7 +126,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {USERS.map(user => (
+            {usersList.map(user => (
               <motion.tr key={user.id} whileHover={{ backgroundColor: '#f8fafc' }} className="cursor-pointer" onClick={() => onUserSelect(user.id)}>
                 <td className="p-4 font-medium text-slate-900">{user.name}</td>
                 <td className="p-4 text-slate-600">{user.email}<br/>{user.phone}</td>
@@ -77,14 +134,33 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                 <td className="p-4 text-slate-600">{user.orders}</td>
                 <td className="p-4 text-slate-600">{user.membership}</td>
                 <td className="p-4"><StatusBadge status={user.status as any} /></td>
-                <td className="p-4"><MoreHorizontal className="w-5 h-5 text-slate-400" /></td>
+                <td className="p-4 flex gap-2 items-center">
+                  <button onClick={(e) => { e.stopPropagation(); setDrawerMode("view"); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }} className="text-blue-600 hover:text-blue-800 p-1" title="View Details"><Eye className="w-4 h-4"/></button>
+                  <button onClick={(e) => { e.stopPropagation(); setDrawerMode("edit"); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }} className="text-blue-600 hover:text-blue-800 p-1" title="Edit User"><Edit2 className="w-4 h-4"/></button>
+                  <button onClick={(e) => handleDelete(e, user.id, user.name)} className="text-red-600 hover:text-red-800 p-1" title="Delete User"><Trash2 className="w-4 h-4"/></button>
+                  {user.status === 'Blocked' ? (
+                    <button onClick={(e) => handleBlockToggle(e, user)} className="text-emerald-600 hover:text-emerald-900 p-1" title="Unblock User"><UserCheck className="w-4 h-4"/></button>
+                  ) : (
+                    <button onClick={(e) => handleBlockToggle(e, user)} className="text-slate-600 hover:text-slate-900 p-1" title="Block User"><UserX className="w-4 h-4"/></button>
+                  )}
+                </td>
               </motion.tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <UserRegistrationDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+      <UserRegistrationDrawer 
+        isOpen={isDrawerOpen} 
+        mode={drawerMode}
+        initialData={selectedUserForDrawer}
+        onClose={() => {
+            setIsDrawerOpen(false);
+            if (drawerMode === "register" || drawerMode === "edit") {
+              fetchUsers(); // Refresh list after potential update or registration
+            }
+        }} 
+      />
     </div>
   );
 }
