@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Plus, Edit, Trash2, Eye, LayoutDashboard, Shield, Wrench } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, Plus, Edit, Trash2, Eye, LayoutDashboard, Shield, Wrench, UserCheck, UserX } from 'lucide-react';
 import { AnalyticsCard } from '../common/AnalyticsCard';
 import { StatusBadge } from '../StatusBadge';
 import { SlidePanel } from '../common/SlidePanel';
+import api from '../../api/axios';
+import toast from 'react-hot-toast';
 
 interface FieldConfig {
     name: string;
@@ -18,16 +20,45 @@ interface MasterPageProps {
 }
 
 export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
-  const [data, setData] = useState([
-    { id: '1', name: `${moduleName} 1`, status: 'Active' as const },
-    { id: '2', name: `${moduleName} 2`, status: 'Inactive' as const },
-  ]);
+  const [data, setData] = useState<any[]>([]);
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>({});
   const [mode, setMode] = useState<'add' | 'edit' | 'view'>('add');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
+
+  const fetchData = async () => {
+    try {
+      const response = await api.get(`/master/${moduleName.toLowerCase()}`);
+      if (response.data?.success) {
+        const mapped = response.data.data.map((item: any) => ({
+          id: item._id,
+          name: item.name || '',
+          status: item.active !== false ? 'Active' : 'Inactive',
+          ...item
+        }));
+        setData(mapped);
+      }
+    } catch (error: any) {
+      console.error(`Failed to fetch ${moduleName}:`, error);
+      const isLiveModule = ['role', 'state'].includes(moduleName.toLowerCase());
+      if (!isLiveModule) {
+        // Fallback for non-live master pages
+        setData([
+          { id: '1', name: `${moduleName} 1`, status: 'Active' as const },
+          { id: '2', name: `${moduleName} 2`, status: 'Inactive' as const },
+        ]);
+      } else {
+        setData([]);
+        toast.error(`Failed to fetch ${moduleName} list`);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [moduleName]);
 
   const filteredData = useMemo(() => {
     return data.filter(item =>
@@ -42,32 +73,136 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     { title: 'Inactive', value: data.filter(d => d.status === 'Inactive').length, icon: Wrench },
   ];
 
+  const handleStatusToggle = async (id: string, currentStatus: string) => {
+    try {
+      const newActive = currentStatus !== 'Active';
+      const response = await api.put(`/master/${moduleName.toLowerCase()}/${id}`, {
+        active: newActive
+      });
+      if (response.data?.success) {
+        toast.success(response.data?.message || `${moduleName} status updated successfully`);
+        fetchData();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || `Failed to update status`);
+    }
+  };
+
   const handleAdd = () => { setMode('add'); setEditingItem({ status: 'Active' }); setIsPanelOpen(true); };
-  const handleEdit = (item: any) => { setMode('edit'); setEditingItem(item); setIsPanelOpen(true); };
-  const handleView = (item: any) => { setMode('view'); setEditingItem(item); setIsPanelOpen(true); };
   
-  const handleDelete = (id: string, name: string) => {
+  const handleEdit = (item: any) => { 
+    setMode('edit'); 
+    setEditingItem({
+      ...item,
+      id: item.id
+    }); 
+    setIsPanelOpen(true); 
+  };
+
+  const handleView = async (item: any) => { 
+    try {
+      const response = await api.get(`/master/${moduleName.toLowerCase()}/${item.id}`);
+      if (response.data?.success) {
+        const doc = response.data.data;
+        setEditingItem({
+          id: doc._id,
+          name: doc.name || '',
+          status: doc.active !== false ? 'Active' : 'Inactive',
+          ...doc
+        });
+        setMode('view');
+        setIsPanelOpen(true);
+      }
+    } catch (error: any) {
+      setMode('view');
+      setEditingItem(item);
+      setIsPanelOpen(true);
+    }
+  };
+  
+  const handleDelete = async (id: string, name: string) => {
     if (moduleName === 'State' && data.some(d => d.name === name)) { // Placeholder: needs actual linked-city check
         alert(`This state has linked cities. Remove them first.`);
         return;
     }
     if (confirm(`Are you sure you want to delete ${name}?`)) {
-        setData(data.filter(d => d.id !== id));
+      try {
+        const response = await api.delete(`/master/${moduleName.toLowerCase()}/${id}`);
+        if (response.data?.success) {
+          toast.success(response.data?.message || `${moduleName} deleted successfully`);
+          fetchData();
+        }
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || `Failed to delete ${moduleName}`);
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (data.some(d => d.name === editingItem.name && d.id !== editingItem.id)) {
         alert("This name already exists.");
         return;
     }
-    if (mode === 'add') {
-      setData([...data, { ...editingItem, id: String(data.length + 1) }]);
-    } else {
-      setData(data.map(d => d.id === editingItem.id ? editingItem : d));
+
+    try {
+      const payload: any = {
+        name: editingItem.name
+      };
+      if (editingItem.status !== undefined) {
+        payload.active = editingItem.status === 'Active';
+      }
+      fields.forEach(f => {
+        if (f.name !== 'status' && f.name !== 'name') {
+          payload[f.name] = editingItem[f.name];
+        }
+      });
+
+      if (mode === 'add') {
+        const response = await api.post(`/master/${moduleName.toLowerCase()}`, payload);
+        if (response.data?.success) {
+          toast.success(response.data?.message || `${moduleName} created successfully`);
+          fetchData();
+        }
+      } else {
+        const response = await api.put(`/master/${moduleName.toLowerCase()}/${editingItem.id}`, payload);
+        if (response.data?.success) {
+          toast.success(response.data?.message || `${moduleName} updated successfully`);
+          fetchData();
+        }
+      }
+      setIsPanelOpen(false);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || `Failed to save ${moduleName}`);
     }
-    setIsPanelOpen(false);
+  };
+
+  const getColWidthClass = (col: string, total: number) => {
+    const cLower = col.toLowerCase();
+    if (total === 2) {
+      return 'w-1/3';
+    }
+    if (total === 4) {
+      if (cLower.includes('name')) return 'w-[35%]';
+      if (cLower === 'category') return 'w-[20%]';
+      if (cLower === 'price') return 'w-[15%]';
+      if (cLower === 'status') return 'w-[15%]';
+    }
+    if (cLower.includes('name')) {
+      return 'w-[50%]';
+    }
+    if (cLower === 'status') {
+      return 'w-[15%]';
+    }
+    return 'w-[20%]';
+  };
+
+  const getColAlignClass = (col: string) => {
+    const cLower = col.toLowerCase();
+    if (cLower.includes('name')) {
+      return 'text-left px-6';
+    }
+    return 'text-center';
   };
 
   return (
@@ -103,23 +238,68 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
+        <table className="w-full text-left table-fixed">
           <thead className="bg-slate-100 border-b border-slate-200">
             <tr>
-              {columns.map(col => <th key={col} className="px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs">{col}</th>)}
-              <th className="px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs">Actions</th>
+              {columns.map(col => (
+                <th key={col} className={`px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs ${getColWidthClass(col, columns.length)} ${getColAlignClass(col)}`}>
+                  {col}
+                </th>
+              ))}
+              <th className={`px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs text-right ${columns.length === 2 ? 'w-1/3' : (columns.length === 4 ? 'w-[15%]' : 'w-[15%]')}`}>
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredData.map(row => (
+            {filteredData.map((row, index) => (
               <tr key={row.id} className="hover:bg-slate-50 transition-colors group">
-                <td className="px-6 py-5 font-medium text-slate-900">{row.id}</td>
-                <td className="px-6 py-5 text-slate-600">{row.name}</td>
-                <td className="px-6 py-5"><StatusBadge status={row.status} /></td>
-                <td className="px-6 py-5 flex gap-2">
-                  <button onClick={() => handleView(row)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><Eye className="w-5 h-5" /></button>
-                  <button onClick={() => handleEdit(row)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><Edit className="w-5 h-5" /></button>
-                  <button onClick={() => handleDelete(row.id, row.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-5 h-5" /></button>
+                {columns.map(col => {
+                  const cUpper = col.toUpperCase();
+                  const widthClass = getColWidthClass(col, columns.length);
+                  const alignClass = getColAlignClass(col);
+                  if (cUpper === 'ID') {
+                    return <td key={col} className={`px-6 py-5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{row.id}</td>;
+                  }
+                  if (cUpper === 'S.NO' || cUpper === 'S.NO.') {
+                    return <td key={col} className={`px-6 py-5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{index + 1}</td>;
+                  }
+                  if (col.toLowerCase().includes('name')) {
+                    return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{row.name}</td>;
+                  }
+                  if (col.toLowerCase() === 'status') {
+                    return (
+                      <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
+                        <div className="inline-block">
+                          <StatusBadge status={row.status} />
+                        </div>
+                      </td>
+                    );
+                  }
+                  const fieldKey = col.toLowerCase().replace(' ', '');
+                  return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{row[fieldKey] || '-'}</td>;
+                })}
+                <td className={`px-6 py-5 ${columns.length === 2 ? 'w-1/3' : (columns.length === 4 ? 'w-[15%]' : 'w-[15%]')}`}>
+                  <div className="flex gap-3 items-center justify-end">
+                    <button onClick={() => handleView(row)} className="text-blue-600 hover:text-blue-800 p-1 transition-colors" title="View Details">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-800 p-1 transition-colors" title="Edit Item">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDelete(row.id, row.name)} className="text-red-600 hover:text-red-800 p-1 transition-colors" title="Delete Item">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    {row.status === 'Active' ? (
+                      <button onClick={() => handleStatusToggle(row.id, row.status)} className="text-slate-600 hover:text-slate-900 p-1 transition-colors" title="Deactivate">
+                        <UserX className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button onClick={() => handleStatusToggle(row.id, row.status)} className="text-emerald-600 hover:text-emerald-900 p-1 transition-colors" title="Activate">
+                        <UserCheck className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -128,7 +308,8 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       </div>
 
       <SlidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} title={`${mode === 'add' ? 'Add' : mode === 'edit' ? 'Edit' : 'View'} ${moduleName}`}>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
             {fields.map(f => (
                 <div key={f.name}>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{f.label}</label>
@@ -137,21 +318,35 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                             disabled={mode === 'view' || (moduleName === 'State' && f.name === 'country')} 
                             value={editingItem[f.name] || (moduleName === 'State' && f.name === 'country' ? 'UAE' : '')} 
                             onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} 
-                            className={`w-full p-4 border rounded-xl ${moduleName === 'State' && f.name === 'country' ? 'appearance-none' : ''}`}
+                            className={`w-full p-3 border border-slate-300 rounded-lg text-sm ${moduleName === 'State' && f.name === 'country' ? 'appearance-none bg-slate-50 text-slate-500' : 'bg-white'}`}
                         >
                             {f.options?.map(o => <option key={o} value={o}>{o}</option>)}
                         </select>
                     ) : f.type === 'toggle' ? (
-                        <div className="flex items-center gap-2">
-                             <input type="checkbox" disabled={mode === 'view'} checked={editingItem[f.name] === 'Active'} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.checked ? 'Active' : 'Inactive'})} />
-                             <span>{editingItem[f.name] || 'Inactive'}</span>
+                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                          <span className="text-sm font-medium text-slate-700">{editingItem[f.name] || 'Inactive'}</span>
+                          <button 
+                            type="button" 
+                            disabled={mode === 'view'}
+                            onClick={() => setEditingItem({...editingItem, [f.name]: editingItem[f.name] === 'Active' ? 'Inactive' : 'Active'})}
+                            className={`w-11 h-6 rounded-full transition-colors relative disabled:opacity-50 ${editingItem[f.name] === 'Active' ? 'bg-blue-600' : 'bg-slate-300'}`}
+                          >
+                            <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${editingItem[f.name] === 'Active' ? 'translate-x-6' : 'translate-x-1'}`} />
+                          </button>
                         </div>
                     ) : (
-                        <input type={f.type || 'text'} disabled={mode === 'view'} required value={editingItem[f.name] || ''} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} placeholder={f.label} className="w-full p-4 border rounded-xl" />
+                        <input type={f.type || 'text'} disabled={mode === 'view'} required value={editingItem[f.name] || ''} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} placeholder={f.label} className="w-full p-3 border border-slate-300 rounded-lg text-sm disabled:bg-slate-50 disabled:opacity-75" />
                     )}
                 </div>
             ))}
-            {mode !== 'view' && <button type="submit" className="w-full p-4 bg-blue-600 text-white rounded-xl font-bold">Save</button>}
+          </div>
+          {mode !== 'view' && (
+            <div className="pt-4 border-t border-slate-200 bg-white">
+              <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-200 transition-colors">
+                Save
+              </button>
+            </div>
+          )}
         </form>
       </SlidePanel>
     </div>

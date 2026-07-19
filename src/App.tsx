@@ -15,7 +15,9 @@ export default function App() {
     return !!localStorage.getItem('accessToken');
   });
   const [collapsed, setCollapsed] = useState(false);
-  const [currentView, setCurrentView] = useState("dashboard");
+  const [currentView, setCurrentView] = useState(() => {
+    return localStorage.getItem('currentView') || "dashboard";
+  });
   const { isNotificationOpen, isMessageOpen, isEditProfileOpen, toggleNotification, toggleMessage, toggleEditProfile } = useUIStore();
 
   const handleLogout = async () => {
@@ -27,8 +29,14 @@ export default function App() {
       localStorage.removeItem('adminProfile');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('currentView');
       setIsAuthenticated(false);
     }
+  };
+
+  const handleViewChange = (view: string) => {
+    setCurrentView(view);
+    localStorage.setItem('currentView', view);
   };
 
   if (!isAuthenticated) {
@@ -49,7 +57,7 @@ export default function App() {
           if (view === 'logout') {
             handleLogout();
           } else {
-            setCurrentView(view);
+            handleViewChange(view);
           }
         }}
       />
@@ -57,9 +65,9 @@ export default function App() {
       <div 
         className={`transition-all duration-300 ${collapsed ? 'pl-20' : 'pl-64'}`}
       >
-        <Header sidebarCollapsed={collapsed} onViewChange={setCurrentView} onLogout={handleLogout} />
+        <Header sidebarCollapsed={collapsed} onViewChange={handleViewChange} onLogout={handleLogout} />
         <main className="pt-16">
-          <DashboardContent currentView={currentView} onViewChange={setCurrentView} />
+          <DashboardContent currentView={currentView} onViewChange={handleViewChange} />
         </main>
       </div>
     </div>
