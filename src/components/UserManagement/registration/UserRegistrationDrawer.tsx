@@ -111,7 +111,7 @@ export function UserRegistrationDrawer({
               placeholder="000000" 
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full max-w-[200px] text-center text-3xl tracking-widest p-4 bg-slate-50 border border-slate-300 rounded-lg focus:border-blue-500 focus:bg-white outline-none transition-colors font-mono" 
+              className="w-full max-w-50 text-center text-3xl tracking-widest p-4 bg-slate-50 border border-slate-300 rounded-lg focus:border-blue-500 focus:bg-white outline-none transition-colors font-mono" 
             />
           </div>
         ) : (
@@ -119,7 +119,7 @@ export function UserRegistrationDrawer({
             {/* Profile Image */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-700">Profile Image</label>
-              <label className={`block w-full border-2 border-dashed border-blue-300 rounded-xl p-8 flex flex-col items-center justify-center bg-blue-50/50 transition-colors ${isView ? 'cursor-default' : 'cursor-pointer hover:bg-blue-50'}`}>
+              <label className={`block w-full border-2 border-dashed border-blue-300 rounded-xl p-8  flex-col items-center justify-center bg-blue-50/50 transition-colors ${isView ? 'cursor-default' : 'cursor-pointer hover:bg-blue-50'}`}>
                 <input
                   type="file"
                   className="hidden"

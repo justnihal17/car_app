@@ -21,7 +21,7 @@ import { SubAdminManagement } from './SubAdminManagement/SubAdminList';
 import { AgentWorkspace } from './AgentManagement/AgentWorkspace';
 import { AgentProfileWorkspace } from './AgentManagement/AgentProfileWorkspace';
 import { AgentRegistrationPage } from './AgentManagement/registration/AgentRegistrationPage';
-import { RolePage, SkillPage, StatePage, CityPage, ServicePage } from './MasterManagement/MasterViews';
+import { RolePage, SkillPage, StatePage, CityPage, ServicePage, BrandPage, ColorPage } from './MasterManagement/MasterViews';
 import { ProfileView } from './ProfileView';
 import { ReportsManager } from './ReportsManagement/ReportsManager';
 
@@ -85,6 +85,10 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return <CityPage />;
       case 'master-service':
         return <ServicePage />;
+      case 'master-brand':
+        return <BrandPage />;
+      case 'master-color':
+        return <ColorPage />;
       case 'drivers':
         if (selectedDriverId) {
           return <DriverDetails driverId={selectedDriverId} onBack={() => setSelectedDriverId(null)} />;

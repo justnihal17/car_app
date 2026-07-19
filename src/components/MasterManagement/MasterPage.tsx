@@ -27,6 +27,18 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const [mode, setMode] = useState<'add' | 'edit' | 'view'>('add');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
+  const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([]);
+  const [photo, setPhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isPanelOpen) {
+      if (editingItem.image) {
+        setPhoto(editingItem.image);
+      } else {
+        setPhoto(null);
+      }
+    }
+  }, [isPanelOpen, editingItem.image]);
 
   const fetchData = async () => {
     try {
@@ -34,7 +46,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       if (response.data?.success) {
         const mapped = response.data.data.map((item: any) => ({
           id: item._id,
-          name: item.name || '',
+          name: item.name || item.type || '',
           status: item.active !== false ? 'Active' : 'Inactive',
           ...item
         }));
@@ -42,7 +54,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       }
     } catch (error: any) {
       console.error(`Failed to fetch ${moduleName}:`, error);
-      const isLiveModule = ['role', 'state'].includes(moduleName.toLowerCase());
+      const isLiveModule = ['role', 'state', 'city', 'service', 'skill', 'brand', 'color'].includes(moduleName.toLowerCase());
       if (!isLiveModule) {
         // Fallback for non-live master pages
         setData([
@@ -60,11 +72,28 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     fetchData();
   }, [moduleName]);
 
+  useEffect(() => {
+    if (moduleName.toLowerCase() === 'city') {
+      const fetchStatesForDropdown = async () => {
+        try {
+          const response = await api.get('/master/state');
+          if (response.data?.success) {
+            setStateOptions(response.data.data.map((s: any) => ({ label: s.name, value: s._id })));
+          }
+        } catch (e) {
+          console.error("Failed to load states for dropdown", e);
+        }
+      };
+      fetchStatesForDropdown();
+    }
+  }, [moduleName]);
+
   const filteredData = useMemo(() => {
-    return data.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (statusFilter === 'All Status' || item.status === statusFilter)
-    );
+    return data.filter(item => {
+        const itemVal = item.name || item.type || '';
+        return itemVal.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (statusFilter === 'All Status' || item.status === statusFilter);
+    });
   }, [data, searchTerm, statusFilter]);
 
   const stats = [
@@ -92,9 +121,14 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   
   const handleEdit = (item: any) => { 
     setMode('edit'); 
+    let mappedState = item.state;
+    if (typeof item.state === 'object' && item.state) {
+      mappedState = item.state._id;
+    }
     setEditingItem({
       ...item,
-      id: item.id
+      id: item.id,
+      state: mappedState
     }); 
     setIsPanelOpen(true); 
   };
@@ -104,11 +138,16 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const response = await api.get(`/master/${moduleName.toLowerCase()}/${item.id}`);
       if (response.data?.success) {
         const doc = response.data.data;
+        let mappedState = doc.state;
+        if (typeof doc.state === 'object' && doc.state) {
+          mappedState = doc.state._id;
+        }
         setEditingItem({
           id: doc._id,
-          name: doc.name || '',
+          name: doc.name || doc.type || '',
           status: doc.active !== false ? 'Active' : 'Inactive',
-          ...doc
+          ...doc,
+          state: mappedState
         });
         setMode('view');
         setIsPanelOpen(true);
@@ -140,20 +179,22 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (data.some(d => d.name === editingItem.name && d.id !== editingItem.id)) {
+    const mainFieldKey = moduleName.toLowerCase() === 'service' ? 'type' : 'name';
+    const mainValue = editingItem[mainFieldKey] || editingItem.name || '';
+    if (data.some(d => (d.name || d.type) === mainValue && d.id !== editingItem.id)) {
         alert("This name already exists.");
         return;
     }
 
     try {
       const payload: any = {
-        name: editingItem.name
+        [mainFieldKey]: mainValue
       };
       if (editingItem.status !== undefined) {
         payload.active = editingItem.status === 'Active';
       }
       fields.forEach(f => {
-        if (f.name !== 'status' && f.name !== 'name') {
+        if (f.name !== 'status' && f.name !== 'name' && f.name !== 'type') {
           payload[f.name] = editingItem[f.name];
         }
       });
@@ -277,7 +318,11 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                     );
                   }
                   const fieldKey = col.toLowerCase().replace(' ', '');
-                  return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{row[fieldKey] || '-'}</td>;
+                  let cellValue = row[fieldKey];
+                  if (cellValue && typeof cellValue === 'object') {
+                    cellValue = cellValue.name || cellValue.type || cellValue.title || JSON.stringify(cellValue);
+                  }
+                  return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{cellValue || '-'}</td>;
                 })}
                 <td className={`px-6 py-5 ${columns.length === 2 ? 'w-1/3' : (columns.length === 4 ? 'w-[15%]' : 'w-[15%]')}`}>
                   <div className="flex gap-3 items-center justify-end">
@@ -290,15 +335,6 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                     <button onClick={() => handleDelete(row.id, row.name)} className="text-red-600 hover:text-red-800 p-1 transition-colors" title="Delete Item">
                       <Trash2 className="w-4 h-4" />
                     </button>
-                    {row.status === 'Active' ? (
-                      <button onClick={() => handleStatusToggle(row.id, row.status)} className="text-slate-600 hover:text-slate-900 p-1 transition-colors" title="Deactivate">
-                        <UserX className="w-4 h-4" />
-                      </button>
-                    ) : (
-                      <button onClick={() => handleStatusToggle(row.id, row.status)} className="text-emerald-600 hover:text-emerald-900 p-1 transition-colors" title="Activate">
-                        <UserCheck className="w-4 h-4" />
-                      </button>
-                    )}
                   </div>
                 </td>
               </tr>
@@ -310,7 +346,41 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       <SlidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} title={`${mode === 'add' ? 'Add' : mode === 'edit' ? 'Edit' : 'View'} ${moduleName}`}>
         <form onSubmit={handleSubmit} className="space-y-6 flex flex-col h-full">
           <div className="flex-1 overflow-y-auto space-y-6 pr-2">
-            {fields.map(f => (
+            {/* Logo / Image Upload container at the top of the form if fields config has an 'image' field */}
+            {fields.some(f => f.name === 'image') && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-slate-700">Logo / Image</label>
+                <label className={`block w-full border-2 border-dashed border-blue-300 rounded-xl p-8 flex flex-col items-center justify-center bg-blue-50/50 transition-colors ${mode === "view" ? 'cursor-default' : 'cursor-pointer hover:bg-blue-50'}`}>
+                  <input 
+                    type="file" 
+                    disabled={mode === "view"} 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        setPhoto(URL.createObjectURL(file));
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setEditingItem(prev => ({ ...prev, image: reader.result as string }));
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} 
+                  />
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border border-slate-100 shadow-sm mb-3 overflow-hidden">
+                    {photo ? (
+                      <img src={photo} className="w-full h-full object-cover" alt="Preview" />
+                    ) : (
+                      <Plus className="w-8 h-8 text-blue-400" />
+                    )}
+                  </div>
+                  {mode !== "view" && <span className="text-sm font-semibold text-blue-600">Upload Image</span>}
+                </label>
+              </div>
+            )}
+
+            {fields.filter(f => f.name !== 'image').map(f => (
                 <div key={f.name}>
                     <label className="block text-sm font-medium text-slate-700 mb-1">{f.label}</label>
                     {f.type === 'dropdown' ? (
@@ -318,9 +388,15 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                             disabled={mode === 'view' || (moduleName === 'State' && f.name === 'country')} 
                             value={editingItem[f.name] || (moduleName === 'State' && f.name === 'country' ? 'UAE' : '')} 
                             onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} 
-                            className={`w-full p-3 border border-slate-300 rounded-lg text-sm ${moduleName === 'State' && f.name === 'country' ? 'appearance-none bg-slate-50 text-slate-500' : 'bg-white'}`}
+                            className={`w-full p-3 border border-slate-300 rounded-lg text-sm bg-white disabled:bg-slate-50 disabled:opacity-75`}
                         >
-                            {f.options?.map(o => <option key={o} value={o}>{o}</option>)}
+                            <option value="">Select {f.label}</option>
+                            {(f.name === 'state' && moduleName.toLowerCase() === 'city' ? stateOptions : (f.options || [])).map((o: any) => {
+                              const isObj = typeof o === 'object';
+                              const label = isObj ? o.label : o;
+                              const val = isObj ? o.value : o;
+                              return <option key={val} value={val}>{label}</option>;
+                            })}
                         </select>
                     ) : f.type === 'toggle' ? (
                         <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">

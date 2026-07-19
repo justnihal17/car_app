@@ -40,8 +40,23 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     }
   };
 
+  const [availableSkills, setAvailableSkills] = useState<string[]>([]);
+
+  const fetchSkills = async () => {
+    try {
+      const response = await api.get('/master/skill');
+      if (response.data?.success) {
+        setAvailableSkills(response.data.data.map((s: any) => s.name));
+      }
+    } catch (e) {
+      console.error("Failed to fetch skills from master", e);
+      setAvailableSkills(["Car Wash", "Oil Change", "Battery Replacement", "Tyre Change", "Fuel Delivery", "Jump Start", "Engine Check", "Car Cleaning"]);
+    }
+  };
+
   useEffect(() => {
     fetchAgents();
+    fetchSkills();
   }, []);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"register" | "view" | "edit">("register");
@@ -323,7 +338,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                   </button>
                   {isSkillsOpen && (
                       <div className="absolute z-10 w-full bg-white border border-slate-200 rounded-lg shadow-lg mt-1 max-h-40 overflow-y-auto">
-                          {AVAILABLE_SKILLS.filter(s => !selectedSkills.includes(s)).map(s => (
+                          {availableSkills.filter(s => !selectedSkills.includes(s)).map(s => (
                               <button key={s} onClick={() => { setSelectedSkills([...selectedSkills, s]); setIsSkillsOpen(false); }} className="w-full p-3 text-left hover:bg-blue-50 text-sm">
                                   {s}
                               </button>

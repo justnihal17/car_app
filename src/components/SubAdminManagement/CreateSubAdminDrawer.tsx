@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Eye, EyeOff, Save, Box } from 'lucide-react';
 import api from '../../api/axios';
 
@@ -12,6 +12,21 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [apiSuccess, setApiSuccess] = useState('');
+  const [roles, setRoles] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await api.get('/master/role');
+        if (response.data?.success) {
+          setRoles(response.data.data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch roles", e);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const [formData, setFormData] = useState(() => {
     if (admin) {
@@ -61,6 +76,7 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
     if (!formData.email) newErrors.email = 'Email is required';
     if (!formData.phone) newErrors.phone = 'Phone is required';
     if (mode === 'create' && !formData.password) newErrors.password = 'Password is required';
+    if (!formData.role) newErrors.role = 'Role is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -237,10 +253,12 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
             )}
             <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
             <select disabled={isView} value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full p-3 border border-slate-300 rounded-lg text-sm">
-                <option value="Staff">Staff</option>
-                <option value="admin">Admin</option>
-                <option value="Manager">Manager</option>
+                <option value="" disabled>Select Role</option>
+                {roles.map(r => (
+                  <option key={r._id} value={r.name}>{r.name}</option>
+                ))}
             </select>
+            {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role}</p>}
             <ToggleSwitch label="Active" checked={formData.active} onChange={v => setFormData({...formData, active: v})} />
           </div>
 
