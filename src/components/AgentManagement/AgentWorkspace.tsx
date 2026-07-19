@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Car, UserCheck, UserMinus, UserX, Clock, Star, Plus, Download, Search, Filter, MoreHorizontal, RefreshCw, Briefcase, FileText, ChevronDown, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Car, UserCheck, UserMinus, UserX, Clock, Star, Plus, Download, Search, Filter, MoreHorizontal, RefreshCw, Briefcase, FileText, ChevronDown, X, Trash2, Edit2 } from 'lucide-react';
 import { AnalyticsCard } from '../common/AnalyticsCard';
 import { SlidePanel } from '../common/SlidePanel';
 import { StatusBadge } from '../StatusBadge';
@@ -12,18 +12,140 @@ const AGENTS = [
 
 const AVAILABLE_SKILLS = ["Car Wash", "Oil Change", "Battery Replacement", "Tyre Change", "Fuel Delivery", "Jump Start", "Engine Check", "Car Cleaning"];
 
+import api from '../../api/axios';
+import toast from 'react-hot-toast';
+
 export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) => void }) {
+  const [agentsList, setAgentsList] = useState<any[]>([]);
+
+  const fetchAgents = async () => {
+    try {
+      const response = await api.get('/agent/agent');
+      const mapped = response.data.data.map((agent: any) => ({
+        id: agent._id,
+        name: `${agent.firstName} ${agent.lastName}`,
+        email: agent.email,
+        phone: agent.phone,
+        area: agent.city || 'N/A',
+        vehicle: agent.role === 'service_agent' ? 'Service' : 'Supervisor',
+        jobs: 0,
+        rating: 5.0,
+        status: agent.blocked ? 'Blocked' : (agent.active ? 'Available' : 'Inactive'),
+        blocked: agent.blocked,
+        ...agent // keep raw data for edit
+      }));
+      setAgentsList(mapped);
+    } catch (error) {
+      toast.error("Failed to load agents list");
+    }
+  };
+
+  useEffect(() => {
+    fetchAgents();
+  }, []);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [formData, setFormData] = useState({
-      fullName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: 'male', userId: '', password: ''
+      fullName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
   });
 
-  const handleSubmit = () => {
-      console.log('Registering Agent:', { ...formData, photo, selectedSkills });
-      setIsDrawerOpen(false);
+  const handleSubmit = async () => {
+      try {
+        const nameParts = formData.fullName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const payload = {
+          firstName,
+          lastName,
+          email: formData.email,
+          phone: formData.phone,
+          ...(formData.password ? { password: formData.password } : {}), // only include password if it was typed, otherwise don't overwrite
+          gender: formData.gender,
+          city: formData.city,
+          country: formData.country,
+          role: formData.role,
+          joiningDate: formData.joiningDate,
+          skills: selectedSkills,
+          active: true
+        };
+
+        if (editingAgentId) {
+          const response = await api.put(`/agent/agent/${editingAgentId}`, payload);
+          toast.success(response.data?.message || 'Agent updated successfully');
+        } else {
+          // If no password provided during create, use default
+          if (!payload.password) payload.password = "Agent@123";
+          const response = await api.post('/agent/agent/register', payload);
+          toast.success(response.data?.message || 'Agent registered successfully');
+        }
+        
+        setIsDrawerOpen(false);
+        setEditingAgentId(null);
+        fetchAgents(); // Refresh list after create/edit
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || (editingAgentId ? 'Failed to update agent' : 'Failed to register agent'));
+        console.error(editingAgentId ? 'Update failed:' : 'Registration failed:', error);
+      }
+  };
+
+  const handleEdit = (e: React.MouseEvent, agent: any) => {
+    e.stopPropagation();
+    setEditingAgentId(agent.id);
+    
+    // Simulate setting data. If agent data structure is different, map accordingly
+    setFormData({
+        fullName: agent.name || '',
+        email: agent.email || '',
+        phone: agent.phone || '',
+        employeeCode: '',
+        role: 'service_agent',
+        gender: '',
+        userId: '',
+        password: '',
+        city: 'Delhi',
+        country: 'India',
+        joiningDate: new Date().toISOString().split('T')[0]
+    });
+    setPhoto(agent.profileImage || null);
+    setSelectedSkills(agent.skills || []);
+    setIsDrawerOpen(true);
+  };
+
+  const openRegister = () => {
+    setEditingAgentId(null);
+    setFormData({
+        fullName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
+    });
+    setPhoto(null);
+    setSelectedSkills([]);
+    setIsDrawerOpen(true);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+      try {
+        await api.delete(`/agent/agent/${id}`);
+        toast.success("Agent deleted successfully");
+        setAgentsList(agentsList.filter(a => a.id !== id));
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || "Failed to delete agent");
+      }
+    }
+  };
+
+  const handleBlockToggle = async (e: React.MouseEvent, id: string, isBlocked: boolean) => {
+    e.stopPropagation();
+    try {
+      await api.put(`/agent/agent/${id}`, { blocked: !isBlocked });
+      toast.success(isBlocked ? "Agent unblocked successfully" : "Agent blocked successfully");
+      setAgentsList(agentsList.map(a => a.id === id ? { ...a, blocked: !isBlocked } : a));
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update agent status");
+    }
   };
 
   return (
@@ -35,7 +157,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           <p className="text-slate-600 mt-1">Manage field agents, assignments, attendance, documents, and performance.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => setIsDrawerOpen(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium text-sm transition-all shadow-lg shadow-blue-200">
+          <button onClick={openRegister} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium text-sm transition-all shadow-lg shadow-blue-200">
             <Plus className="w-4 h-4" /> Register Agent
           </button>
           <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 font-medium text-sm transition-all">
@@ -78,7 +200,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {AGENTS.map(agent => (
+            {agentsList.map(agent => (
               <motion.tr key={agent.id} whileHover={{ backgroundColor: '#f8fafc' }} className="cursor-pointer" onClick={() => onAgentSelect(agent.id)}>
                 <td className="p-4 font-medium text-slate-900">{agent.name}</td>
                 <td className="p-4 text-slate-600">{agent.email}<br/>{agent.phone}</td>
@@ -86,14 +208,25 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 <td className="p-4 text-slate-600">{agent.jobs}</td>
                 <td className="p-4 text-slate-600">{agent.rating}</td>
                 <td className="p-4"><StatusBadge status={agent.status as any} /></td>
-                <td className="p-4"><MoreHorizontal className="w-5 h-5 text-slate-400" /></td>
+                <td className="p-4 flex gap-2 items-center">
+                  <button onClick={(e) => handleEdit(e, agent)} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Agent">
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                  <button onClick={(e) => handleBlockToggle(e, agent.id, agent.blocked || false)} className={`p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors ${agent.blocked ? 'hover:text-green-500 text-red-500' : 'hover:text-amber-500'}`} title={agent.blocked ? "Unblock Agent" : "Block Agent"}>
+                    {agent.blocked ? <UserCheck className="w-5 h-5" /> : <UserX className="w-5 h-5" />}
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(agent.id, agent.name); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete Agent">
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                  <MoreHorizontal className="w-5 h-5 text-slate-400" />
+                </td>
               </motion.tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <SlidePanel isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} title="Register New Service Agent">
+      <SlidePanel isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} title={editingAgentId ? "Edit Service Agent" : "Register New Service Agent"}>
         <div className="p-6 space-y-8">
           <label className="block cursor-pointer text-center p-6 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 hover:border-blue-400 transition-colors">
             <input type="file" className="hidden" onChange={(e) => {
@@ -112,27 +245,20 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           </label>
           
           <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input type="text" value="AGT1001" readOnly placeholder="Agent ID" className="w-full p-4 bg-slate-100 border border-slate-200 rounded-xl" />
-                <input type="text" placeholder="Employee Code" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
-              </div>
               <input type="text" placeholder="Full Name" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
               <div className="grid grid-cols-2 gap-4">
                 <input type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
                 <input type="tel" placeholder="Phone Number" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                  <select value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                      <option value="service_agent">Service Agent</option>
-                      <option value="supervisor">Supervisor</option>
+                  <select value={formData.gender} onChange={(e) => setFormData({...formData, gender: e.target.value})} className={`w-full p-4 bg-slate-50 border border-slate-200 rounded-xl ${!formData.gender ? 'text-slate-500' : 'text-slate-900'}`}>
+                      <option value="" disabled>Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
                   </select>
                   <input type="date" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
               </div>
-              <select value={formData.gender} onChange={(e) => setFormData({...formData, gender: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-              </select>
-              <input type="text" placeholder="User ID" value={formData.userId} onChange={(e) => setFormData({...formData, userId: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
               <input type="password" placeholder="Password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl" />
               
               <div className="relative">
@@ -162,7 +288,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
           <div className="flex gap-4 pt-4 border-t">
             <button onClick={() => setIsDrawerOpen(false)} className="flex-1 p-4 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200">Cancel</button>
-            <button onClick={handleSubmit} className="flex-1 p-4 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-lg shadow-blue-200">Register Agent</button>
+            <button onClick={handleSubmit} className="flex-1 p-4 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-lg shadow-blue-200">{editingAgentId ? "Update Agent" : "Register Agent"}</button>
           </div>
         </div>
       </SlidePanel>

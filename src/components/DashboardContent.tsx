@@ -8,6 +8,7 @@ import { RecentOrdersTable } from './RecentOrdersTable';
 import { RightPanel } from './RightPanel';
 import { UserWorkspace } from './UserManagement/UserWorkspace';
 import { UserProfileWorkspace } from './UserManagement/UserProfileWorkspace';
+import { UserRegistrationPage } from './UserManagement/registration/UserRegistrationPage';
 import { DriverList } from './DriverManagement/DriverList';
 import { DriverDetails } from './DriverManagement/DriverDetails';
 import { OrderList } from './OrderManagement/OrderList';
@@ -70,6 +71,8 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
           return <AgentProfileWorkspace agentId={selectedAgentId} onBack={() => setSelectedAgentId(null)} />;
         }
         return <AgentWorkspace onAgentSelect={setSelectedAgentId} />;
+      case 'user-registration':
+        return <UserRegistrationPage onViewChange={onViewChange} />;
       case 'agent-registration':
         return <AgentRegistrationPage />;
       case 'master-role':

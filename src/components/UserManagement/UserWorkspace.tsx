@@ -10,6 +10,8 @@ const USERS = [
   { id: 'U002', name: 'Bob Smith', email: 'bob@example.com', phone: '+1987654321', city: 'London', status: 'Pending', orders: 0, membership: 'Standard' },
 ];
 
+import { UserRegistrationDrawer } from './registration/UserRegistrationDrawer';
+
 export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => void }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -82,18 +84,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
         </table>
       </div>
 
-      <SlidePanel isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} title="Register User">
-        <div className="p-4 space-y-4">
-          <div className="p-4 border-2 border-dashed rounded-xl text-center text-slate-400">Upload Profile Photo</div>
-          <input type="text" placeholder="Full Name" className="w-full p-3 border border-slate-200 rounded-xl" />
-          <input type="email" placeholder="Email" className="w-full p-3 border border-slate-200 rounded-xl" />
-          <input type="tel" placeholder="Phone" className="w-full p-3 border border-slate-200 rounded-xl" />
-          <div className="flex gap-4">
-            <button className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-medium">Register</button>
-            <button onClick={() => setIsDrawerOpen(false)} className="flex-1 p-3 bg-slate-100 text-slate-700 rounded-xl font-medium">Cancel</button>
-          </div>
-        </div>
-      </SlidePanel>
+      <UserRegistrationDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
     </div>
   );
 }

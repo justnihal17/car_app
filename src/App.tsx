@@ -8,6 +8,7 @@ import { MessagePanel } from "./components/MessagePanel";
 import { EditProfileModal } from "./components/EditProfileModal";
 import { useUIStore } from "./store/uiStore";
 import api from "./api/axios";
+import { Toaster } from "react-hot-toast";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -36,6 +37,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased font-sans">
+      <Toaster position="top-right" />
       {isNotificationOpen && <NotificationPanel onClose={toggleNotification} />}
       {isMessageOpen && <MessagePanel onClose={toggleMessage} />}
       {isEditProfileOpen && <EditProfileModal />}
