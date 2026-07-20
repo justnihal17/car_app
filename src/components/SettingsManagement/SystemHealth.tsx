@@ -48,7 +48,7 @@ export function SystemHealth() {
 
       <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg p-6">
          <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-6 flex items-center gap-2">
-           <Activity className="w-4 h-4 text-indigo-500" /> Infrastructure Logs
+           <Activity className="w-4 h-4 text-red-500" /> Infrastructure Logs
          </h3>
          <div className="space-y-4">
             <div className="flex gap-4 p-3 rounded-lg bg-slate-900/50 border border-slate-800/50">

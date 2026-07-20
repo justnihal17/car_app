@@ -10,8 +10,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const GATEWAY_COLORS: Record<string, string> = {
-  'Stripe': 'text-indigo-400 bg-indigo-500/10',
-  'Razorpay': 'text-blue-400 bg-blue-500/10',
+  'Stripe': 'text-red-400 bg-red-500/10',
+  'Razorpay': 'text-blue-400 bg-red-500/10',
   'Wallet': 'text-emerald-400 bg-emerald-500/10',
   'Cash': 'text-yellow-400 bg-yellow-500/10',
 };
@@ -49,7 +49,7 @@ export function TransactionDetails({ transactionId, onBack }: { transactionId: s
             </button>
           )}
           {payment.status === 'Failed' && (
-            <button className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-medium rounded-lg text-sm shadow-lg shadow-blue-900/20 transition-all flex items-center gap-2">
+            <button className="px-4 py-2 bg-red-500 hover:bg-blue-400 text-white font-medium rounded-lg text-sm shadow-lg shadow-blue-900/20 transition-all flex items-center gap-2">
               <RefreshCw className="w-4 h-4" /> Retry Payment
             </button>
           )}

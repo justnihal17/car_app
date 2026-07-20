@@ -11,7 +11,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
     >
       <div className="flex items-center gap-4 flex-1">
         <div className="hidden md:flex items-center gap-2 text-sm text-slate-500">
-          <span className="hover:text-blue-700 cursor-pointer transition-colors">Admin</span>
+          <span className="hover:text-red-700 cursor-pointer transition-colors">Admin</span>
           <ChevronRight className="w-4 h-4" />
           <span className="text-slate-900 font-medium">Dashboard</span>
         </div>
@@ -21,7 +21,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
           <input 
             type="text" 
             placeholder="Search users, drivers, orders..." 
-            className="w-full bg-slate-50 border border-slate-200 text-sm text-slate-900 rounded-full pl-10 pr-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+            className="w-full bg-slate-50 border border-slate-200 text-sm text-slate-900 rounded-full pl-10 pr-4 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
             <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-slate-200 text-slate-500 rounded">⌘</kbd>
@@ -31,13 +31,13 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
       </div>
 
       <div className="flex items-center gap-3 ml-4">
-        <button onClick={toggleNotification} className="p-2 text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors relative">
+        <button onClick={toggleNotification} className="p-2 text-slate-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors relative">
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full ring-2 ring-white"></span>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
         </button>
-        <button onClick={toggleMessage} className="p-2 text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors relative">
+        <button onClick={toggleMessage} className="p-2 text-slate-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors relative">
           <MessageSquare className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full ring-2 ring-white"></span>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
         </button>
         <button onClick={onLogout} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors">
           <LogOut className="w-5 h-5" />
@@ -57,9 +57,9 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
               <>
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-slate-900 leading-tight">{fullName}</p>
-                  <p className="text-xs text-blue-600 capitalize">{roleLabel}</p>
+                  <p className="text-xs text-red-600 capitalize">{roleLabel}</p>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-blue-600 p-[2px]">
+                <div className="w-9 h-9 rounded-full bg-red-600 p-[2px]">
                   <div className="w-full h-full bg-white rounded-full overflow-hidden border border-slate-200">
                     <img src={avatarUrl} alt="Admin" className="w-full h-full object-cover" />
                   </div>

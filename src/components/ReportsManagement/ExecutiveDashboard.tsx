@@ -7,7 +7,7 @@ import {
 export function ExecutiveDashboard() {
   const kpis = [
     { label: "Today's Revenue", value: '$12,450', change: '+15%', trend: 'up', icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-    { label: 'Total Customers', value: '124.5K', change: '+2.4%', trend: 'up', icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+    { label: 'Total Customers', value: '124.5K', change: '+2.4%', trend: 'up', icon: Users, color: 'text-blue-400', bg: 'bg-red-500/10 border-red-500/20' },
     { label: 'Total Drivers', value: '1,250', change: '+12', trend: 'up', icon: Car, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
     { label: 'Orders Today', value: '845', change: '-5%', trend: 'down', icon: ShoppingCart, color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
     { label: 'Completed Orders', value: '720', change: '+8%', trend: 'up', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
@@ -72,11 +72,11 @@ export function ExecutiveDashboard() {
                </div>
                <div className="group">
                  <div className="flex justify-between text-sm mb-1.5">
-                   <span className="text-white font-medium group-hover:text-indigo-400 transition-colors">Abu Dhabi</span>
-                   <span className="text-indigo-400 font-bold">$22,400</span>
+                   <span className="text-white font-medium group-hover:text-red-400 transition-colors">Abu Dhabi</span>
+                   <span className="text-red-400 font-bold">$22,400</span>
                  </div>
                  <div className="w-full bg-slate-800 rounded-full h-1.5">
-                   <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: '45%' }}></div>
+                   <div className="bg-red-500 h-1.5 rounded-full" style={{ width: '45%' }}></div>
                  </div>
                </div>
                <div className="group">

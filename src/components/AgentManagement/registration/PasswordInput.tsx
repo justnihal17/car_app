@@ -14,7 +14,7 @@ export function PasswordInput({ name, label }: { name: string, label: string }) 
         <input 
           type={show ? 'text' : 'password'}
           {...register(name)}
-          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-24 focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-24 focus:ring-2 focus:ring-red-500"
         />
         <div className="absolute right-2 top-2 flex gap-1">
           <button type="button" onClick={() => setShow(!show)} className="p-1.5 hover:bg-slate-200 rounded-lg">

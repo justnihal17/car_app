@@ -54,7 +54,7 @@ export function DriverDetails({ driverId, onBack }: { driverId: string, onBack: 
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl font-bold text-white tracking-tight">{driver.name}</h1>
                 {driver.verification === 'Verified' && (
-                  <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded flex items-center gap-1 text-[11px] font-bold uppercase">
+                  <span className="bg-red-500/10 text-blue-400 border border-red-500/20 px-2.5 py-0.5 rounded flex items-center gap-1 text-[11px] font-bold uppercase">
                     <CheckCircle2 className="w-3 h-3" /> Verified
                   </span>
                 )}

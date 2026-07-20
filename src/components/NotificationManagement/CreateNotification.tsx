@@ -242,9 +242,9 @@ export function CreateNotification({ onBack }: { onBack: () => void }) {
                <div className="w-full bg-slate-800/80 backdrop-blur-md rounded-2xl p-4 mt-8 shadow-xl border border-slate-700/50">
                  <div className="flex items-center gap-2 mb-2">
                    <div className="w-5 h-5 bg-emerald-500 rounded flex items-center justify-center">
-                     <span className="text-[10px] font-bold text-white">C</span>
+                     <span className="text-[10px] font-bold text-white">S</span>
                    </div>
-                   <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">CAFU Clone</span>
+                   <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Stylein</span>
                    <span className="text-[10px] text-slate-500 ml-auto">now</span>
                  </div>
                  <div className="font-bold text-white text-sm leading-tight mb-1">Flash Sale! 50% Off</div>

@@ -272,13 +272,13 @@ export function CreateService({ onBack }: { onBack: () => void }) {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl mt-4">
+                <div className="flex items-start gap-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl mt-4">
                   <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
                   <div>
                     <h4 className="text-sm font-medium text-blue-400 mb-1">Emergency 24/7 Mode</h4>
                     <p className="text-xs text-blue-400/80">If enabled, this service ignores operating hours and can be requested at any time. Night surcharges may automatically apply.</p>
                     <label className="flex items-center gap-2 mt-3 cursor-pointer">
-                      <input type="checkbox" className="w-4 h-4 rounded bg-blue-900/50 border-blue-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-[#0f1218]" />
+                      <input type="checkbox" className="w-4 h-4 rounded bg-blue-900/50 border-red-700 text-red-500 focus:ring-red-500 focus:ring-offset-[#0f1218]" />
                       <span className="text-sm font-medium text-blue-300">Enable 24/7 Emergency Mode</span>
                     </label>
                   </div>

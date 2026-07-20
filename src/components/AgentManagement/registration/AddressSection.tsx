@@ -9,7 +9,7 @@ export function AddressSection() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-slate-900">Addresses</h3>
-        <button type="button" onClick={() => append({ label: 'Home', line1: '', city: '', state: '', zip: '' })} className="text-blue-600 flex items-center gap-1 text-sm font-medium">
+        <button type="button" onClick={() => append({ label: 'Home', line1: '', city: '', state: '', zip: '' })} className="text-red-600 flex items-center gap-1 text-sm font-medium">
           <Plus className="w-4 h-4" /> Add Address
         </button>
       </div>

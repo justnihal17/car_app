@@ -13,8 +13,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  'Push': 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-  'SMS': 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+  'Push': 'text-red-400 bg-red-500/10 border-red-500/20',
+  'SMS': 'text-blue-400 bg-red-500/10 border-red-500/20',
   'Email': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
   'In-App': 'text-purple-400 bg-purple-500/10 border-purple-500/20',
 };

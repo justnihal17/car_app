@@ -38,7 +38,7 @@ export function CompanyProfile() {
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Legal Company Name</label>
               <input 
                 type="text" 
-                defaultValue="CAFU Tech LLC"
+                defaultValue="Stylein Tech LLC"
                 className="w-full bg-slate-900 border border-slate-800 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors"
               />
             </div>
@@ -62,7 +62,7 @@ export function CompanyProfile() {
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Corporate Website</label>
               <input 
                 type="url" 
-                defaultValue="https://cafu-clone.com"
+                defaultValue="https://stylein-car.com"
                 className="w-full bg-slate-900 border border-slate-800 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors"
               />
             </div>
@@ -74,7 +74,7 @@ export function CompanyProfile() {
         {/* Address */}
         <section>
           <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-indigo-500" /> Headquarters Address
+            <MapPin className="w-4 h-4 text-red-500" /> Headquarters Address
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">

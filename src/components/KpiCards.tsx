@@ -8,7 +8,7 @@ const KPIS = [
   { label: 'Success Rate', value: '98.4%', change: '+0.2%', isUp: true, icon: CheckCircle, color: 'text-purple-400', bg: 'bg-purple-400/10', targetView: 'reports' },
   { label: 'Pending Orders', value: '142', change: '+12', isUp: false, icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-400/10', targetView: 'orders' },
   { label: 'Available Drivers', value: '315', change: '-5', isUp: false, icon: Activity, color: 'text-teal-400', bg: 'bg-teal-400/10', targetView: 'drivers' },
-  { label: 'Monthly Growth', value: '24%', change: '+4%', isUp: true, icon: TrendingUp, color: 'text-indigo-400', bg: 'bg-indigo-400/10', targetView: 'reports' },
+  { label: 'Monthly Growth', value: '24%', change: '+4%', isUp: true, icon: TrendingUp, color: 'text-red-400', bg: 'bg-red-400/10', targetView: 'reports' },
 ];
 
 function Sparkline({ isUp }: { isUp: boolean }) {
@@ -40,7 +40,7 @@ export function KpiCards({ onViewChange }: { onViewChange: (view: string) => voi
             <button 
             key={idx} 
             onClick={() => onViewChange(kpi.targetView || 'dashboard')}
-            className="text-left bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-200 transition-colors group relative overflow-hidden"
+            className="text-left bg-white/80 backdrop-blur-xl p-5 rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1"
           >
             <div className="flex justify-between items-start mb-4">
               <div className={`p-2 rounded-xl ${kpi.bg}`}>

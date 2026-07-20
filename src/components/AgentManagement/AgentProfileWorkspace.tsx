@@ -14,7 +14,7 @@ export function AgentProfileWorkspace({ agentId, onBack }: { agentId: string, on
       </button>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="h-48 bg-gradient-to-r from-blue-600 to-blue-400" />
+        <div className="h-48 bg-gradient-to-r from-red-600 to-blue-400" />
         <div className="px-8 pb-8">
           <div className="relative -mt-16 flex items-end gap-6">
             <div className="w-32 h-32 rounded-2xl bg-white p-1 border-4 border-white shadow-lg">
@@ -36,7 +36,7 @@ export function AgentProfileWorkspace({ agentId, onBack }: { agentId: string, on
         <div className="px-8 border-t border-slate-200 overflow-x-auto">
             <div className="flex gap-8">
                 {TABS.map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} className={`py-4 text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500'}`}>
+                    <button key={tab} onClick={() => setActiveTab(tab)} className={`py-4 text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'text-red-600 border-b-2 border-red-600' : 'text-slate-500'}`}>
                         {tab}
                     </button>
                 ))}
@@ -50,7 +50,7 @@ export function AgentProfileWorkspace({ agentId, onBack }: { agentId: string, on
             <div className="grid grid-cols-2 gap-4 text-sm">
                 {[
                     { label: 'Full Name', value: 'Ahmed Mohammed' },
-                    { label: 'Email', value: 'ahmed@cafu.com' },
+                    { label: 'Email', value: 'ahmed@stylein.com' },
                     { label: 'Phone', value: '+1234567890' },
                     { label: 'Assigned Area', value: 'Downtown' },
                     { label: 'Vehicle', value: 'Van-01' },
@@ -77,7 +77,7 @@ export function AgentProfileWorkspace({ agentId, onBack }: { agentId: string, on
             </div>
             <div className="flex justify-between text-sm">
                 <span className="text-slate-500">This Month Earnings</span>
-                <span className="font-bold text-blue-600">$2,450.00</span>
+                <span className="font-bold text-red-600">$2,450.00</span>
             </div>
         </div>
       </div>

@@ -212,7 +212,7 @@ export function ServiceManager() {
 
             <div className="bg-[#0f1218] p-5 rounded-xl border border-slate-800/60 shadow-lg">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
+                <div className="p-2 bg-red-500/10 rounded-lg">
                   <Tag className="w-5 h-5 text-blue-400" />
                 </div>
                 <h3 className="text-sm font-medium text-slate-400">Total Orders</h3>

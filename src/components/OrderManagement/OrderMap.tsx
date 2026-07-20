@@ -172,7 +172,7 @@ export function OrderMap({ order }: OrderMapProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 text-xs bg-transparent outline-none border-none text-slate-800 placeholder-slate-400 font-medium py-1"
           />
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-md transition-all shadow-sm">
+          <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-md transition-all shadow-sm">
             Search
           </button>
         </form>
@@ -214,13 +214,13 @@ export function OrderMap({ order }: OrderMapProps) {
         <div className="bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-1 shadow-lg flex flex-col gap-1">
           <button 
             onClick={() => setMapStyle('street')}
-            className={`px-2 py-1 text-[9px] font-bold rounded-md transition-all ${mapStyle === 'street' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`px-2 py-1 text-[9px] font-bold rounded-md transition-all ${mapStyle === 'street' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             MAP
           </button>
           <button 
             onClick={() => setMapStyle('satellite')}
-            className={`px-2 py-1 text-[9px] font-bold rounded-md transition-all ${mapStyle === 'satellite' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`px-2 py-1 text-[9px] font-bold rounded-md transition-all ${mapStyle === 'satellite' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             SATELLITE
           </button>
@@ -254,7 +254,7 @@ export function OrderMap({ order }: OrderMapProps) {
           {/* Origin Marker */}
           <Marker position={originPos} icon={createDepotIcon()}>
             <Popup>
-              <div className="font-bold text-sm">CAFU Depot</div>
+              <div className="font-bold text-sm">Stylein Depot</div>
               <div className="text-xs text-gray-500">Starting Point</div>
             </Popup>
           </Marker>

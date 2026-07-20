@@ -63,7 +63,7 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
             <button
               onClick={handleSubmit(onSubmit)}
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 font-medium rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center gap-2 disabled:opacity-70"
+              className="px-6 py-2.5 bg-red-600 text-white hover:bg-red-700 font-medium rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center gap-2 disabled:opacity-70"
             >
               {isSubmitting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -92,7 +92,7 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
                 <button
                   type="button"
                   onClick={() => setValue('active', !formData.active)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${formData.active ? 'bg-blue-600' : 'bg-slate-200'}`}
+                  className={`w-12 h-6 rounded-full transition-colors relative ${formData.active ? 'bg-red-600' : 'bg-slate-200'}`}
                 >
                   <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${formData.active ? 'left-7' : 'left-1'}`} />
                 </button>
@@ -106,7 +106,7 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
                   <User className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                   <input
                     {...register('fullName')}
-                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fullName ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-xl text-slate-900 outline-none transition-colors`}
+                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fullName ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-red-500'} rounded-xl text-slate-900 outline-none transition-colors`}
                     placeholder="Enter full name"
                   />
                 </div>
@@ -120,7 +120,7 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
                   <input
                     {...register('email')}
                     type="email"
-                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-xl text-slate-900 outline-none transition-colors`}
+                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-red-500'} rounded-xl text-slate-900 outline-none transition-colors`}
                     placeholder="Enter email address"
                   />
                 </div>
@@ -133,7 +133,7 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
                   <Phone className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                   <input
                     {...register('phone')}
-                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.phone ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-xl text-slate-900 outline-none transition-colors`}
+                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.phone ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-red-500'} rounded-xl text-slate-900 outline-none transition-colors`}
                     placeholder="+971 50 123 4567"
                   />
                 </div>
@@ -170,7 +170,7 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
             <button
               type="button"
               onClick={() => setValue('notificationEnabled', !formData.notificationEnabled)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${formData.notificationEnabled ? 'bg-blue-600' : 'bg-slate-200'}`}
+              className={`w-12 h-6 rounded-full transition-colors relative ${formData.notificationEnabled ? 'bg-red-600' : 'bg-slate-200'}`}
             >
               <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${formData.notificationEnabled ? 'left-7' : 'left-1'}`} />
             </button>

@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Eye, LayoutDashboard, Shield, Wrench, UserCheck, UserX } from 'lucide-react';
+import { Search, Plus, Edit, Edit2, Trash2, Eye, LayoutDashboard, Shield, Wrench, UserCheck, UserX, ChevronRight, Sparkles, Upload } from 'lucide-react';
 import { AnalyticsCard } from '../common/AnalyticsCard';
 import { StatusBadge } from '../StatusBadge';
 import { SlidePanel } from '../common/SlidePanel';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
 
 interface FieldConfig {
     name: string;
@@ -24,6 +25,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>({});
+  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, id: string, name: string}>({isOpen: false, id: '', name: ''});
   const [mode, setMode] = useState<'add' | 'edit' | 'view'>('add');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
@@ -42,7 +44,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
   const fetchData = async () => {
     try {
-      const response = await api.get(`/master/${moduleName.toLowerCase()}`);
+      const response = await api.get(`/master/${moduleName.toLowerCase()}?all=true`);
       if (response.data?.success) {
         const mapped = response.data.data.map((item: any) => ({
           id: item._id,
@@ -97,25 +99,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   }, [data, searchTerm, statusFilter]);
 
   const stats = [
-    { title: `Total ${moduleName}s`, value: data.length, icon: LayoutDashboard },
-    { title: 'Active', value: data.filter(d => d.status === 'Active').length, icon: Shield },
-    { title: 'Inactive', value: data.filter(d => d.status === 'Inactive').length, icon: Wrench },
+    { label: `Total ${moduleName}s`, value: data.length, icon: LayoutDashboard, color: 'text-red-600 bg-red-50 border-red-100', bgGrad: 'from-red-50/50 via-white to-white', sub: 'All' },
+    { label: 'Active', value: data.filter(d => d.status === 'Active').length, icon: Shield, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', bgGrad: 'from-emerald-50/50 via-white to-white', sub: 'Operational' },
+    { label: 'Inactive', value: data.filter(d => d.status === 'Inactive').length, icon: Wrench, color: 'text-amber-600 bg-amber-50 border-amber-100', bgGrad: 'from-amber-50/50 via-white to-white', sub: 'Disabled' },
   ];
-
-  const handleStatusToggle = async (id: string, currentStatus: string) => {
-    try {
-      const newActive = currentStatus !== 'Active';
-      const response = await api.put(`/master/${moduleName.toLowerCase()}/${id}`, {
-        active: newActive
-      });
-      if (response.data?.success) {
-        toast.success(response.data?.message || `${moduleName} status updated successfully`);
-        fetchData();
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || `Failed to update status`);
-    }
-  };
 
   const handleAdd = () => { setMode('add'); setEditingItem({ status: 'Active' }); setIsPanelOpen(true); };
   
@@ -159,21 +146,25 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     }
   };
   
-  const handleDelete = async (id: string, name: string) => {
+  const handleDeleteClick = (id: string, name: string) => {
     if (moduleName === 'State' && data.some(d => d.name === name)) { // Placeholder: needs actual linked-city check
         alert(`This state has linked cities. Remove them first.`);
         return;
     }
-    if (confirm(`Are you sure you want to delete ${name}?`)) {
-      try {
-        const response = await api.delete(`/master/${moduleName.toLowerCase()}/${id}`);
-        if (response.data?.success) {
-          toast.success(response.data?.message || `${moduleName} deleted successfully`);
-          fetchData();
-        }
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || `Failed to delete ${moduleName}`);
+    setDeleteModal({ isOpen: true, id, name });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const response = await api.delete(`/master/${moduleName.toLowerCase()}/${deleteModal.id}`);
+      if (response.data?.success) {
+        toast.success(response.data?.message || `${moduleName} deleted successfully`);
+        fetchData();
       }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || `Failed to delete ${moduleName}`);
+    } finally {
+      setDeleteModal({ isOpen: false, id: '', name: '' });
     }
   };
 
@@ -248,28 +239,57 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
   return (
     <div className="p-8 space-y-8 bg-slate-50 min-h-screen">
-      <div className="flex justify-between items-end">
+      <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+        <span>Dashboard</span> 
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
+        <span>Master Management</span> 
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
+        <span className="text-red-600 font-bold flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5" /> {moduleName}
+        </span>
+      </div>
+
+      <div className="bg-white/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-200/70 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-            <h2 className="text-3xl font-bold text-slate-900 capitalize">{moduleName} Management</h2>
-            <p className="text-slate-600 mt-1">Manage all {moduleName.toLowerCase()} configurations.</p>
+          <h2 className="text-3xl font-bold text-slate-900 capitalize tracking-tight">{moduleName} Management</h2>
+          <p className="text-slate-500 mt-1 text-sm">Manage all {moduleName.toLowerCase()} configurations.</p>
         </div>
-        <button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all font-medium">
-          <Plus className="w-5 h-5" /> Add New {moduleName}
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button onClick={handleAdd} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm">
+            <Plus className="w-4 h-4 stroke-[2.5]" /> Add New {moduleName}
+          </button>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map(s => (
-          <div key={s.title}>
-            <AnalyticsCard title={s.title} value={s.value} icon={s.icon} />
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+        {stats.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <div 
+              key={i} 
+              className={`bg-gradient-to-br ${card.bgGrad} p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-slate-500 tracking-tight group-hover:text-slate-800 transition-colors uppercase">{card.label}</span>
+                <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight">{card.value}</h3>
+                </div>
+                <p className="text-xs font-medium text-slate-400 mt-1">{card.sub}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
-          <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search..." className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none" />
+          <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search..." className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-red-500 outline-none" />
         </div>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-slate-200 rounded-xl px-5 py-3 bg-white text-slate-700 font-medium outline-none">
             <option>All Status</option>
@@ -326,13 +346,11 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                 })}
                 <td className={`px-6 py-5 ${columns.length === 2 ? 'w-1/3' : (columns.length === 4 ? 'w-[15%]' : 'w-[15%]')}`}>
                   <div className="flex gap-3 items-center justify-end">
-                    <button onClick={() => handleView(row)} className="text-blue-600 hover:text-blue-800 p-1 transition-colors" title="View Details">
+                    <button onClick={() => handleView(row)} className="text-red-600 hover:text-red-800 p-1 transition-colors" title="View Details">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-800 p-1 transition-colors" title="Edit Item">
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handleDelete(row.id, row.name)} className="text-red-600 hover:text-red-800 p-1 transition-colors" title="Delete Item">
+                    <button onClick={() => handleEdit(row)} className="text-emerald-600 hover:text-emerald-800 p-1 transition-colors" title="Edit Item"><Edit2 className="w-4 h-4"/></button>
+                    <button onClick={() => handleDeleteClick(row.id, row.name)} className="text-red-600 hover:text-red-800 p-1 transition-colors" title="Delete Item">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -345,12 +363,12 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
       <SlidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} title={`${mode === 'add' ? 'Add' : mode === 'edit' ? 'Edit' : 'View'} ${moduleName}`}>
         <form onSubmit={handleSubmit} className="space-y-6 flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+          <div className="space-y-6">
             {/* Logo / Image Upload container at the top of the form if fields config has an 'image' field */}
             {fields.some(f => f.name === 'image') && (
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">Logo / Image</label>
-                <label className={`block w-full border-2 border-dashed border-blue-300 rounded-xl p-8 flex flex-col items-center justify-center bg-blue-50/50 transition-colors ${mode === "view" ? 'cursor-default' : 'cursor-pointer hover:bg-blue-50'}`}>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Logo / Image</label>
+                <label className={`block w-full border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${mode === "view" ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}>
                   <input 
                     type="file" 
                     disabled={mode === "view"} 
@@ -368,63 +386,87 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                       }
                     }} 
                   />
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border border-slate-100 shadow-sm mb-3 overflow-hidden">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
                     {photo ? (
                       <img src={photo} className="w-full h-full object-cover" alt="Preview" />
                     ) : (
-                      <Plus className="w-8 h-8 text-blue-400" />
+                      <Plus className="w-8 h-8 text-red-500" />
                     )}
                   </div>
-                  {mode !== "view" && <span className="text-sm font-semibold text-blue-600">Upload Image</span>}
+                  {mode !== "view" && (
+                    <>
+                      <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
+                        <Upload className="w-3.5 h-3.5" /> Upload Image
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
+                    </>
+                  )}
                 </label>
               </div>
             )}
 
             {fields.filter(f => f.name !== 'image').map(f => (
                 <div key={f.name}>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">{f.label}</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">{f.label}</label>
                     {f.type === 'dropdown' ? (
                         <select 
                             disabled={mode === 'view' || (moduleName === 'State' && f.name === 'country')} 
                             value={editingItem[f.name] || (moduleName === 'State' && f.name === 'country' ? 'UAE' : '')} 
                             onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} 
-                            className={`w-full p-3 border border-slate-300 rounded-lg text-sm bg-white disabled:bg-slate-50 disabled:opacity-75`}
+                            className={`w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all shadow-2xs appearance-none ${mode === 'view' ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
                             <option value="">Select {f.label}</option>
                             {(f.name === 'state' && moduleName.toLowerCase() === 'city' ? stateOptions : (f.options || [])).map((o: any) => {
-                              const isObj = typeof o === 'object';
-                              const label = isObj ? o.label : o;
-                              const val = isObj ? o.value : o;
-                              return <option key={val} value={val}>{label}</option>;
+                               const isObj = typeof o === 'object';
+                               const label = isObj ? o.label : o;
+                               const val = isObj ? o.value : o;
+                               return <option key={val} value={val}>{label}</option>;
                             })}
                         </select>
                     ) : f.type === 'toggle' ? (
-                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                          <span className="text-sm font-medium text-slate-700">{editingItem[f.name] || 'Inactive'}</span>
+                        <div className={`flex items-center justify-between px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 transition-all shadow-2xs ${mode === 'view' ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                          <span>{editingItem[f.name] || 'Inactive'}</span>
                           <button 
                             type="button" 
                             disabled={mode === 'view'}
                             onClick={() => setEditingItem({...editingItem, [f.name]: editingItem[f.name] === 'Active' ? 'Inactive' : 'Active'})}
-                            className={`w-11 h-6 rounded-full transition-colors relative disabled:opacity-50 ${editingItem[f.name] === 'Active' ? 'bg-blue-600' : 'bg-slate-300'}`}
+                            className={`w-11 h-6 rounded-full transition-colors relative disabled:opacity-50 ${editingItem[f.name] === 'Active' ? 'bg-red-600' : 'bg-slate-300'}`}
                           >
                             <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${editingItem[f.name] === 'Active' ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                     ) : (
-                        <input type={f.type || 'text'} disabled={mode === 'view'} required value={editingItem[f.name] || ''} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} placeholder={f.label} className="w-full p-3 border border-slate-300 rounded-lg text-sm disabled:bg-slate-50 disabled:opacity-75" />
+                        <input type={f.type || 'text'} disabled={mode === 'view'} required value={editingItem[f.name] || ''} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} placeholder={f.label} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all shadow-2xs" />
                     )}
                 </div>
             ))}
           </div>
           {mode !== 'view' && (
-            <div className="pt-4 border-t border-slate-200 bg-white">
-              <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-200 transition-colors">
+            <div className="pt-4 border-t border-slate-200/80 flex items-center gap-3">
+              <button 
+                type="button" 
+                onClick={() => setIsPanelOpen(false)} 
+                className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all text-xs"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs"
+              >
                 Save
               </button>
             </div>
           )}
         </form>
       </SlidePanel>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        name={deleteModal.name}
+        onCancel={() => setDeleteModal({ isOpen: false, id: '', name: '' })}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

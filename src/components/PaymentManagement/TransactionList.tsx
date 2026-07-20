@@ -11,8 +11,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const GATEWAY_COLORS: Record<string, string> = {
-  'Stripe': 'text-indigo-400 bg-indigo-500/10',
-  'Razorpay': 'text-blue-400 bg-blue-500/10',
+  'Stripe': 'text-red-400 bg-red-500/10',
+  'Razorpay': 'text-blue-400 bg-red-500/10',
   'Wallet': 'text-emerald-400 bg-emerald-500/10',
   'Cash': 'text-yellow-400 bg-yellow-500/10',
 };

@@ -21,7 +21,7 @@ export function ProfilePreview({ formData }: { formData: UserRegistrationFormVal
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] border border-slate-100 flex flex-col items-center">
-      <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl font-bold mb-4 shadow-inner">
+      <div className="w-24 h-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl font-bold mb-4 shadow-inner">
         {getInitials(formData.fullName)}
       </div>
       
@@ -55,12 +55,12 @@ export function ProfilePreview({ formData }: { formData: UserRegistrationFormVal
 
       <div className="w-full grid grid-cols-2 gap-4">
         <div className="bg-slate-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
-          <MapPin className="w-5 h-5 text-blue-500 mb-2" />
+          <MapPin className="w-5 h-5 text-red-500 mb-2" />
           <span className="text-2xl font-bold text-slate-900">{addressCount}</span>
           <span className="text-xs text-slate-500 uppercase tracking-wider font-medium mt-1">Addresses</span>
         </div>
         <div className="bg-slate-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
-          <Car className="w-5 h-5 text-blue-500 mb-2" />
+          <Car className="w-5 h-5 text-red-500 mb-2" />
           <span className="text-2xl font-bold text-slate-900">{vehicleCount}</span>
           <span className="text-xs text-slate-500 uppercase tracking-wider font-medium mt-1">Vehicles</span>
         </div>
@@ -69,14 +69,14 @@ export function ProfilePreview({ formData }: { formData: UserRegistrationFormVal
       <div className="w-full mt-6 space-y-2">
         <div className="flex items-center justify-between text-xs font-medium">
           <span className="text-slate-500">Profile Completion</span>
-          <span className="text-blue-600">{completion}%</span>
+          <span className="text-red-600">{completion}%</span>
         </div>
         <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
           <motion.div 
             initial={{ width: 0 }}
             animate={{ width: `${completion}%` }}
             transition={{ duration: 0.5 }}
-            className={`h-full rounded-full ${completion === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`}
+            className={`h-full rounded-full ${completion === 100 ? 'bg-emerald-500' : 'bg-red-500'}`}
           />
         </div>
       </div>

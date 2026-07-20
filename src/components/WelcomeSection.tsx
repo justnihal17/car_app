@@ -4,12 +4,12 @@ export function WelcomeSection({ onViewChange }: { onViewChange: (view: string) 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+    <section className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-red-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       
       <div className="relative z-10">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">Good Morning, Admin 👋</h1>
-        <p className="text-slate-500 text-sm mb-4">{today}</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-1.5 tracking-tight">Good Morning, Admin 👋</h1>
+        <p className="text-slate-500 text-sm mb-5 font-medium">{today}</p>
         
         <div className="flex items-center gap-6 text-sm">
           <div className="flex flex-col">
@@ -37,7 +37,7 @@ export function WelcomeSection({ onViewChange }: { onViewChange: (view: string) 
           <FileText className="w-4 h-4" />
           View Reports
         </button>
-        <button onClick={() => onViewChange('orders')} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-900/10 transition-all group">
+        <button onClick={() => onViewChange('orders')} className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl shadow-lg shadow-blue-900/10 transition-all group">
           <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
           Create New Order
         </button>

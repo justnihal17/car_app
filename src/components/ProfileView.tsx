@@ -18,21 +18,24 @@ export function ProfileView() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-slate-900">Admin Profile</h2>
-        <button onClick={toggleEditProfile} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-200/70 shadow-sm relative overflow-hidden">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Admin Profile</h2>
+          <p className="text-slate-500 mt-1 text-sm font-medium">Manage your personal information and security settings.</p>
+        </div>
+        <button onClick={toggleEditProfile} className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white rounded-xl font-bold shadow-md shadow-red-500/20 transition-all active:scale-95">
           Edit Profile
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left: Avatar and Basic Info */}
-        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xl flex flex-col items-center text-center">
-          <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-400 p-1 mb-6">
+        <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-200/70 shadow-sm flex flex-col items-center text-center">
+          <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-red-600 to-red-400 p-1 mb-6">
             <img src={avatarUrl} alt="Admin" className="w-full h-full rounded-full object-cover bg-white" />
           </div>
           <h3 className="text-2xl font-bold text-slate-900">{fullName}</h3>
-          <p className="text-blue-600 font-medium mb-4 capitalize">{roleLabel}</p>
+          <p className="text-red-600 font-medium mb-4 capitalize">{roleLabel}</p>
           <div className="w-full pt-6 border-t border-slate-150 space-y-3 text-sm text-slate-500">
             <div className="flex items-center gap-2 justify-center"><MapPin className="w-4 h-4" /> Dubai, UAE</div>
           </div>
@@ -40,9 +43,9 @@ export function ProfileView() {
 
         {/* Right: Detailed Info */}
         <div className="md:col-span-2 space-y-6">
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xl">
+          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-200/70 shadow-sm">
             <h4 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-              <User className="w-5 h-5 text-blue-500" /> Personal Information
+              <User className="w-5 h-5 text-red-500" /> Personal Information
             </h4>
             <div className="grid grid-cols-2 gap-6 text-sm">
               <div>
@@ -72,9 +75,9 @@ export function ProfileView() {
             </div>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xl">
+          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-200/70 shadow-sm">
             <h4 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-blue-500" /> Security & Activity
+              <Shield className="w-5 h-5 text-red-500" /> Security & Activity
             </h4>
             <div className="grid grid-cols-2 gap-6 text-sm">
               <div>

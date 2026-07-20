@@ -25,19 +25,19 @@ function SortableVehicleCard({ id, index, form, remove, append }: { id: string, 
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={`bg-white rounded-xl p-5 border border-slate-200 shadow-sm relative ${isDragging ? 'ring-2 ring-blue-500 shadow-xl' : ''}`}>
+    <div ref={setNodeRef} style={style} className={`bg-white rounded-xl p-5 border border-slate-200 shadow-sm relative ${isDragging ? 'ring-2 ring-red-500 shadow-xl' : ''}`}>
       <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
         <div className="flex items-center gap-3">
           <div {...attributes} {...listeners} className="cursor-grab hover:bg-slate-100 p-1 rounded">
             <GripVertical className="w-5 h-5 text-slate-400" />
           </div>
           <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-            <Car className="w-4 h-4 text-blue-500" />
+            <Car className="w-4 h-4 text-red-500" />
             Vehicle #{index + 1}
           </h3>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={handleDuplicate} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Duplicate">
+          <button type="button" onClick={handleDuplicate} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Duplicate">
             <Copy className="w-4 h-4" />
           </button>
           <button type="button" onClick={() => remove(index)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
@@ -49,7 +49,7 @@ function SortableVehicleCard({ id, index, form, remove, append }: { id: string, 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="space-y-1">
           <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Brand</label>
-          <select {...register(`vehicles.${index}.brand`)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 transition-colors">
+          <select {...register(`vehicles.${index}.brand`)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 outline-none focus:border-red-500 transition-colors">
             <option value="">Select Brand</option>
             <option value="Toyota">Toyota</option>
             <option value="Honda">Honda</option>
@@ -63,12 +63,12 @@ function SortableVehicleCard({ id, index, form, remove, append }: { id: string, 
         </div>
         <div className="space-y-1">
           <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Model</label>
-          <input {...register(`vehicles.${index}.model`)} placeholder="e.g. Camry" className={`w-full p-2.5 bg-slate-50 border ${errors.vehicles?.[index]?.model ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-lg text-sm text-slate-900 outline-none transition-colors`} />
+          <input {...register(`vehicles.${index}.model`)} placeholder="e.g. Camry" className={`w-full p-2.5 bg-slate-50 border ${errors.vehicles?.[index]?.model ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-red-500'} rounded-lg text-sm text-slate-900 outline-none transition-colors`} />
           {errors.vehicles?.[index]?.model && <p className="text-xs text-red-500">{errors.vehicles[index]?.model?.message}</p>}
         </div>
         <div className="space-y-1">
           <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Registration Number</label>
-          <input {...register(`vehicles.${index}.registrationNumber`)} placeholder="e.g. D12345" className={`w-full p-2.5 bg-slate-50 border ${errors.vehicles?.[index]?.registrationNumber ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-lg text-sm text-slate-900 outline-none transition-colors`} />
+          <input {...register(`vehicles.${index}.registrationNumber`)} placeholder="e.g. D12345" className={`w-full p-2.5 bg-slate-50 border ${errors.vehicles?.[index]?.registrationNumber ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-red-500'} rounded-lg text-sm text-slate-900 outline-none transition-colors`} />
           {errors.vehicles?.[index]?.registrationNumber && <p className="text-xs text-red-500">{errors.vehicles[index]?.registrationNumber?.message}</p>}
         </div>
       </div>
@@ -109,7 +109,7 @@ export function VehicleSection({ form }: { form: UseFormReturn<UserRegistrationF
         <button
           type="button"
           onClick={() => append({ id: Date.now().toString(), brand: '', model: '', registrationNumber: '' })}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium rounded-lg transition-colors text-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-medium rounded-lg transition-colors text-sm"
         >
           <Plus className="w-4 h-4" /> Add Vehicle
         </button>

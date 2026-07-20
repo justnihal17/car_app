@@ -50,7 +50,7 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
       </button>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="h-48 bg-gradient-to-r from-blue-600 to-blue-400" />
+        <div className="h-48 bg-gradient-to-r from-red-600 to-blue-400" />
         <div className="px-8 pb-8">
           <div className="relative -mt-16 flex items-end gap-6">
             <div className="w-32 h-32 rounded-2xl bg-white p-1 border-4 border-white shadow-lg">
@@ -77,7 +77,7 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
         <div className="px-8 border-t border-slate-200">
             <div className="flex gap-8">
                 {TABS.map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} className={`py-4 text-sm font-medium ${activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500'}`}>
+                    <button key={tab} onClick={() => setActiveTab(tab)} className={`py-4 text-sm font-medium ${activeTab === tab ? 'text-red-600 border-b-2 border-red-600' : 'text-slate-500'}`}>
                         {tab}
                     </button>
                 ))}
@@ -113,7 +113,7 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
             </div>
             <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Wallet Balance</span>
-                <span className="font-bold text-blue-600">$450.00</span>
+                <span className="font-bold text-red-600">$450.00</span>
             </div>
         </div>
       </div>

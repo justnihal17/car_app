@@ -10,12 +10,12 @@ export function HelpCentre() {
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h4 className="text-slate-900 font-semibold text-lg">Documentation</h4>
           <p className="text-slate-500 text-sm">Access technical guides, API references, and best practices for managing your fleet and platform operations.</p>
-          <button className="text-blue-600 text-sm font-medium hover:underline">View Docs &rarr;</button>
+          <button className="text-red-600 text-sm font-medium hover:underline">View Docs &rarr;</button>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h4 className="text-slate-900 font-semibold text-lg">Support Tickets</h4>
           <p className="text-slate-500 text-sm">Submit a technical support ticket for any issues. Our team typically responds within 4 hours.</p>
-          <button className="text-blue-600 text-sm font-medium hover:underline">Open Ticket &rarr;</button>
+          <button className="text-red-600 text-sm font-medium hover:underline">Open Ticket &rarr;</button>
         </div>
       </div>
       

@@ -27,7 +27,7 @@ export function CustomReportBuilder() {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg p-5">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Database className="w-4 h-4 text-indigo-400" /> 1. Select Dataset
+              <Database className="w-4 h-4 text-red-400" /> 1. Select Dataset
             </h3>
             <div className="space-y-2">
               {['Users', 'Drivers', 'Services', 'Orders', 'Payments', 'Refunds', 'Notifications'].map(dataset => (
@@ -36,7 +36,7 @@ export function CustomReportBuilder() {
                   onClick={() => setSelectedDataset(dataset)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     selectedDataset === dataset 
-                      ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' 
+                      ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
                       : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent'
                   }`}
                 >

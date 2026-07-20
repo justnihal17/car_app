@@ -45,7 +45,7 @@ export function UserDetails({ userId, onBack }: { userId: string, onBack: () => 
           <div className="flex items-center gap-6">
             <div className="relative">
               <img src={user.avatar} alt={user.name} className="w-24 h-24 rounded-2xl border-2 border-slate-700 object-cover shadow-xl" />
-              <div className="absolute -bottom-2 -right-2 bg-blue-500 p-1.5 rounded-lg border-2 border-[#0f1218]" title="Verified User">
+              <div className="absolute -bottom-2 -right-2 bg-red-500 p-1.5 rounded-lg border-2 border-[#0f1218]" title="Verified User">
                 <CheckCircle2 className="w-4 h-4 text-white" />
               </div>
             </div>
@@ -54,7 +54,7 @@ export function UserDetails({ userId, onBack }: { userId: string, onBack: () => 
                 <h1 className="text-2xl font-bold text-white tracking-tight">{user.name}</h1>
                 <span className={`px-2.5 py-1 rounded-md text-[11px] font-medium uppercase tracking-wider
                   ${user.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : ''}
-                  ${user.status === 'Verified' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : ''}
+                  ${user.status === 'Verified' ? 'bg-red-500/10 text-blue-400 border border-red-500/20' : ''}
                   ${user.status === 'Inactive' ? 'bg-slate-800 text-slate-400 border border-slate-700' : ''}
                 `}>
                   {user.status}
@@ -166,7 +166,7 @@ export function UserDetails({ userId, onBack }: { userId: string, onBack: () => 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-800">
                     <div className="flex items-center gap-4">
-                      <div className="p-2 bg-blue-500/10 rounded-lg">
+                      <div className="p-2 bg-red-500/10 rounded-lg">
                         <CheckCircle2 className="w-5 h-5 text-blue-400" />
                       </div>
                       <div>
@@ -174,7 +174,7 @@ export function UserDetails({ userId, onBack }: { userId: string, onBack: () => 
                         <div className="text-xs text-slate-500">Document verified on {user.registeredDate}</div>
                       </div>
                     </div>
-                    <span className="text-xs font-medium text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-500/20">Verified</span>
+                    <span className="text-xs font-medium text-blue-400 bg-red-500/10 px-2.5 py-1 rounded-md border border-red-500/20">Verified</span>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-800">
@@ -362,7 +362,7 @@ export function UserDetails({ userId, onBack }: { userId: string, onBack: () => 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-5 bg-slate-900 border border-emerald-500/30 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-8 bg-slate-100 rounded flex items-center justify-center text-blue-600 font-bold italic">
+                    <div className="w-12 h-8 bg-slate-100 rounded flex items-center justify-center text-red-600 font-bold italic">
                       VISA
                     </div>
                     <div>
@@ -407,7 +407,7 @@ export function UserDetails({ userId, onBack }: { userId: string, onBack: () => 
                 </div>
 
                 <div className="relative pl-6">
-                  <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-[#0f1218]"></div>
+                  <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-red-500 ring-4 ring-[#0f1218]"></div>
                   <div className="text-xs text-slate-500 mb-1">Oct 12, 2023 at 14:15</div>
                   <div className="text-sm font-medium text-white mb-1">Service Started</div>
                   <p className="text-xs text-slate-400">Driver arrived at location and commenced fueling.</p>

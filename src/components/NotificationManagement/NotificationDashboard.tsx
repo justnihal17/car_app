@@ -5,7 +5,7 @@ export function NotificationDashboard() {
   const kpis = [
     { label: 'Total Sent', value: '4.2M', change: '+12%', icon: Send, color: 'text-blue-400' },
     { label: 'Delivered', value: '98.5%', change: '+1.2%', icon: CheckCircle, color: 'text-emerald-400' },
-    { label: 'Open Rate', value: '42%', change: '+5%', icon: Eye, color: 'text-indigo-400' },
+    { label: 'Open Rate', value: '42%', change: '+5%', icon: Eye, color: 'text-red-400' },
     { label: 'Click Rate', value: '12%', change: '+2%', icon: MousePointer, color: 'text-purple-400' },
     { label: 'Failed', value: '1.5%', change: '-0.3%', icon: XCircle, color: 'text-red-400' },
     { label: 'Scheduled', value: '14', change: '+3', icon: Clock, color: 'text-yellow-400' }
@@ -76,7 +76,7 @@ export function NotificationDashboard() {
         <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-              <BarChart2 className="w-4 h-4 text-indigo-500" /> Top Campaigns
+              <BarChart2 className="w-4 h-4 text-red-500" /> Top Campaigns
             </h3>
           </div>
           <div className="space-y-5">
@@ -92,11 +92,11 @@ export function NotificationDashboard() {
              </div>
              <div className="group">
                <div className="flex justify-between text-sm mb-1.5">
-                 <span className="text-white font-medium group-hover:text-indigo-400 transition-colors">New Membership Tier</span>
-                 <span className="text-indigo-400 font-bold">35%</span>
+                 <span className="text-white font-medium group-hover:text-red-400 transition-colors">New Membership Tier</span>
+                 <span className="text-red-400 font-bold">35%</span>
                </div>
                <div className="w-full bg-slate-800 rounded-full h-1.5">
-                 <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: '35%' }}></div>
+                 <div className="bg-red-500 h-1.5 rounded-full" style={{ width: '35%' }}></div>
                </div>
                <div className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">Open Rate</div>
              </div>

@@ -38,7 +38,7 @@ export function GeneralSettings() {
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Platform Name</label>
               <input 
                 type="text" 
-                defaultValue="CAFU Admin"
+                defaultValue="Stylein Admin"
                 className="w-full bg-slate-900 border border-slate-800 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors"
               />
             </div>
@@ -46,7 +46,7 @@ export function GeneralSettings() {
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Platform URL</label>
               <input 
                 type="text" 
-                defaultValue="https://admin.cafu-clone.com"
+                defaultValue="https://admin.stylein-car.com"
                 className="w-full bg-slate-900 border border-slate-800 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors font-mono text-sm"
               />
             </div>
@@ -54,7 +54,7 @@ export function GeneralSettings() {
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Platform Logo</label>
               <div className="flex items-center gap-6">
                 <div className="w-20 h-20 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center">
-                  <span className="text-emerald-500 font-bold text-xl">C</span>
+                  <span className="text-emerald-500 font-bold text-xl">S</span>
                 </div>
                 <div className="flex-1">
                   <button className="px-4 py-2 bg-slate-900 border border-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2">
@@ -72,14 +72,14 @@ export function GeneralSettings() {
         {/* Support */}
         <section>
           <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Globe className="w-4 h-4 text-indigo-500" /> Contact & Localization
+            <Globe className="w-4 h-4 text-red-500" /> Contact & Localization
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Support Email</label>
               <input 
                 type="email" 
-                defaultValue="support@cafu-clone.com"
+                defaultValue="support@stylein-car.com"
                 className="w-full bg-slate-900 border border-slate-800 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors"
               />
             </div>

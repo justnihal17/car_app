@@ -4,7 +4,7 @@ import { ORDERS } from '../../data/orders';
 
 const STATUS_COLORS: Record<string, string> = {
   'Pending': 'bg-[#FEF3C7] text-[#B45309] border-[#FEF3C7]',
-  'On The Way': 'bg-blue-50 text-blue-700 border-blue-100',
+  'On The Way': 'bg-red-50 text-red-700 border-red-100',
   'Arrived': 'bg-purple-50 text-purple-700 border-purple-100',
   'Completed': 'bg-[#DCFCE7] text-[#16A34A] border-[#DCFCE7]',
   'Cancelled': 'bg-[#FEE2E2] text-[#DC2626] border-[#FEE2E2]',
@@ -47,7 +47,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
             <Download className="w-4 h-4" />
             Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg shadow-lg shadow-blue-600/10 transition-all text-sm">
+          <button className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg shadow-lg shadow-red-600/10 transition-all text-sm">
             <Plus className="w-4 h-4" />
             Create Order
           </button>
@@ -64,7 +64,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
               onClick={() => setActiveTab(tabId)}
               className={`px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === tabId 
-                  ? 'border-blue-600 text-blue-600 font-semibold' 
+                  ? 'border-red-600 text-red-600 font-semibold' 
                   : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
               }`}
             >
@@ -83,7 +83,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
               <input 
                 type="text" 
                 placeholder="Search by Order ID, Customer, Agent or Phone..." 
-                className="bg-white border border-slate-200 text-sm text-slate-800 placeholder-slate-400 rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full transition-all shadow-sm"
+                className="bg-white border border-slate-200 text-sm text-slate-800 placeholder-slate-400 rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 w-full transition-all shadow-sm"
               />
             </div>
             <button className="p-2 bg-white border border-slate-200 text-slate-600 hover:text-slate-900 rounded-lg transition-colors flex items-center gap-2 text-sm px-3 shadow-sm">
@@ -93,13 +93,13 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
           </div>
           
           <div className="flex items-center gap-3 text-sm">
-            <select className="bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:border-blue-500 shadow-sm text-xs">
+            <select className="bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:border-red-500 shadow-sm text-xs">
               <option>Status: All</option>
               <option>Pending</option>
               <option>Assigned</option>
               <option>On The Way</option>
             </select>
-            <select className="bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:border-blue-500 shadow-sm text-xs">
+            <select className="bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:border-red-500 shadow-sm text-xs">
               <option>City: All</option>
               <option>Dubai</option>
               <option>Abu Dhabi</option>
@@ -144,11 +144,11 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                   </td>
                   <td className="px-5 py-4">
                     {order.driver ? (
-                      <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/60 hover:border-blue-500/20 px-3 py-1.5 rounded-lg transition-all w-fit">
+                      <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/60 hover:border-red-500/20 px-3 py-1.5 rounded-lg transition-all w-fit">
                         <img src={order.driver.image} alt={order.driver.name} className="w-7 h-7 rounded-full border border-slate-200 object-cover shadow-sm shrink-0" />
                         <div>
                           <div className="font-semibold text-slate-800 text-xs tracking-wide">{order.driver.name}</div>
-                          <div className="text-[10px] text-blue-600 font-semibold mt-0.5">{order.driver.vehicle}</div>
+                          <div className="text-[10px] text-red-600 font-semibold mt-0.5">{order.driver.vehicle}</div>
                         </div>
                       </div>
                     ) : (
@@ -192,7 +192,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
             <button className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-500 transition-colors flex items-center justify-center" disabled>
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button className="px-3 py-1.5 rounded-lg border border-blue-600 bg-blue-600 text-white font-semibold shadow-sm">1</button>
+            <button className="px-3 py-1.5 rounded-lg border border-red-600 bg-red-600 text-white font-semibold shadow-sm">1</button>
             <button className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-semibold shadow-sm">2</button>
             <button className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-semibold shadow-sm">3</button>
             <span className="px-2 py-1.5 text-slate-400">...</span>

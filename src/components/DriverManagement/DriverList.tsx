@@ -87,7 +87,7 @@ export function DriverList({ onDriverSelect }: { onDriverSelect: (id: string) =>
                         <div className="font-medium text-white flex items-center gap-2">
                           {driver.name}
                           {driver.verification === 'Verified' && (
-                            <span className="w-3 h-3 bg-blue-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold" title="Verified">✓</span>
+                            <span className="w-3 h-3 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold" title="Verified">✓</span>
                           )}
                         </div>
                         <div className="text-xs text-slate-500">{driver.id}</div>

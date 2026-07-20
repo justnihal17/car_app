@@ -43,7 +43,7 @@ export function LiveMap() {
 
         <div className="absolute top-[60%] left-[45%]">
           <div className="relative">
-            <div className="w-3 h-3 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.6)] border-2 border-[#111814]"></div>
+            <div className="w-3 h-3 bg-red-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.6)] border-2 border-[#111814]"></div>
           </div>
         </div>
         
@@ -77,7 +77,7 @@ export function LiveMap() {
 
         <div className="absolute top-[50%] left-[25%]">
           <div className="relative">
-            <div className="w-3 h-3 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.6)] border-2 border-[#111814]"></div>
+            <div className="w-3 h-3 bg-red-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.6)] border-2 border-[#111814]"></div>
           </div>
         </div>
 

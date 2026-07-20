@@ -2,7 +2,7 @@ export function LiveOrderOverview() {
   const stats = [
     { label: 'Pending', count: 142, total: 3219, color: 'bg-yellow-400' },
     { label: 'Accepted', count: 284, total: 3219, color: 'bg-blue-400' },
-    { label: 'Driver Assigned', count: 315, total: 3219, color: 'bg-indigo-400' },
+    { label: 'Driver Assigned', count: 315, total: 3219, color: 'bg-red-400' },
     { label: 'On The Way', count: 412, total: 3219, color: 'bg-purple-400' },
     { label: 'In Progress', count: 521, total: 3219, color: 'bg-orange-400' },
     { label: 'Completed', count: 1480, total: 3219, color: 'bg-emerald-400' },

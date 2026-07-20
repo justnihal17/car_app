@@ -21,7 +21,7 @@ export function UserList({ onUserSelect }: { onUserSelect: (id: string) => void 
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 text-sm font-medium">
             <Download className="w-4 h-4" /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+          <button className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
             <Plus className="w-4 h-4" /> Register User
           </button>
         </div>
@@ -58,7 +58,7 @@ export function UserList({ onUserSelect }: { onUserSelect: (id: string) => void 
                 <td className="p-4 text-slate-600">{user.email}</td>
                 <td className="p-4"><StatusBadge status={user.status as any} /></td>
                 <td className="p-4 text-slate-600">{user.orders}</td>
-                <td className="p-4 text-blue-600 font-medium cursor-pointer hover:underline" onClick={() => onUserSelect(user.id)}>View</td>
+                <td className="p-4 text-red-600 font-medium cursor-pointer hover:underline" onClick={() => onUserSelect(user.id)}>View</td>
               </tr>
             ))}
           </tbody>

@@ -17,8 +17,8 @@ export function AnalyticsCard({ title, value, icon: Icon, trend, trendUp }: Prop
       className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all"
     >
       <div className="flex justify-between items-start mb-4">
-        <div className="p-3 bg-blue-50 rounded-xl">
-          <Icon className="w-6 h-6 text-blue-600" />
+        <div className="p-3 bg-red-50 rounded-xl">
+          <Icon className="w-6 h-6 text-red-600" />
         </div>
         {trend && (
           <span className={`text-xs font-medium px-2 py-1 rounded-full ${trendUp ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
