@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Shield, Settings, Trash2, Edit2, AlertCircle } from 'lucide-react';
 
+import { ConfirmationModal } from '../ConfirmationModal';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
@@ -10,6 +11,7 @@ const TABS = ['Overview', 'Orders', 'Payments', 'Wallet', 'Addresses', 'Activity
 export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBack: () => void }) {
   const [activeTab, setActiveTab] = useState('Overview');
   const [user, setUser] = useState<any>(null);
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -25,17 +27,17 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
     }
   }, [userId]);
 
-  const handleToggleBlock = async () => {
+  const confirmBlockToggle = async () => {
     if (!user) return;
-    if (window.confirm(`Are you sure you want to ${user.blocked ? 'unblock' : 'block'} this customer?`)) {
-      try {
-        const newBlockedStatus = !user.blocked;
-        const response = await api.put(`/customer/customer/admin/${user._id}`, { blocked: newBlockedStatus });
-        toast.success(response.data?.message || `Customer ${newBlockedStatus ? 'blocked' : 'unblocked'} successfully`);
-        setUser({ ...user, blocked: newBlockedStatus });
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to update customer status');
-      }
+    try {
+      const newBlockedStatus = !user.blocked;
+      const response = await api.put(`/customer/customer/admin/${user._id}`, { blocked: newBlockedStatus });
+      toast.success(response.data?.message || `Customer ${newBlockedStatus ? 'blocked' : 'unblocked'} successfully`);
+      setUser({ ...user, blocked: newBlockedStatus });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update customer status');
+    } finally {
+      setIsBlockModalOpen(false);
     }
   };
 
@@ -65,7 +67,7 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
             <div className="ml-auto flex gap-3 mb-2">
                 <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200">Edit</button>
                 <button 
-                  onClick={handleToggleBlock}
+                  onClick={() => setIsBlockModalOpen(true)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${user.blocked ? 'bg-orange-50 text-orange-700 hover:bg-orange-100' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}
                 >
                   {user.blocked ? 'Unblock' : 'Suspend'}
@@ -117,6 +119,14 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
             </div>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={isBlockModalOpen}
+        actionType={user.blocked ? "unblock" : "block"}
+        name={user.fullName}
+        onCancel={() => setIsBlockModalOpen(false)}
+        onConfirm={confirmBlockToggle}
+      />
     </div>
   );
 }

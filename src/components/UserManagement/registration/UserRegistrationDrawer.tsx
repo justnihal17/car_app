@@ -3,6 +3,8 @@ import { User, Sparkles, X, Upload, Check, Save } from "lucide-react";
 import { UserRegistrationFormValues } from "./UserRegistrationSchema";
 import api from "../../../api/axios";
 import toast from "react-hot-toast";
+import { uploadImage } from "../../../services/uploadService";
+import { ImageCropModal } from "../../common/ImageCropModal";
 
 export function UserRegistrationDrawer({
   isOpen,
@@ -16,8 +18,14 @@ export function UserRegistrationDrawer({
   initialData?: any;
 }) {
   const [photo, setPhoto] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawSelectedFile, setRawSelectedFile] = useState<File | null>(null);
+  const [rawPreviewUrl, setRawPreviewUrl] = useState<string | null>(null);
   const [imgError, setImgError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
   const [isActive, setIsActive] = useState(true);
 
   const [formData, setFormData] = useState<Partial<UserRegistrationFormValues>>({
@@ -34,10 +42,16 @@ export function UserRegistrationDrawer({
           email: initialData.email || "",
           phone: initialData.phone || "",
         });
+        setPhoto(initialData.profileUrl || initialData.imageUrl || null);
+        setSelectedFile(null);
+        setPhotoPreview(null);
         setIsActive(initialData.active !== undefined ? initialData.active : !initialData.blocked);
         setOtpStep(false);
       } else {
         setFormData({ fullName: "", email: "", phone: "" });
+        setPhoto(null);
+        setSelectedFile(null);
+        setPhotoPreview(null);
         setIsActive(true);
         setOtpStep(false);
       }
@@ -50,6 +64,8 @@ export function UserRegistrationDrawer({
   const resetStateAndClose = () => {
     setOtpStep(false);
     setOtp("");
+    setSelectedFile(null);
+    setPhotoPreview(null);
     setFormData({ fullName: "", email: "", phone: "" });
     onClose();
   };
@@ -62,15 +78,34 @@ export function UserRegistrationDrawer({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isFormValid || loading) return;
 
     setLoading(true);
+
+    let finalProfileUrl = photo || "";
+
+    if (selectedFile) {
+      setStatusMessage("Uploading Image...");
+      try {
+        finalProfileUrl = await uploadImage(selectedFile);
+      } catch (uploadErr: any) {
+        setLoading(false);
+        setStatusMessage("");
+        const errText = uploadErr.message || "Image upload failed";
+        toast.error(errText);
+        return; // STOP! DO NOT CALL CREATE/EDIT API
+      }
+    }
+
+    setStatusMessage("Saving Data...");
+
     try {
-      const payload = {
+      const payload: any = {
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
         blocked: !isActive,
+        ...(finalProfileUrl ? { profileUrl: finalProfileUrl, imageUrl: finalProfileUrl } : {}),
       };
 
       if (mode === "edit") {
@@ -94,6 +129,7 @@ export function UserRegistrationDrawer({
       toast.error(error.response?.data?.message || (mode === "edit" ? "Failed to update user" : "Failed to register user"));
     } finally {
       setLoading(false);
+      setStatusMessage("");
     }
   };
 
@@ -114,7 +150,7 @@ export function UserRegistrationDrawer({
         <div className="px-6 py-5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
-              <Sparkles className="w-5 h-5" />
+              <User className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-lg font-black tracking-tight text-white capitalize">
@@ -180,15 +216,18 @@ export function UserRegistrationDrawer({
                     disabled={isView}
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        setRawSelectedFile(file);
+                        setRawPreviewUrl(URL.createObjectURL(file));
+                        setCropModalOpen(true);
                         setImgError(false);
-                        setPhoto(URL.createObjectURL(e.target.files[0]));
                       }
                     }}
                   />
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
-                    {photo && !imgError ? (
+                    {(photoPreview || photo) && !imgError ? (
                       <img
-                        src={photo}
+                        src={photoPreview || photo || undefined}
                         className="w-full h-full object-cover"
                         alt="User Photo"
                         onError={() => setImgError(true)}
@@ -292,13 +331,24 @@ export function UserRegistrationDrawer({
                   disabled={loading || !isFormValid} 
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
                 >
-                  <Save className="w-4 h-4" /> {loading ? "Saving..." : (isEdit ? "Update User" : "Register User")}
+                  <Save className="w-4 h-4" /> {loading ? (statusMessage || "Saving Data...") : (isEdit ? "Update User" : "Register User")}
                 </button>
               )}
             </div>
           )}
         </form>
       </div>
+
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        onClose={() => setCropModalOpen(false)}
+        onCropComplete={(croppedFile, croppedUrl) => {
+          setSelectedFile(croppedFile);
+          setPhotoPreview(croppedUrl);
+        }}
+      />
     </div>
   );
 }

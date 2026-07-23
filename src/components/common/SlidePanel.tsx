@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Sparkles } from 'lucide-react';
+import { X, Shield } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -30,7 +30,7 @@ export function SlidePanel({ isOpen, onClose, title, children }: Props) {
             <div className="px-6 py-5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
-                  <Sparkles className="w-5 h-5" />
+                  <Shield className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-lg font-black tracking-tight text-white capitalize">{title}</h3>

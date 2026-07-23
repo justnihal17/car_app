@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Eye, EyeOff, Save, User, Sparkles, Shield, Upload, Check, ChevronDown } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { uploadImage } from '../../services/uploadService';
+import { ImageCropModal } from '../common/ImageCropModal';
 
 const PERMISSIONS = [
   'Dashboard', 'Users', 'Service Agents', 'Services', 'Categories',
@@ -14,26 +16,23 @@ const formatRoleName = (roleName: string) => {
   return roleName.charAt(0).toUpperCase() + roleName.slice(1).toLowerCase();
 };
 
-export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose: () => void, onSave: (admin: any) => void, mode: 'create' | 'edit' | 'view', admin?: any }) {
-  const [showPass, setShowPass] = useState(false);
+export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSubAdminDrawerProps) {
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   const [apiError, setApiError] = useState('');
   const [apiSuccess, setApiSuccess] = useState('');
-  const [roles, setRoles] = useState<any[]>([]);
-  const [imgError, setImgError] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
-  const roleDropdownRef = useRef<HTMLDivElement>(null);
+  const [imgError, setImgError] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawSelectedFile, setRawSelectedFile] = useState<File | null>(null);
+  const [rawPreviewUrl, setRawPreviewUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target as Node)) {
-        setIsRoleDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const [roles, setRoles] = useState<any[]>([]);
+  const roleDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -49,36 +48,44 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
     fetchRoles();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target as Node)) {
+        setIsRoleDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const [formData, setFormData] = useState(() => {
     if (admin) {
+      const nameParts = (admin.name || '').split(' ');
+      const firstName = admin.firstName || nameParts[0] || '';
+      const lastName = admin.lastName || nameParts.slice(1).join(' ') || '';
+
       const perms = admin.permissions || {};
-      const passMapStr = localStorage.getItem('adminPasswords');
-      const passMap = passMapStr ? JSON.parse(passMapStr) : {};
-      const savedPass = passMap[admin.id] || passMap[admin.username?.toLowerCase()] || passMap[admin.email?.toLowerCase()] || admin.password || '';
-
-      const currentPassword = savedPass && savedPass !== '••••••••' ? savedPass : (admin.password || '••••••••');
-
       return {
-        firstName: admin.firstName || '',
-        lastName: admin.lastName || '',
+        firstName,
+        lastName,
         email: admin.email || '',
         phone: admin.phone || '',
-        role: admin.role || '',
-        imageUrl: admin.profileUrl || '',
-        active: admin.active !== false,
+        role: admin.role || 'admin',
+        password: admin.password || '••••••••',
+        confirmPassword: admin.password || '••••••••',
+        imageUrl: admin.imageUrl || admin.profileUrl || '',
+        active: admin.status ? admin.status === 'Active' : (admin.active !== undefined ? admin.active : true),
         blocked: admin.blocked || false,
-        password: currentPassword,
-        confirmPassword: currentPassword,
         permissions: {
-          dashboard: !!perms.dashboard,
-          users: !!perms.users,
-          serviceagents: !!perms.serviceAgents || !!perms.serviceagents,
-          services: !!perms.services,
-          categories: !!perms.categories,
-          bookings: !!perms.bookings,
-          payments: !!perms.payments,
-          reports: !!perms.reports,
-          settings: !!perms.settings,
+          dashboard: perms.dashboard !== undefined ? perms.dashboard : true,
+          users: perms.users !== undefined ? perms.users : false,
+          serviceagents: perms.serviceAgents !== undefined ? perms.serviceAgents : false,
+          services: perms.services !== undefined ? perms.services : false,
+          categories: perms.categories !== undefined ? perms.categories : false,
+          bookings: perms.bookings !== undefined ? perms.bookings : false,
+          payments: perms.payments !== undefined ? perms.payments : false,
+          reports: perms.reports !== undefined ? perms.reports : false,
+          settings: perms.settings !== undefined ? perms.settings : false,
         }
       };
     }
@@ -87,14 +94,14 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
       lastName: '',
       email: '',
       phone: '',
-      role: '',
+      role: 'admin',
+      password: '',
+      confirmPassword: '',
       imageUrl: '',
       active: true,
       blocked: false,
-      password: '',
-      confirmPassword: '',
       permissions: {
-        dashboard: false,
+        dashboard: true,
         users: false,
         serviceagents: false,
         services: false,
@@ -112,15 +119,19 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
   const isView = mode === 'view';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              setImgError(false);
-              setFormData({...formData, imageUrl: reader.result as string});
-          };
-          reader.readAsDataURL(file);
-      }
+    const file = e.target.files?.[0];
+    if (file) {
+      setRawSelectedFile(file);
+      const localUrl = URL.createObjectURL(file);
+      setRawPreviewUrl(localUrl);
+      setCropModalOpen(true);
+      setImgError(false);
+    }
+  };
+
+  const handleCropComplete = (croppedFile: File, croppedPreviewUrl: string) => {
+    setSelectedFile(croppedFile);
+    setPreviewUrl(croppedPreviewUrl);
   };
 
   const validate = () => {
@@ -153,6 +164,24 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
     setApiError('');
     setApiSuccess('');
 
+    let finalProfileUrl = formData.imageUrl || 'https://example.com/profile.jpg';
+
+    if (selectedFile) {
+      setStatusMessage('Uploading Image...');
+      try {
+        finalProfileUrl = await uploadImage(selectedFile);
+      } catch (uploadErr: any) {
+        setLoading(false);
+        setStatusMessage('');
+        const errText = uploadErr.message || 'Image upload failed';
+        setApiError(errText);
+        toast.error(errText);
+        return; // STOP! DO NOT CALL CREATE/UPDATE API
+      }
+    }
+
+    setStatusMessage('Saving Data...');
+
     const apiPermissions = {
       dashboard: !!formData.permissions.dashboard,
       users: !!formData.permissions.users,
@@ -172,7 +201,7 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
       phone: formData.phone,
       password: formData.password || 'Admin@123',
       role: formData.role?.toLowerCase() === 'admin' ? 'admin' : (formData.role || 'admin'),
-      profileUrl: formData.imageUrl || 'https://example.com/profile.jpg',
+      profileUrl: finalProfileUrl,
       active: formData.active,
       blocked: formData.blocked || false,
       permissions: apiPermissions
@@ -187,7 +216,7 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
           email: formData.email,
           phone: formData.phone,
           role: formData.role?.toLowerCase() === 'admin' ? 'admin' : (formData.role || 'admin'),
-          profileUrl: formData.imageUrl || 'https://example.com/profile.jpg',
+          profileUrl: finalProfileUrl,
           permissions: apiPermissions,
           active: formData.active,
           blocked: formData.blocked || false
@@ -273,7 +302,7 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
         <div className="px-6 py-5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
-              <Sparkles className="w-5 h-5" />
+              <Shield className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-lg font-black tracking-tight text-white capitalize">{mode} Sub Admin</h3>
@@ -308,9 +337,9 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
               className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${isView ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}
             >
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
-                {formData.imageUrl && !imgError ? (
+                {(previewUrl || (formData.imageUrl && !imgError)) ? (
                   <img 
-                    src={formData.imageUrl} 
+                    src={previewUrl || formData.imageUrl} 
                     alt="Admin Photo" 
                     onError={() => setImgError(true)} 
                     className="w-full h-full object-cover" 
@@ -401,7 +430,7 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
                 <div className="relative">
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
                   <input 
-                    type={showPass ? "text" : "password"} 
+                    type={showPassword ? "text" : "password"} 
                     value={formData.password}
                     onChange={e => setFormData({...formData, password: e.target.value})}
                     placeholder="Enter password" 
@@ -409,10 +438,10 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
                   />
                   <button 
                     type="button" 
-                    onClick={() => setShowPass(!showPass)} 
+                    onClick={() => setShowPassword(!showPassword)} 
                     className="absolute right-3 top-[29px] p-1 text-slate-400 hover:text-red-600 transition-colors z-10"
                   >
-                    {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                   {errors.password && <p className="text-rose-500 text-xs font-bold mt-1">{errors.password}</p>}
                 </div>
@@ -558,12 +587,20 @@ export function CreateSubAdminDrawer({ onClose, onSave, mode, admin }: { onClose
                 disabled={loading || !isSubAdminFormValid} 
                 className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
               >
-                <Save className="w-4 h-4" /> {loading ? 'Saving...' : (mode === 'create' ? 'Register Sub Admin' : 'Update Sub Admin')}
+                <Save className="w-4 h-4" /> {loading ? (statusMessage || 'Saving Data...') : (mode === 'create' ? 'Register Sub Admin' : 'Update Sub Admin')}
               </button>
             </div>
           )}
         </form>
       </div>
+
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        onClose={() => setCropModalOpen(false)}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

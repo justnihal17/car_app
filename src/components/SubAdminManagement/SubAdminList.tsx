@@ -3,6 +3,7 @@ import { Search, Plus, Download, Eye, EyeOff, Copy, Trash2, Edit2, Shield, UserX
 import { StatusBadge } from '../StatusBadge';
 import { CreateSubAdminDrawer } from './CreateSubAdminDrawer';
 import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
+import { ConfirmationModal, ActionType } from '../ConfirmationModal';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
@@ -82,7 +83,7 @@ export function SubAdminManagement() {
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedAdmin, setSelectedAdmin] = useState<SubAdmin | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, id: string, name: string}>({isOpen: false, id: '', name: ''});
+  const [actionModal, setActionModal] = useState<{isOpen: boolean, actionType: ActionType, admin: SubAdmin | null}>({isOpen: false, actionType: 'view', admin: null});
 
   const fetchAdmins = async () => {
     try {
@@ -98,7 +99,11 @@ export function SubAdminManagement() {
         const passMapStr = localStorage.getItem('adminPasswords');
         const passMap = passMapStr ? JSON.parse(passMapStr) : {};
 
-        const mappedData = response.data.data.map((admin: any): SubAdmin => {
+        const rawAdmins = Array.isArray(response.data.data)
+          ? response.data.data
+          : (response.data.data?.admins || response.data.data?.list || response.data.admins || []);
+
+        const mappedData = rawAdmins.map((admin: any): SubAdmin => {
           const usernameKey = admin.adminId?.toLowerCase() || '';
           const emailKey = admin.email?.toLowerCase() || '';
           const firstNameKey = admin.firstName?.toLowerCase() || '';
@@ -132,6 +137,7 @@ export function SubAdminManagement() {
       }
     } catch (error) {
       console.error('Failed to fetch admins:', error);
+      toast.error('Failed to load admins list');
     } finally {
       setLoading(false);
     }
@@ -197,35 +203,38 @@ export function SubAdminManagement() {
     }
   };
   
-  const handleDeleteClick = (id: string, name: string) => {
-    setDeleteModal({ isOpen: true, id, name });
-  };
+  const handleActionConfirm = async () => {
+    const { actionType, admin } = actionModal;
+    if (!admin) return;
 
-  const confirmDelete = async () => {
-    try {
-      await api.put(`/admin/admin/${deleteModal.id}`, { deleted: true });
-      setData(data.filter(a => a.id !== deleteModal.id));
-      toast.success(`${deleteModal.name} deleted successfully`);
-    } catch (error) {
-      console.error('Failed to delete admin:', error);
-      toast.error('Failed to delete admin');
-    } finally {
-      setDeleteModal({ isOpen: false, id: '', name: '' });
-    }
-  };
-
-  const handleBlockToggle = async (admin: SubAdmin) => {
-    const isCurrentlyBlocked = admin.status === 'Blocked';
-    const action = isCurrentlyBlocked ? 'unblock' : 'block';
-    
-    if (confirm(`Are you sure you want to ${action} ${admin.name}?`)) {
+    if (actionType === 'view') {
+      setActionModal({ isOpen: false, actionType: 'view', admin: null });
+      handleView(admin);
+    } else if (actionType === 'edit') {
+      setActionModal({ isOpen: false, actionType: 'edit', admin: null });
+      handleEdit(admin);
+    } else if (actionType === 'delete') {
+      try {
+        await api.put(`/admin/admin/${admin.id}`, { deleted: true });
+        setData(data.filter(a => a.id !== admin.id));
+        toast.success(`${admin.name} deleted successfully`);
+      } catch (error) {
+        console.error('Failed to delete admin:', error);
+        toast.error('Failed to delete admin');
+      } finally {
+        setActionModal({ isOpen: false, actionType: 'delete', admin: null });
+      }
+    } else if (actionType === 'block' || actionType === 'unblock') {
+      const isCurrentlyBlocked = admin.status === 'Blocked';
       try {
         await api.put(`/admin/admin/${admin.id}`, { blocked: !isCurrentlyBlocked });
         toast.success(`Admin ${isCurrentlyBlocked ? 'unblocked' : 'blocked'} successfully`);
         fetchAdmins();
       } catch (error) {
-        console.error(`Failed to ${action} admin:`, error);
-        toast.error(`Failed to ${action} admin`);
+        console.error(`Failed to block/unblock admin:`, error);
+        toast.error(`Failed to update admin status`);
+      } finally {
+        setActionModal({ isOpen: false, actionType: 'block', admin: null });
       }
     }
   };
@@ -259,22 +268,36 @@ export function SubAdminManagement() {
     return colors[sum % colors.length];
   };
 
-  const filteredAdmins = data.filter(admin => 
-    admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    admin.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    admin.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+
+  const filteredAdmins = data.filter(admin => {
+    const matchesSearch = 
+      admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      admin.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      admin.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (!selectedCard || selectedCard === 'Total Admins') return true;
+    if (selectedCard === 'Active') return admin.status === 'Active';
+    if (selectedCard === 'Inactive') return admin.status === 'Inactive';
+    if (selectedCard === 'Blocked') return admin.status === 'Blocked';
+    if (selectedCard === "Today's Login") return isToday(admin.lastLogin);
+    if (selectedCard === 'Pending Approval') return admin.status === 'Inactive' && !admin.blocked;
+
+    return true;
+  });
 
   return (
-    <div className="p-8 space-y-8 max-w-[1600px] mx-auto bg-slate-50/60 min-h-screen">
+    <div className="p-8 space-y-8 bg-slate-50/60 min-h-screen">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
         <span>Dashboard</span> 
         <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
         <span>Profile Management</span> 
         <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
-        <span className="text-red-600 font-bold flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5" /> Sub Admin
+        <span className="text-red-600 font-bold">
+          Sub Admin
         </span>
       </div>
 
@@ -302,55 +325,56 @@ export function SubAdminManagement() {
 
       {/* Analytics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {[
-          { label: 'Total Admins', value: data.length, icon: Shield, color: 'text-red-600 bg-red-50 border-red-100', bgGrad: 'from-red-50/50 via-white to-white', sub: 'Accounts' },
-          { label: 'Active', value: data.filter(a => a.status === 'Active').length, icon: UserCheck, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', bgGrad: 'from-emerald-50/50 via-white to-white', sub: 'Operational' },
-          { label: 'Inactive', value: data.filter(a => a.status === 'Inactive').length, icon: User, color: 'text-amber-600 bg-amber-50 border-amber-100', bgGrad: 'from-amber-50/50 via-white to-white', sub: 'Off-line' },
-          { label: 'Blocked', value: data.filter(a => a.status === 'Blocked').length, icon: UserX, color: 'text-rose-600 bg-rose-50 border-rose-100', bgGrad: 'from-rose-50/50 via-white to-white', sub: 'Restricted' },
-          { label: "Today's Login", value: data.filter(a => isToday(a.lastLogin)).length, icon: Clock, color: 'text-red-600 bg-red-50 border-indigo-100', bgGrad: 'from-red-50/50 via-white to-white', sub: 'Active Today' },
-          { label: 'Pending Approval', value: data.filter(a => a.status === 'Inactive' && !a.blocked).length, icon: AlertCircle, color: 'text-purple-600 bg-purple-50 border-purple-100', bgGrad: 'from-purple-50/50 via-white to-white', sub: 'Review' },
-        ].map((card, i) => {
-          const Icon = card.icon;
-          return (
-            <div 
-              key={i} 
-              className={`bg-gradient-to-br ${card.bgGrad} p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-slate-500 tracking-tight group-hover:text-slate-800 transition-colors uppercase">{card.label}</span>
-                <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
-                  <Icon className="w-4 h-4" />
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-[105px] bg-slate-200/70 animate-pulse rounded-2xl p-5 border border-slate-200/50 flex flex-col justify-between">
+              <div className="flex justify-between items-center">
+                <div className="h-3 w-16 bg-slate-300 rounded" />
+                <div className="w-8 h-8 bg-slate-300 rounded-xl" />
+              </div>
+              <div className="h-6 w-12 bg-slate-300 rounded mt-2" />
+            </div>
+          ))
+        ) : (
+          [
+            { label: 'Total Admins', value: data.length, icon: Shield, color: 'text-red-600 bg-red-50 border-red-100', activeBorder: 'border-red-600', activeBg: 'bg-red-50/50', activeText: 'text-red-600', bgGrad: 'from-red-50/50 via-white to-white', sub: 'Accounts' },
+            { label: 'Active', value: data.filter(a => a.status === 'Active').length, icon: UserCheck, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', activeBorder: 'border-emerald-600', activeBg: 'bg-emerald-50/50', activeText: 'text-emerald-700', bgGrad: 'from-emerald-50/50 via-white to-white', sub: 'Operational' },
+            { label: 'Inactive', value: data.filter(a => a.status === 'Inactive').length, icon: User, color: 'text-amber-600 bg-amber-50 border-amber-100', activeBorder: 'border-amber-500', activeBg: 'bg-amber-50/50', activeText: 'text-amber-700', bgGrad: 'from-amber-50/50 via-white to-white', sub: 'Off-line' },
+            { label: 'Blocked', value: data.filter(a => a.status === 'Blocked').length, icon: UserX, color: 'text-rose-600 bg-rose-50 border-rose-100', activeBorder: 'border-rose-600', activeBg: 'bg-rose-50/50', activeText: 'text-rose-700', bgGrad: 'from-rose-50/50 via-white to-white', sub: 'Restricted' },
+            { label: "Today's Login", value: data.filter(a => isToday(a.lastLogin)).length, icon: Clock, color: 'text-blue-600 bg-blue-50 border-blue-100', activeBorder: 'border-blue-600', activeBg: 'bg-blue-50/50', activeText: 'text-blue-700', bgGrad: 'from-blue-50/50 via-white to-white', sub: 'Active Today' },
+            { label: 'Pending Approval', value: data.filter(a => a.status === 'Inactive' && !a.blocked).length, icon: AlertCircle, color: 'text-purple-600 bg-purple-50 border-purple-100', activeBorder: 'border-purple-600', activeBg: 'bg-purple-50/50', activeText: 'text-purple-700', bgGrad: 'from-purple-50/50 via-white to-white', sub: 'Review' },
+          ].map((card, i) => {
+            const Icon = card.icon;
+            const isFocused = selectedCard === card.label;
+            return (
+              <div 
+                key={i} 
+                onClick={() => setSelectedCard(prev => prev === card.label ? null : card.label)}
+                className={`bg-gradient-to-br ${card.bgGrad} p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
+                  isFocused 
+                    ? `border-2 ${card.activeBorder} ${card.activeBg}` 
+                    : 'border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-xs font-semibold tracking-tight transition-colors uppercase ${isFocused ? `${card.activeText} font-bold` : 'text-slate-500 group-hover:text-slate-800'}`}>{card.label}</span>
+                  <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
                 </div>
               </div>
-              <div className="flex items-baseline justify-between mt-2">
-                <span className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</span>
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex p-1.5 bg-slate-200/60 rounded-2xl w-fit border border-slate-300/40 shadow-inner backdrop-blur-md">
-        {['Overview', 'Staff', 'Roles', 'Permissions', 'Activity Logs'].map((tab) => (
-          <button 
-            key={tab} 
-            onClick={() => setActiveTab(tab)} 
-            className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
-              activeTab === tab 
-                ? 'bg-white text-red-600 shadow-sm border border-slate-200/60' 
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'Overview' ? (
-        <div className="space-y-4">
-            {/* Title & Search Bar */}
+      {/* Main Content */}
+      <div className="space-y-4">
+        {/* Title & Search Bar */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div>
@@ -390,19 +414,38 @@ export function SubAdminManagement() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                     {loading ? (
-                      <tr>
-                        <td colSpan={8} className="p-8 text-center text-slate-400 font-semibold">Loading administrators...</td>
-                      </tr>
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <tr key={i} className="animate-pulse">
+                          <td className="px-3 py-4 pl-5"><div className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
+                          <td className="px-3 py-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
+                          <td className="px-3 py-4"><div className="h-4 w-32 bg-slate-200 rounded" /></td>
+                          <td className="px-3 py-4"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
+                          <td className="px-3 py-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
+                          <td className="px-3 py-4"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
+                          <td className="px-3 py-4"><div className="h-6 w-16 bg-slate-200 rounded-full" /></td>
+                          <td className="px-3 py-4 pr-5"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
+                        </tr>
+                      ))
                     ) : filteredAdmins.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="p-8 text-center text-slate-400 font-semibold">No admin accounts found</td>
                       </tr>
                     ) : filteredAdmins.map(admin => (
-                    <tr key={admin.id} className="hover:bg-red-50/20 transition-all duration-150 group">
+                    <tr key={admin.id} onClick={() => handleView(admin)} className="hover:bg-red-50/20 transition-all duration-150 group cursor-pointer">
                         <td className="px-3 py-3.5 pl-5 whitespace-nowrap">
                           <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(admin.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50`}>
-                              {getInitials(admin.name)}
+                            <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(admin.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
+                              {(admin.profileUrl || admin.imageUrl) ? (
+                                <img 
+                                  src={admin.profileUrl || admin.imageUrl} 
+                                  alt={admin.name} 
+                                  className="w-full h-full object-cover absolute inset-0" 
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : null}
+                              <span>{getInitials(admin.name)}</span>
                             </div>
                             <span className="font-medium text-slate-900 text-sm tracking-tight whitespace-nowrap">{admin.name}</span>
                           </div>
@@ -412,7 +455,7 @@ export function SubAdminManagement() {
                             {admin.username}
                           </span>
                         </td>
-                        <td className="px-3 py-3.5 text-slate-600 font-semibold text-xs truncate max-w-[170px]" title={admin.email}>{admin.email}</td>
+                        <td className="px-3 py-3.5 text-slate-600 font-semibold text-xs truncate max-w-[170px]">{admin.email}</td>
                         <td className="px-3 py-3.5 whitespace-nowrap">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${getRoleBadgeStyle(admin.role)}`}>
                             <Shield className="w-3 h-3" />
@@ -425,19 +468,18 @@ export function SubAdminManagement() {
                               {showPasswords[admin.id] ? admin.password : '••••••••'}
                             </span>
                             <button 
-                              onClick={() => togglePassword(admin.id)} 
+                              onClick={(e) => { e.stopPropagation(); togglePassword(admin.id); }} 
                               className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-red-600 transition-all"
-                              title="Show Password"
                             >
                               {showPasswords[admin.id] ? <EyeOff className="w-3.5 h-3.5"/> : <Eye className="w-3.5 h-3.5"/>}
                             </button>
                             <button 
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 navigator.clipboard.writeText(admin.username);
                                 toast.success('Admin ID copied to clipboard!');
                               }}
                               className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-red-600 transition-all"
-                              title="Copy ID"
                             >
                               <Copy className="w-3.5 h-3.5"/>
                             </button>
@@ -454,13 +496,13 @@ export function SubAdminManagement() {
                         </td>
                         <td className="px-3 py-3.5 pr-5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1">
-                            <button onClick={() => handleView(admin)} className="text-blue-600 hover:text-blue-800 p-1 transition-transform hover:scale-110" title="View Details"><Eye className="w-4 h-4"/></button>
-                            <button onClick={() => handleEdit(admin)} className="text-emerald-600 hover:text-emerald-800 p-1 transition-transform hover:scale-110" title="Edit Details"><Edit2 className="w-4 h-4"/></button>
-                            <button onClick={() => handleDeleteClick(admin.id, admin.name)} className="text-red-600 hover:text-red-800 p-1 transition-transform hover:scale-110" title="Delete Account"><Trash2 className="w-4 h-4"/></button>
+                            <button onClick={(e) => { e.stopPropagation(); handleView(admin); }} className="text-blue-600 hover:text-blue-800 p-1 transition-transform hover:scale-110"><Eye className="w-4 h-4"/></button>
+                            <button onClick={(e) => { e.stopPropagation(); handleEdit(admin); }} className="text-emerald-600 hover:text-emerald-800 p-1 transition-transform hover:scale-110"><Edit2 className="w-4 h-4"/></button>
+                            <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'delete', admin }); }} className="text-red-600 hover:text-red-800 p-1 transition-transform hover:scale-110"><Trash2 className="w-4 h-4"/></button>
                             {admin.status === 'Blocked' ? (
-                              <button onClick={() => handleBlockToggle(admin)} className="text-emerald-600 hover:text-emerald-900 p-1 transition-transform hover:scale-110" title="Unblock Admin"><UserCheck className="w-4 h-4"/></button>
+                              <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'unblock', admin }); }} className="text-emerald-600 hover:text-emerald-900 p-1 transition-transform hover:scale-110"><UserCheck className="w-4 h-4"/></button>
                             ) : (
-                              <button onClick={() => handleBlockToggle(admin)} className="text-slate-600 hover:text-slate-900 p-1 transition-transform hover:scale-110" title="Block Admin"><UserX className="w-4 h-4"/></button>
+                              <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'block', admin }); }} className="text-slate-600 hover:text-slate-900 p-1 transition-transform hover:scale-110"><UserX className="w-4 h-4"/></button>
                             )}
                           </div>
                         </td>
@@ -470,20 +512,15 @@ export function SubAdminManagement() {
                 </table>
             </div>
         </div>
-      ) : (
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center text-slate-400 font-semibold shadow-sm">
-            <Settings className="w-8 h-8 text-slate-300 mx-auto mb-3 animate-spin duration-3000" />
-            {activeTab} module is under active development.
-        </div>
-      )}
 
       {isDrawerOpen && <CreateSubAdminDrawer mode={drawerMode} admin={selectedAdmin} onSave={handleSave} onClose={() => setIsDrawerOpen(false)} />}
       
-      <DeleteConfirmationModal
-        isOpen={deleteModal.isOpen}
-        name={deleteModal.name}
-        onCancel={() => setDeleteModal({ isOpen: false, id: '', name: '' })}
-        onConfirm={confirmDelete}
+      <ConfirmationModal
+        isOpen={actionModal.isOpen}
+        actionType={actionModal.actionType}
+        name={actionModal.admin?.name}
+        onCancel={() => setActionModal({ isOpen: false, actionType: 'view', admin: null })}
+        onConfirm={handleActionConfirm}
       />
     </div>
   );

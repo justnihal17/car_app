@@ -244,8 +244,8 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
         <span>Master Management</span> 
         <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
-        <span className="text-red-600 font-bold flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5" /> {moduleName}
+        <span className="text-red-600 font-bold">
+          {moduleName}
         </span>
       </div>
 
@@ -346,11 +346,11 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                 })}
                 <td className={`px-6 py-5 ${columns.length === 2 ? 'w-1/3' : (columns.length === 4 ? 'w-[15%]' : 'w-[15%]')}`}>
                   <div className="flex gap-3 items-center justify-end">
-                    <button onClick={() => handleView(row)} className="text-red-600 hover:text-red-800 p-1 transition-colors" title="View Details">
+                    <button onClick={(e) => { e.stopPropagation(); handleView(row); }} className="text-red-600 hover:text-red-800 p-1 transition-colors">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleEdit(row)} className="text-emerald-600 hover:text-emerald-800 p-1 transition-colors" title="Edit Item"><Edit2 className="w-4 h-4"/></button>
-                    <button onClick={() => handleDeleteClick(row.id, row.name)} className="text-red-600 hover:text-red-800 p-1 transition-colors" title="Delete Item">
+                    <button onClick={(e) => { e.stopPropagation(); handleEdit(row); }} className="text-emerald-600 hover:text-emerald-800 p-1 transition-colors"><Edit2 className="w-4 h-4"/></button>
+                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClick(row.id, row.name); }} className="text-red-600 hover:text-red-800 p-1 transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

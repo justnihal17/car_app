@@ -1,29 +1,25 @@
 import React from 'react';
 import { ConfirmationModal } from './ConfirmationModal';
 
-interface DeleteConfirmationModalProps {
+interface BlockConfirmationModalProps {
   isOpen: boolean;
   name: string;
+  isCurrentlyBlocked: boolean;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
-  title?: string;
-  description?: string;
 }
 
-export function DeleteConfirmationModal({ 
+export function BlockConfirmationModal({ 
   isOpen, 
   name, 
+  isCurrentlyBlocked,
   onCancel, 
-  onConfirm,
-  title,
-  description
-}: DeleteConfirmationModalProps) {
+  onConfirm
+}: BlockConfirmationModalProps) {
   return (
     <ConfirmationModal
       isOpen={isOpen}
-      actionType="delete"
-      title={title}
-      description={description}
+      actionType={isCurrentlyBlocked ? "unblock" : "block"}
       name={name}
       onCancel={onCancel}
       onConfirm={onConfirm}
