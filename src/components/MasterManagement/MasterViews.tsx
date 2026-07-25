@@ -49,9 +49,9 @@ export const CityPage = () => (
 export const ServicePage = () => (
     <MasterPage 
         moduleName="Service" 
-        columns={['Service Name', 'Image', 'Price', 'Status']} 
+        columns={['Name', 'Image', 'Price', 'Status']} 
         fields={[
-            { name: 'name', label: 'Service Name', type: 'text' },
+            { name: 'name', label: 'Name', type: 'text' },
             { name: 'image', label: 'Image', type: 'text' },
             { name: 'price', label: 'Price', type: 'text' },
             { name: 'status', label: 'Status', type: 'toggle' }
@@ -78,9 +78,9 @@ export const SubServicePage = () => (
 export const BrandPage = () => (
     <MasterPage 
         moduleName="Brand" 
-        columns={['Brand Name', 'Model', 'Status']} 
+        columns={['Name', 'Model', 'Status']} 
         fields={[
-            { name: 'name', label: 'Brand Name', type: 'text' },
+            { name: 'name', label: 'Name', type: 'text' },
             { name: 'model', label: 'Model', type: 'text' },
             { name: 'image', label: 'Image URL', type: 'text' },
             { name: 'status', label: 'Status', type: 'toggle' }
@@ -103,10 +103,10 @@ export const ColorPage = () => (
 export const MakePage = () => (
     <MasterPage 
         moduleName="Make" 
-        columns={['Brand Name', 'Code', 'Image', 'Status']} 
+        columns={['Name', 'Image', 'Status']} 
         fields={[
-            { name: 'name', label: 'Brand Name', type: 'text' },
-            { name: 'code', label: 'Brand Code (e.g. TOY)', type: 'text' },
+            { name: 'name', label: 'Name', type: 'text' },
+            { name: 'code', label: 'Code', type: 'text' },
             { name: 'image', label: 'Image URL', type: 'text' },
             { name: 'status', label: 'Status', type: 'toggle' }
         ]} 
@@ -125,3 +125,16 @@ export const ModelPage = () => (
         ]} 
     />
 );
+
+export const VehicleTypePage = () => (
+    <MasterPage 
+        moduleName="VehicleType" 
+        columns={['Name', 'Status']} 
+        fields={[
+            { name: 'name', label: 'Name', type: 'text' },
+            { name: 'code', label: 'Code', type: 'text' },
+            { name: 'status', label: 'Status', type: 'toggle' }
+        ]} 
+    />
+);
+

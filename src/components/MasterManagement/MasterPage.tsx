@@ -36,6 +36,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const [makeOptions, setMakeOptions] = useState<{ label: string; value: string }[]>([]);
   const [serviceOptions, setServiceOptions] = useState<{ label: string; value: string }[]>([]);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isPanelOpen) {
@@ -50,7 +51,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const fetchData = async () => {
     try {
       const isSubService = moduleName.toLowerCase() === 'subservice';
-      const endpoint = isSubService ? '/master/subservice' : `/master/${moduleName.toLowerCase()}`;
+      const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
+      const endpoint = isSubService 
+        ? '/master/subservice' 
+        : (isVehicleType ? '/master/vehicleType' : `/master/${moduleName.toLowerCase()}`);
       let response;
       try {
         response = await api.get(endpoint);
@@ -80,7 +84,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       }
     } catch (error: any) {
       console.error(`Failed to fetch ${moduleName}:`, error);
-      const isLiveModule = ['role', 'state', 'city', 'service', 'skill', 'brand', 'color', 'make', 'model'].includes(moduleName.toLowerCase());
+      const isLiveModule = ['role', 'state', 'city', 'service', 'skill', 'brand', 'color', 'make', 'model', 'vehicletype'].includes(moduleName.toLowerCase());
       if (!isLiveModule) {
         // Fallback for non-live master pages
         setData([
@@ -205,7 +209,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const handleToggleStatus = async (item: any) => {
     try {
       const newStatus = item.status === 'Active' ? 'Inactive' : 'Active';
-      const cleanModuleName = moduleName.toLowerCase();
+      const cleanModuleName = moduleName.toLowerCase() === 'vehicletype' ? 'vehicleType' : moduleName.toLowerCase();
       const payload: any = {
         status: newStatus
       };
@@ -227,7 +231,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const handleView = async (item: any) => { 
     try {
       const isSubService = moduleName.toLowerCase() === 'subservice';
-      const endpoint = isSubService ? `/master/subservice/${item.id}` : `/master/${moduleName.toLowerCase()}/${item.id}`;
+      const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
+      const endpoint = isSubService 
+        ? `/master/subservice/${item.id}` 
+        : (isVehicleType ? `/master/vehicleType/${item.id}` : `/master/${moduleName.toLowerCase()}/${item.id}`);
       const response = await api.get(endpoint);
       if (response.data?.success) {
         const doc = response.data.data;
@@ -273,7 +280,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const confirmDelete = async () => {
     try {
       const isSubService = moduleName.toLowerCase() === 'subservice';
-      const endpoint = isSubService ? `/master/subservice/${deleteModal.id}` : `/master/${moduleName.toLowerCase()}/${deleteModal.id}`;
+      const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
+      const endpoint = isSubService 
+        ? `/master/subservice/${deleteModal.id}` 
+        : (isVehicleType ? `/master/vehicleType/${deleteModal.id}` : `/master/${moduleName.toLowerCase()}/${deleteModal.id}`);
       const response = await api.delete(endpoint);
       if (response.data?.success) {
         toast.success(response.data?.message || `${moduleName} deleted successfully`);
@@ -316,16 +326,21 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       });
 
       const isSubService = moduleName.toLowerCase() === 'subservice';
+      const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
 
       if (mode === 'add') {
-        const endpoint = isSubService ? '/master/subservice' : `/master/${moduleName.toLowerCase()}`;
+        const endpoint = isSubService 
+          ? '/master/subservice' 
+          : (isVehicleType ? '/master/vehicleType' : `/master/${moduleName.toLowerCase()}`);
         const response = await api.post(endpoint, payload);
         if (response.data?.success) {
           toast.success(response.data?.message || `${moduleName} created successfully`);
           fetchData();
         }
       } else {
-        const endpoint = isSubService ? `/master/subservice/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`;
+        const endpoint = isSubService 
+          ? `/master/subservice/${editingItem.id}` 
+          : (isVehicleType ? `/master/vehicleType/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`);
         const response = await api.put(endpoint, payload);
         if (response.data?.success) {
           toast.success(response.data?.message || `${moduleName} updated successfully`);
@@ -340,8 +355,21 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
   const getColWidthClass = (col: string, total: number) => {
     const cLower = col.toLowerCase();
+    
+    if (total === 6) {
+      if (cLower === 'name') return 'w-[25%]';
+      if (cLower.includes('service')) return 'w-[20%]';
+      if (cLower === 'image') return 'w-[15%]';
+      if (cLower === 'price') return 'w-[15%]';
+      if (cLower === 'duration') return 'w-[15%]';
+    }
+
     if (total === 2) {
-      return 'w-1/3';
+      return 'w-[40%]';
+    }
+    if (total === 3) {
+      if (cLower.includes('name')) return 'w-[40%]';
+      return 'w-[30%]';
     }
     if (total === 4) {
       if (cLower.includes('name')) return 'w-[30%]';
@@ -350,12 +378,17 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       if (cLower === 'status') return 'w-[15%]';
     }
     if (cLower.includes('name')) {
-      return 'w-[50%]';
+      return 'w-[30%]';
     }
-    if (cLower === 'status') {
-      return 'w-[15%]';
-    }
-    return 'w-[20%]';
+    return 'w-[15%]';
+  };
+
+  const getActionsColWidth = (total: number) => {
+    if (total === 2) return 'w-[20%]';
+    if (total === 3) return 'w-[20%]';
+    if (total === 4) return 'w-[15%]';
+    if (total === 6) return 'w-[10%]';
+    return 'w-[15%]';
   };
 
   const getColAlignClass = (col: string) => {
@@ -427,12 +460,12 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         <table className="w-full text-left table-fixed">
           <thead className="bg-slate-100 border-b border-slate-200">
             <tr>
-              {columns.map(col => (
+              {columns.filter(col => col.toLowerCase() !== 'status').map(col => (
                 <th key={col} className={`px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs ${getColWidthClass(col, columns.length)} ${getColAlignClass(col)}`}>
                   {col}
                 </th>
               ))}
-              <th className={`px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs text-right ${columns.length === 2 ? 'w-1/3' : (columns.length === 4 ? 'w-[15%]' : 'w-[15%]')}`}>
+              <th className={`px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs text-right ${getActionsColWidth(columns.length)}`}>
                 Actions
               </th>
             </tr>
@@ -440,7 +473,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           <tbody className="divide-y divide-slate-100">
             {filteredData.map((row, index) => (
               <tr key={row.id} className="hover:bg-slate-50 transition-colors group">
-                {columns.map(col => {
+                {columns.filter(col => col.toLowerCase() !== 'status').map(col => {
                   const cUpper = col.toUpperCase();
                   const widthClass = getColWidthClass(col, columns.length);
                   const alignClass = getColAlignClass(col);
@@ -452,28 +485,6 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                   }
                   if (col.toLowerCase().includes('name')) {
                     return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{row.name}</td>;
-                  }
-                  if (col.toLowerCase() === 'status') {
-                    return (
-                      <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleStatus(row);
-                          }}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none mx-auto ${
-                            row.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'
-                          }`}
-                        >
-                          <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                              row.status === 'Active' ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                          />
-                        </button>
-                      </td>
-                    );
                   }
                   if (col.toLowerCase() === 'make' || col.toLowerCase() === 'make / brand' || col.toLowerCase() === 'brand') {
                     let makeVal = row.makeId || row.make;
@@ -496,11 +507,17 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                     return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{serviceVal || '-'}</td>;
                   }
                   if (col.toLowerCase() === 'image') {
+                    const hasError = imgErrors[row.id];
                     return (
                       <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
-                        {row.image ? (
+                        {row.image && !hasError ? (
                           <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 shadow-2xs mx-auto flex items-center justify-center bg-slate-50">
-                            <img src={row.image} alt={row.name} className="w-full h-full object-cover" />
+                            <img 
+                              src={row.image} 
+                              alt={row.name} 
+                              className="w-full h-full object-cover" 
+                              onError={() => setImgErrors(prev => ({ ...prev, [row.id]: true }))}
+                            />
                           </div>
                         ) : (
                           <span className="text-slate-400 font-mono text-xs">-</span>
@@ -515,9 +532,25 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                   }
                   return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{cellValue || '-'}</td>;
                 })}
-                <td className={`px-6 py-5 ${columns.length === 2 ? 'w-1/3' : (columns.length === 4 ? 'w-[15%]' : 'w-[15%]')}`}>
+                <td className={`px-6 py-5 ${getActionsColWidth(columns.length)}`}>
                   <div className="flex gap-3 items-center justify-end">
-                    <button onClick={(e) => { e.stopPropagation(); handleView(row); }} className="text-red-600 hover:text-red-800 p-1 transition-colors">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleStatus(row);
+                      }}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none mr-0.5 ${
+                        row.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                          row.status === 'Active' ? 'translate-x-4' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); handleView(row); }} className="text-blue-600 hover:text-blue-800 p-1 transition-colors">
                       <Eye className="w-4 h-4" />
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); handleEdit(row); }} className="text-emerald-600 hover:text-emerald-800 p-1 transition-colors"><Edit2 className="w-4 h-4"/></button>
@@ -538,7 +571,6 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
             {/* Logo / Image Upload container at the top of the form if fields config has an 'image' field */}
             {fields.some(f => f.name === 'image') && (
               <div className="space-y-2">
-                <label className="sub-admin-form-label">IMAGE</label>
                 <label className={`block w-full border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${mode === "view" ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}>
                   <input 
                     type="file" 

@@ -240,7 +240,8 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
             <thead className="bg-slate-50/80 backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
               <tr>
                 <th className="px-4 py-4 pl-6 whitespace-nowrap">User</th>
-                <th className="px-4 py-4 whitespace-nowrap">Status</th>
+                <th className="px-4 py-4 whitespace-nowrap">Email</th>
+                <th className="px-4 py-4 whitespace-nowrap">Phone</th>
                 <th className="px-4 py-4 pr-6 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
@@ -249,13 +250,14 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-4 py-4.5 pl-6"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
-                    <td className="px-4 py-4.5"><div className="h-6 w-16 bg-slate-200 rounded-full" /></td>
+                    <td className="px-4 py-4.5"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
+                    <td className="px-4 py-4.5"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4.5 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
                   </tr>
                 ))
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="p-8 text-center text-slate-400 font-semibold">No registered users found</td>
+                  <td colSpan={4} className="p-8 text-center text-slate-400 font-semibold">No registered users found</td>
                 </tr>
               ) : filteredUsers.map(user => (
                 <tr key={user.id} className="hover:bg-red-50/20 transition-all duration-150 group cursor-pointer" onClick={() => { setDrawerMode('view'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }}>
@@ -277,26 +279,26 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                       <span className="font-medium text-slate-900 text-sm tracking-tight whitespace-nowrap">{user.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4.5 whitespace-nowrap">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleUserStatus(user);
-                      }}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        user.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                          user.status === 'Active' ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </td>
+                  <td className="px-4 py-4.5 whitespace-nowrap text-slate-600 text-sm">{user.email}</td>
+                  <td className="px-4 py-4.5 whitespace-nowrap text-slate-600 text-sm font-mono">{user.phone}</td>
                   <td className="px-4 py-4.5 pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleUserStatus(user);
+                        }}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none mr-1.5 ${
+                          user.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                            user.status === 'Active' ? 'translate-x-4' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
                       <button onClick={(e) => { e.stopPropagation(); setDrawerMode('view'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }} className="text-blue-600 hover:text-blue-800 p-1 transition-transform hover:scale-110"><Eye className="w-4 h-4"/></button>
                       <button onClick={(e) => { e.stopPropagation(); setDrawerMode('edit'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }} className="text-emerald-600 hover:text-emerald-800 p-1 transition-transform hover:scale-110"><Edit2 className="w-4 h-4"/></button>
                       <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'delete', user }); }} className="text-red-600 hover:text-red-800 p-1 transition-transform hover:scale-110"><Trash2 className="w-4 h-4"/></button>

@@ -21,6 +21,7 @@ const MENU_ITEMS = [
     { id: 'master-color', label: 'Color', icon: Palette },
     { id: 'master-make', label: 'Brand', icon: Car },
     { id: 'master-model', label: 'Model', icon: Car },
+    { id: 'master-vehicle-type', label: 'Vehicle Type', icon: Car },
   ]},
   { id: 'orders', label: 'Order Management', icon: FileText },
   { id: 'payments', label: 'Payment Management', icon: CreditCard },

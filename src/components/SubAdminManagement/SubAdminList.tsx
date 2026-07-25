@@ -398,6 +398,8 @@ export function SubAdminManagement() {
                 <tr>
                   <th className="px-4 py-4 pl-6 whitespace-nowrap">Admin Name</th>
                   <th className="px-4 py-4 whitespace-nowrap">Role</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Email</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Phone</th>
                   <th className="px-4 py-4 pr-6 text-right whitespace-nowrap">Actions</th>
                 </tr>
             </thead>
@@ -407,12 +409,14 @@ export function SubAdminManagement() {
                     <tr key={i} className="animate-pulse">
                       <td className="px-4 py-4 pl-6"><div className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
                       <td className="px-4 py-4"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
+                      <td className="px-4 py-4"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
+                      <td className="px-4 py-4"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
                       <td className="px-4 py-4 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
                     </tr>
                   ))
                 ) : filteredAdmins.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="p-8 text-center text-slate-400 font-semibold">No admin accounts found</td>
+                    <td colSpan={5} className="p-8 text-center text-slate-400 font-semibold">No admin accounts found</td>
                   </tr>
                 ) : filteredAdmins.map(admin => (
                 <tr key={admin.id} onClick={() => handleView(admin)} className="hover:bg-red-50/20 transition-all duration-150 group cursor-pointer">
@@ -440,6 +444,8 @@ export function SubAdminManagement() {
                         {formatRole(admin.role)}
                       </span>
                     </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm">{admin.email}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm font-mono">{admin.phone || '-'}</td>
                     <td className="px-4 py-4 pr-6 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         <button

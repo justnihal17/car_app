@@ -83,7 +83,6 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
     <>
       {/* Profile Photo Section (Labeled as IMAGE) */}
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">IMAGE</label>
         <div 
           onClick={() => !isView && fileInputRef.current?.click()} 
           className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${isView ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}

@@ -104,7 +104,7 @@ export function UserRegistrationDrawer({
 
     try {
       if (mode === "edit" && initialData?.id) {
-        const response = await api.put(`/admin/users/${initialData.id}`, {
+        const response = await api.put(`/customer/customer/admin/${initialData.id}`, {
           name: formData.fullName,
           fullName: formData.fullName,
           email: formData.email,
@@ -120,7 +120,7 @@ export function UserRegistrationDrawer({
           toast.error(response.data?.message || "Failed to update user");
         }
       } else {
-        const response = await api.post("/admin/users/register", {
+        const response = await api.post("/customer/customer/register", {
           fullName: formData.fullName,
           email: formData.email,
           phone: formData.phone,
@@ -221,7 +221,6 @@ export function UserRegistrationDrawer({
             <div className="space-y-6">
               {/* Image Section */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">IMAGE</label>
                 <label className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${isView ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}>
                   <input
                     type="file"

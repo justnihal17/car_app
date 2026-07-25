@@ -117,7 +117,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   const [formData, setFormData] = useState({
-      fullName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
+      fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
   });
 
   const handleSubmit = async () => {
@@ -142,9 +142,8 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       setStatusMessage('Saving Data...');
 
       try {
-        const nameParts = formData.fullName.split(' ');
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
+        const firstName = (formData.firstName || '').trim();
+        const lastName = (formData.lastName || '').trim();
 
         const payload: any = {
           firstName,
@@ -198,8 +197,12 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       e.stopPropagation();
       setDrawerMode("edit");
       setEditingAgentId(agent.id);
+      const editFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
+      const editLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
       setFormData({
           fullName: agent.name || '',
+          firstName: editFirstName,
+          lastName: editLastName,
           email: agent.email || '',
           phone: agent.phone || '',
           employeeCode: agent.employeeCode || '',
@@ -221,8 +224,12 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       e.stopPropagation();
       setDrawerMode("view");
       setEditingAgentId(agent.id);
+      const viewFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
+      const viewLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
       setFormData({
           fullName: agent.name || '',
+          firstName: viewFirstName,
+          lastName: viewLastName,
           email: agent.email || '',
           phone: agent.phone || '',
           employeeCode: agent.employeeCode || '',
@@ -244,7 +251,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     setDrawerMode("register");
     setEditingAgentId(null);
     setFormData({
-        fullName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
+        fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
     });
     setPhoto(null);
     setSelectedSkills([]);
@@ -284,6 +291,19 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       }
     }
   };
+
+  const handleToggleAgentStatus = async (agent: any) => {
+    const isCurrentlyActive = agent.active !== false;
+    const newStatus = isCurrentlyActive ? 'Inactive' : 'Available';
+    try {
+      await api.put(`/agent/agent/${agent.id}`, { active: !isCurrentlyActive });
+      toast.success(`Agent status updated to ${newStatus}`);
+      setAgentsList(prev => prev.map(item => item.id === agent.id ? { ...item, active: !isCurrentlyActive, status: item.blocked ? 'Blocked' : (isCurrentlyActive ? 'Inactive' : 'Available') } : item));
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update agent status');
+    }
+  };
+
   const getInitials = (name: string) => {
     if (!name) return 'A';
     return name
@@ -369,12 +389,12 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           ))
         ) : (
           [
-            { label: 'Total Agents', value: agentsList.length, icon: Car, color: 'text-red-600 bg-red-50 border-red-100', activeBorder: 'border-red-600', activeBg: 'bg-red-50/50', activeText: 'text-red-600', bgGrad: 'from-red-50/50 via-white to-white', sub: 'Accounts' },
+            { label: 'Agents', value: agentsList.length, icon: Car, color: 'text-red-600 bg-red-50 border-red-100', activeBorder: 'border-red-600', activeBg: 'bg-red-50/50', activeText: 'text-red-600', bgGrad: 'from-red-50/50 via-white to-white', sub: 'Accounts' },
             { label: 'Available', value: agentsList.filter(a => a.status === 'Available').length, icon: UserCheck, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', activeBorder: 'border-emerald-600', activeBg: 'bg-emerald-50/50', activeText: 'text-emerald-700', bgGrad: 'from-emerald-50/50 via-white to-white', sub: 'On Duty' },
             { label: 'Busy', value: agentsList.filter(a => a.status === 'Busy').length, icon: Briefcase, color: 'text-blue-600 bg-blue-50 border-blue-100', activeBorder: 'border-blue-600', activeBg: 'bg-blue-50/50', activeText: 'text-blue-700', bgGrad: 'from-blue-50/50 via-white to-white', sub: 'Assigned' },
             { label: 'Inactive', value: agentsList.filter(a => a.status === 'Inactive').length, icon: UserMinus, color: 'text-amber-600 bg-amber-50 border-amber-100', activeBorder: 'border-amber-500', activeBg: 'bg-amber-50/50', activeText: 'text-amber-700', bgGrad: 'from-amber-50/50 via-white to-white', sub: 'Off-line' },
             { label: 'Blocked', value: agentsList.filter(a => a.blocked).length, icon: UserX, color: 'text-rose-600 bg-rose-50 border-rose-100', activeBorder: 'border-rose-600', activeBg: 'bg-rose-50/50', activeText: 'text-rose-700', bgGrad: 'from-rose-50/50 via-white to-white', sub: 'Restricted' },
-            { label: 'Top Rated', value: '4.8', icon: Star, color: 'text-purple-600 bg-purple-50 border-purple-100', activeBorder: 'border-purple-600', activeBg: 'bg-purple-50/50', activeText: 'text-purple-700', bgGrad: 'from-purple-50/50 via-white to-white', sub: 'Avg Rating' },
+            { label: 'Top Rated', value: agentsList.filter(a => Number(a.rating || 0) > 4).length, icon: Star, color: 'text-purple-600 bg-purple-50 border-purple-100', activeBorder: 'border-purple-600', activeBg: 'bg-purple-50/50', activeText: 'text-purple-700', bgGrad: 'from-purple-50/50 via-white to-white', sub: 'Rating > 4.0' },
           ].map((card, i) => {
             const Icon = card.icon;
             const isFocused = selectedCard === card.label;
@@ -427,8 +447,9 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           <table className="w-full text-sm text-left border-collapse">
             <thead className="bg-slate-50/80 backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
               <tr>
-                <th className="px-4 py-4 pl-6 whitespace-nowrap">Agent</th>
-                <th className="px-4 py-4 whitespace-nowrap">Status</th>
+                <th className="px-4 py-4 whitespace-nowrap">Agent</th>
+                <th className="px-4 py-4 whitespace-nowrap">Email</th>
+                <th className="px-4 py-4 whitespace-nowrap">Phone</th>
                 <th className="px-4 py-4 pr-6 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
@@ -437,13 +458,14 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-4 py-4.5 pl-6"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
-                    <td className="px-4 py-4.5"><div className="h-6 w-16 bg-slate-200 rounded-full" /></td>
+                    <td className="px-4 py-4.5"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
+                    <td className="px-4 py-4.5"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4.5 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
                   </tr>
                 ))
               ) : filteredAgents.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
+                  <td colSpan={4} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
                 </tr>
               ) : filteredAgents.map(agent => (
                 <tr key={agent.id} className="hover:bg-red-50/20 transition-all duration-150 group cursor-pointer" onClick={(e) => handleViewDrawer(e, agent)}>
@@ -465,11 +487,26 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                       <span className="font-medium text-slate-900 text-sm tracking-tight whitespace-nowrap">{agent.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4.5 whitespace-nowrap">
-                    <StatusBadge status={agent.status as any} />
-                  </td>
+                  <td className="px-4 py-4.5 whitespace-nowrap text-slate-600 text-sm">{agent.email || '-'}</td>
+                  <td className="px-4 py-4.5 whitespace-nowrap text-slate-600 text-sm font-mono">{agent.phone || '-'}</td>
                   <td className="px-4 py-4.5 pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleAgentStatus(agent);
+                        }}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none mr-1.5 ${
+                          agent.active !== false ? 'bg-emerald-500' : 'bg-slate-300'
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                            agent.active !== false ? 'translate-x-4' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
                       <button onClick={(e) => handleViewDrawer(e, agent)} className="text-blue-600 hover:text-blue-800 p-1 transition-transform hover:scale-110"><Eye className="w-4 h-4"/></button>
                       <button onClick={(e) => handleEdit(e, agent)} className="text-emerald-600 hover:text-emerald-800 p-1 transition-transform hover:scale-110"><Edit2 className="w-4 h-4"/></button>
                       <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'delete', agent }); }} className="text-red-600 hover:text-red-800 p-1 transition-transform hover:scale-110"><Trash2 className="w-4 h-4"/></button>
@@ -515,7 +552,6 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
               <div className="space-y-6">
                 {/* Image Section */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">IMAGE</label>
                   <label className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-5 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs min-h-[130px] ${drawerMode === "view" ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}>
                     <input type="file" disabled={drawerMode === "view"} className="hidden" onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
