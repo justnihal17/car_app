@@ -5,6 +5,8 @@ import api from "../../../api/axios";
 import toast from "react-hot-toast";
 import { uploadImage } from "../../../services/uploadService";
 import { ImageCropModal } from "../../common/ImageCropModal";
+import { getCompactDrawerClass, SectionActiveToggle } from "../../SubAdminManagement/utils/subAdminFormUtils";
+import { getLoggedInAdminName } from "../../SubAdminManagement/subAdminDrawerUtils";
 
 export function UserRegistrationDrawer({
   isOpen,
@@ -17,6 +19,7 @@ export function UserRegistrationDrawer({
   mode?: "register" | "view" | "edit";
   initialData?: any;
 }) {
+  const loggedInAdminName = getLoggedInAdminName();
   const [photo, setPhoto] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -93,49 +96,59 @@ export function UserRegistrationDrawer({
         setStatusMessage("");
         const errText = uploadErr.message || "Image upload failed";
         toast.error(errText);
-        return; // STOP! DO NOT CALL CREATE/EDIT API
+        return;
       }
     }
 
     setStatusMessage("Saving Data...");
 
     try {
-      const payload: any = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        blocked: !isActive,
-        ...(finalProfileUrl ? { profileUrl: finalProfileUrl, imageUrl: finalProfileUrl } : {}),
-      };
+      if (mode === "edit" && initialData?.id) {
+        const response = await api.put(`/admin/users/${initialData.id}`, {
+          name: formData.fullName,
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          profileUrl: finalProfileUrl,
+          active: isActive,
+        });
 
-      if (mode === "edit") {
-        const response = await api.put(
-          `/customer/customer/admin/${initialData?.id || initialData?._id}`,
-          payload
-        );
-        toast.success(response.data?.message || "Customer updated successfully");
-        resetStateAndClose();
+        if (response.data?.success) {
+          toast.success("User updated successfully!");
+          resetStateAndClose();
+        } else {
+          toast.error(response.data?.message || "Failed to update user");
+        }
       } else {
-        const response = await api.post(
-          "/customer/customer/admin/register",
-          payload,
-        );
-        toast.success(
-          response.data?.message || "Registration successful. OTP sent.",
-        );
-        setOtpStep(true);
+        const response = await api.post("/admin/users/register", {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          profileUrl: finalProfileUrl,
+          active: isActive,
+        });
+
+        if (response.data?.success) {
+          toast.success("User registered successfully!");
+          resetStateAndClose();
+        } else {
+          toast.error(response.data?.message || "Registration failed");
+        }
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || (mode === "edit" ? "Failed to update user" : "Failed to register user"));
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || "Operation failed";
+      toast.error(errMsg);
     } finally {
       setLoading(false);
       setStatusMessage("");
     }
   };
 
-  const handleVerifyOtp = async () => {
-    toast.success("OTP Verified Successfully");
-    resetStateAndClose();
+  const handleVerifyOtp = () => {
+    if (otp.length === 6) {
+      toast.success("User verified successfully!");
+      resetStateAndClose();
+    }
   };
 
   const isView = mode === "view";
@@ -145,27 +158,28 @@ export function UserRegistrationDrawer({
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end transition-all duration-300">
-      <div className="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col border-l border-slate-200/80 animate-in slide-in-from-right duration-300">
-        {/* Drawer Header with Project Blue Accent */}
-        <div className="px-6 py-5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
-              <User className="w-5 h-5" />
+      <div className={getCompactDrawerClass()}>
+        {/* Drawer Header with Target User Name */}
+        <div className="px-5 py-3.5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
+              <User className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-lg font-black tracking-tight text-white capitalize">
-                {isView ? "View User Details" : (isEdit ? "Edit User" : (otpStep ? "Verify OTP" : "Register New User"))}
+              <h3 className="text-base font-black tracking-tight text-white capitalize">
+                {(isView || isEdit)
+                  ? (formData.fullName || initialData?.name || initialData?.fullName || "User Details")
+                  : "Register User"}
               </h3>
-              <p className="text-xs text-red-100/90 font-medium">Manage user profile information & credentials</p>
             </div>
           </div>
-          <button onClick={resetStateAndClose} className="p-2 rounded-xl text-red-100 hover:text-white hover:bg-white/10 transition-all">
-            <X className="w-5 h-5" />
+          <button onClick={resetStateAndClose} className="p-1.5 rounded-xl text-red-100 hover:text-white hover:bg-white/10 transition-all">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content */}
-        <form className="flex-1 space-y-6 overflow-y-auto p-6 custom-scrollbar flex flex-col justify-between" onSubmit={handleSubmit}>
+        <form className="flex-1 space-y-3.5 overflow-y-auto p-5 custom-scrollbar flex flex-col justify-between" onSubmit={handleSubmit}>
           {otpStep ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-6 my-auto">
               <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-red-600 text-white rounded-3xl flex items-center justify-center mb-4 shadow-xl shadow-red-500/30 border border-white/20">
@@ -205,9 +219,9 @@ export function UserRegistrationDrawer({
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Profile Image Section */}
+              {/* Image Section */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Profile Photo</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">IMAGE</label>
                 <label className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${isView ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}>
                   <input
                     type="file"
@@ -238,22 +252,29 @@ export function UserRegistrationDrawer({
                   </div>
                   {!isView && (
                     <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" /> Upload User Photo
+                      <Upload className="w-3.5 h-3.5" /> Upload Image
                     </span>
                   )}
                   <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
                 </label>
               </div>
 
-              {/* Basic Info Section */}
+              {/* Information Section with Active Toggle Opposite */}
               <div className="space-y-3.5">
-                <div className="flex items-center gap-2 pt-2 pb-1">
-                  <div className="w-1.5 h-4 bg-red-600 rounded-full" />
-                  <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Basic Information</h4>
+                <div className="flex items-center justify-between pt-2 pb-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-4 bg-red-600 rounded-full" />
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Information</h4>
+                  </div>
+                  <SectionActiveToggle 
+                    checked={isActive} 
+                    onChange={v => setIsActive(v)} 
+                    disabled={isView} 
+                  />
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Full Name</label>
+                  <label className="sub-admin-form-label">Full Name</label>
                   <input
                     type="text"
                     placeholder="Enter full name"
@@ -262,13 +283,13 @@ export function UserRegistrationDrawer({
                     onChange={(e) =>
                       setFormData({ ...formData, fullName: e.target.value })
                     }
-                    className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all shadow-2xs"
+                    className="sub-admin-form-input"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Email Address</label>
+                    <label className="sub-admin-form-label">Email Address</label>
                     <input
                       type="email"
                       placeholder="name@example.com"
@@ -277,11 +298,11 @@ export function UserRegistrationDrawer({
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all shadow-2xs"
+                      className="sub-admin-form-input"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Phone Number</label>
+                    <label className="sub-admin-form-label">Phone Number</label>
                     <input
                       type="tel"
                       placeholder="+1 234 567 8900"
@@ -290,25 +311,8 @@ export function UserRegistrationDrawer({
                       onChange={(e) =>
                         setFormData({ ...formData, phone: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all shadow-2xs"
+                      className="sub-admin-form-input"
                     />
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <div className="flex items-center justify-between p-4 bg-slate-50/50 border border-slate-200/80 rounded-xl">
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800">Account Status</h4>
-                      <p className="text-[11px] text-slate-500 font-medium mt-0.5">{isActive ? 'User can access the system' : 'User account is restricted'}</p>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={isView}
-                      onClick={() => setIsActive(!isActive)}
-                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isActive ? 'bg-red-600' : 'bg-slate-300'}`}
-                    >
-                      <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -331,7 +335,7 @@ export function UserRegistrationDrawer({
                   disabled={loading || !isFormValid} 
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
                 >
-                  <Save className="w-4 h-4" /> {loading ? (statusMessage || "Saving Data...") : (isEdit ? "Update User" : "Register User")}
+                  <Save className="w-4 h-4" /> {loading ? (statusMessage || "Saving Data...") : (isEdit ? "Update" : "Register")}
                 </button>
               )}
             </div>

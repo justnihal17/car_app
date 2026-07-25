@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Filter, Download, Plus, MoreHorizontal, ChevronLeft, ChevronRight, BarChart2, Calendar, MapPin, Tag, Wrench, Settings } from 'lucide-react';
-import { SERVICES } from '../../data/services';
+import api from '../../api/axios';
 import { CreateService } from './CreateService';
 import { ServiceDetails } from './ServiceDetails';
 
@@ -15,17 +15,77 @@ const TABS = [
   { id: 'analytics', label: 'Analytics' },
 ];
 
+const defaultImage = 'https://images.unsplash.com/photo-1555529733-0e67056058e1?auto=format&fit=crop&w=150&q=80';
+
+function normalizeService(item: any) {
+  const rawPrice = item.price ?? item.amount ?? 0;
+  const priceText = typeof rawPrice === 'number' ? `AED ${rawPrice}` : rawPrice?.toString() || 'AED 0';
+  const cities = Array.isArray(item.cities) ? item.cities : item.cities ? [item.cities] : ['Dubai'];
+  return {
+    id: item._id || item.id || '',
+    name: item.name || 'Untitled Service',
+    category: item.category || 'General',
+    duration: item.duration ? `${item.duration}` : 'TBD',
+    price: priceText,
+    discount: item.discount || '0%',
+    cities,
+    status: item.active === false ? 'Disabled' : 'Active',
+    popularity: item.popularity ?? 0,
+    orders: item.orders ?? 0,
+    revenue: item.revenue ? (typeof item.revenue === 'string' ? item.revenue : `AED ${item.revenue}`) : 'AED 0',
+    image: item.image || defaultImage,
+    active: item.active !== false,
+    ...item,
+  };
+}
+
 export function ServiceManager() {
   const [activeTab, setActiveTab] = useState('list');
   const [isCreating, setIsCreating] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchServices = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get('/master/service');
+      const rawList = Array.isArray(response.data?.data)
+        ? response.data.data
+        : Array.isArray(response.data)
+        ? response.data
+        : [];
+      setServices(rawList.map(normalizeService));
+    } catch (err: any) {
+      console.error('Failed to load services', err);
+      setError('Unable to load services at the moment.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const handleBack = () => {
+    setSelectedService(null);
+    fetchServices();
+  };
+
+  const handleServiceSaved = () => {
+    setIsCreating(false);
+    fetchServices();
+  };
 
   if (isCreating) {
-    return <CreateService onBack={() => setIsCreating(false)} />;
+    return <CreateService onBack={() => setIsCreating(false)} onSaved={handleServiceSaved} />;
   }
 
   if (selectedService) {
-    return <ServiceDetails serviceId={selectedService} onBack={() => setSelectedService(null)} />;
+    return <ServiceDetails serviceId={selectedService} onBack={handleBack} />;
   }
 
   return (
@@ -117,7 +177,22 @@ export function ServiceManager() {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-slate-800">
-                {SERVICES.map((service) => (
+                {loading && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-8 text-center text-slate-400">Loading services…</td>
+                  </tr>
+                )}
+                {!loading && error && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-8 text-center text-red-400">{error}</td>
+                  </tr>
+                )}
+                {!loading && !error && services.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-8 text-center text-slate-400">No services found. Create one to get started.</td>
+                  </tr>
+                )}
+                {!loading && !error && services.map((service) => (
                   <tr key={service.id} className="hover:bg-slate-800/20 transition-colors group cursor-pointer" onClick={() => setSelectedService(service.id)}>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-4">
@@ -146,7 +221,7 @@ export function ServiceManager() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex gap-1.5 flex-wrap max-w-[150px]">
-                        {service.cities.map((city, idx) => (
+                        {service.cities.map((city: string, idx: number) => (
                           <span key={idx} className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
                             {city}
                           </span>
@@ -179,7 +254,7 @@ export function ServiceManager() {
           {/* Pagination */}
           <div className="p-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
             <div className="flex items-center gap-3">
-              <span>Showing 1 to 5 of 24 entries</span>
+              <span>Showing {services.length} {services.length === 1 ? 'service' : 'services'}</span>
             </div>
             <div className="flex gap-1">
               <button className="p-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center justify-center" disabled>
@@ -261,7 +336,7 @@ export function ServiceManager() {
             <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg">
               <h3 className="text-base font-bold text-white mb-5">Top Performing Services</h3>
               <div className="space-y-4">
-                {SERVICES.slice(0, 3).map((service, i) => (
+                {services.slice(0, 3).map((service, i) => (
                   <div key={service.id} className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400">

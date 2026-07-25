@@ -1,16 +1,120 @@
+import { useEffect, useState } from 'react';
 import { ChevronLeft, Calendar, Tag, MapPin, BarChart2, DollarSign, Clock, Users } from 'lucide-react';
-import { SERVICES } from '../../data/services';
+import toast from 'react-hot-toast';
+import api from '../../api/axios';
 
-export function ServiceDetails({ serviceId, onBack }: { serviceId: string, onBack: () => void }) {
-  const service = SERVICES.find(s => s.id === serviceId);
+function normalizeService(item: any) {
+  const rawPrice = item.price ?? item.amount ?? 0;
+  const priceText = typeof rawPrice === 'number' ? `AED ${rawPrice}` : rawPrice?.toString() || 'AED 0';
+  const cities = Array.isArray(item.cities) ? item.cities : item.cities ? [item.cities] : ['Dubai'];
+  return {
+    id: item._id || item.id || '',
+    name: item.name || 'Untitled Service',
+    category: item.category || 'General',
+    duration: item.duration ? `${item.duration}` : 'TBD',
+    price: priceText,
+    discount: item.discount || '0%',
+    cities,
+    status: item.active === false ? 'Disabled' : 'Active',
+    popularity: item.popularity ?? 0,
+    orders: item.orders ?? 0,
+    revenue: item.revenue ? (typeof item.revenue === 'string' ? item.revenue : `AED ${item.revenue}`) : 'AED 0',
+    image: item.image || 'https://images.unsplash.com/photo-1555529733-0e67056058e1?auto=format&fit=crop&w=150&q=80',
+    active: item.active !== false,
+    ...item,
+  };
+}
 
-  if (!service) return <div className="text-white p-8">Service not found</div>;
+export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBack: () => void }) {
+  const [service, setService] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchService = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get(`/master/service/${serviceId}`);
+        const item = response.data?.data || response.data;
+        setService(normalizeService(item));
+      } catch (error: any) {
+        console.error('Failed to load service details', error);
+        toast.error(error.response?.data?.message || 'Unable to load service details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchService();
+  }, [serviceId]);
+
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this service? This will soft delete the record.')) return;
+    setSaving(true);
+    try {
+      await api.delete(`/master/service/${serviceId}`);
+      toast.success('Service deleted successfully');
+      onBack();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete service');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStatusToggle = async () => {
+    if (!service) return;
+    setSaving(true);
+    try {
+      const active = !service.active;
+      const priceNumber = Number(service.price.toString().replace(/[AED\s,]/gi, '')) || 0;
+      await api.put(`/master/service/${serviceId}`, {
+        name: service.name,
+        price: priceNumber,
+        image: service.image,
+        active,
+      });
+      setService((prev: any) => ({ ...prev, active, status: active ? 'Active' : 'Disabled' }));
+      toast.success(`Service ${active ? 'activated' : 'deactivated'} successfully`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update service status');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-white p-8">Loading service details…</div>;
+  }
+
+  if (!service) {
+    return <div className="text-white p-8">Service not found</div>;
+  }
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-      <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to Services
-      </button>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+          <ChevronLeft className="w-4 h-4" /> Back to Services
+        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handleStatusToggle}
+            disabled={saving}
+            className="px-4 py-2 bg-slate-900 border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-800 transition-colors text-sm"
+          >
+            {service.active ? 'Deactivate Service' : 'Activate Service'}
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={saving}
+            className="px-4 py-2 bg-red-600 border border-red-500 text-white rounded-lg hover:bg-red-500 transition-colors text-sm"
+          >
+            Delete Service
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -18,7 +122,7 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string, onBac
             <img src={service.image} alt={service.name} className="w-32 h-32 rounded-xl border border-slate-700 object-cover" />
             <div className="flex-1">
               <h2 className="text-3xl font-bold text-white mb-2">{service.name}</h2>
-              <div className="flex items-center gap-4 text-sm text-slate-400">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
                 <span className="font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">{service.id}</span>
                 <span className="flex items-center gap-1.5"><Tag className="w-4 h-4" /> {service.category}</span>
                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${service.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
@@ -27,7 +131,7 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string, onBac
               </div>
             </div>
           </div>
-          
+
           <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg">
             <h3 className="text-lg font-bold text-white mb-4">Service Analytics</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -63,11 +167,11 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string, onBac
               <span className="text-emerald-400 font-medium">{service.discount}</span>
             </div>
           </div>
-          
+
           <div className="pt-6 border-t border-slate-800">
             <h4 className="text-sm font-medium text-slate-400 mb-3 flex items-center gap-2"><MapPin className="w-4 h-4" /> Available Cities</h4>
             <div className="flex gap-2 flex-wrap">
-              {service.cities.map((city, idx) => (
+              {service.cities.map((city: string, idx: number) => (
                 <span key={idx} className="text-xs bg-slate-900 text-slate-300 px-3 py-1 rounded-full border border-slate-700">
                   {city}
                 </span>

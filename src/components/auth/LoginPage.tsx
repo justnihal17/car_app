@@ -17,25 +17,33 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
     setError('');
 
     try {
-      const response = await api.post('/admin/admin/login', {
-        adminId: adminId.trim(),
-        password: password.trim()
-      });
+      const trimmedId = adminId.trim();
+      const trimmedPassword = password.trim();
+
+      const payload: any = {
+        adminId: trimmedId,
+        password: trimmedPassword
+      };
+      if (trimmedId.includes('@')) {
+        payload.email = trimmedId;
+      }
+
+      const response = await api.post('/admin/admin/login', payload);
 
       const { success, message, data } = response.data;
 
-      if (success) {
-        localStorage.setItem('adminProfile', JSON.stringify(data.profile));
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
+      if (success !== false && (data?.accessToken || response.status === 200)) {
+        if (data?.profile) localStorage.setItem('adminProfile', JSON.stringify(data.profile));
+        if (data?.accessToken) localStorage.setItem('accessToken', data.accessToken);
+        if (data?.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
         
         try {
           const history = JSON.parse(localStorage.getItem('adminLoginHistory') || '{}');
           const now = new Date().toISOString();
-          if (adminId) history[adminId.trim().toLowerCase()] = now;
-          if (data.profile?.adminId) history[data.profile.adminId.toLowerCase()] = now;
-          if (data.profile?.email) history[data.profile.email.toLowerCase()] = now;
-          if (data.profile?._id) history[data.profile._id] = now;
+          if (trimmedId) history[trimmedId.toLowerCase()] = now;
+          if (data?.profile?.adminId) history[data.profile.adminId.toLowerCase()] = now;
+          if (data?.profile?.email) history[data.profile.email.toLowerCase()] = now;
+          if (data?.profile?._id) history[data.profile._id] = now;
           localStorage.setItem('adminLoginHistory', JSON.stringify(history));
         } catch (e) {
           console.error('Failed to save login history:', e);
@@ -44,11 +52,16 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
         toast.success('Admin logged in successfully!');
         onLogin();
       } else {
-        setError(message || 'Login failed. Please check your credentials.');
+        const errorMsg = message || 'Invalid credentials. Please check Admin ID & Password.';
+        setError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || 'An error occurred during login. Please try again.');
+      const serverMsg = err.response?.data?.message || err.response?.data?.error;
+      const finalMsg = serverMsg || (err.response?.status === 401 ? 'Invalid Admin ID or Password. Please check your login credentials.' : 'An error occurred during login. Please try again.');
+      setError(finalMsg);
+      toast.error(finalMsg);
     } finally {
       setLoading(false);
     }

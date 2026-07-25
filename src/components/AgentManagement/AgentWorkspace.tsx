@@ -18,8 +18,11 @@ import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
 import { ConfirmationModal, ActionType } from '../ConfirmationModal';
 import { uploadImage } from '../../services/uploadService';
 import { ImageCropModal } from '../common/ImageCropModal';
+import { getCompactDrawerClass, SectionActiveToggle } from '../SubAdminManagement/utils/subAdminFormUtils';
+import { getLoggedInAdminName } from '../SubAdminManagement/subAdminDrawerUtils';
 
 export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) => void }) {
+  const loggedInAdminName = getLoggedInAdminName();
   const [agentsList, setAgentsList] = useState<any[]>([]);
   const [actionModal, setActionModal] = useState<{isOpen: boolean, actionType: ActionType, agent: any}>({isOpen: false, actionType: 'view', agent: null});
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
@@ -327,42 +330,33 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   });
 
   return (
-    <div className="p-8 space-y-8 bg-slate-50/60 min-h-screen">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-        <span>Dashboard</span> 
-        <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
-        <span>Profile Management</span> 
-        <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
-        <span className="text-red-600 font-bold">
-          Agent Management
-        </span>
-      </div>
-
-      {/* Hero Header */}
-      <div className="bg-white/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-200/70 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Agent Management</h2>
-          <p className="text-slate-500 mt-1 text-sm">Control service personnel, monitor ratings, and track job assignments.</p>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
+      {/* Breadcrumb & Top Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <span>Dashboard</span> 
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
+          <span>Profile Management</span> 
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
+          <span className="text-red-600 font-bold">
+            Agent Management
+          </span>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-3">
           <button 
             onClick={openRegister} 
             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" /> Register Agent
+            <Plus className="w-4 h-4 stroke-[2.5]" /> Create
           </button>
           <button className="flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 font-bold rounded-xl shadow-xs transition-all hover:border-slate-300 text-sm">
             <Download className="w-4 h-4 text-slate-500" /> Export
           </button>
-          <button onClick={fetchAgents} className="p-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 font-bold rounded-xl shadow-xs transition-all hover:border-slate-300 text-sm">
-            <RefreshCw className="w-4 h-4 text-slate-500" />
-          </button>
         </div>
       </div>
 
-      {/* Analytics Cards Grid (Matching SubAdmin & User Card Sizes) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      {/* Analytics Cards Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-[105px] bg-slate-200/70 animate-pulse rounded-2xl p-5 border border-slate-200/50 flex flex-col justify-between">
@@ -415,16 +409,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
       {/* Title & Search Bar */}
       <div className="space-y-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Active Service Agents</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Real-time status of service personnel, availability & job assignments</p>
-            </div>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100 shadow-2xs">
-              {filteredAgents.length} Agents
-            </span>
-          </div>
+        <div className="flex justify-end gap-4">
           <div className="relative w-full md:w-80 group">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500 transition-colors" />
             <input 
@@ -442,13 +427,9 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           <table className="w-full text-sm text-left border-collapse">
             <thead className="bg-slate-50/80 backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
               <tr>
-                <th className="px-4 py-4 pl-6 whitespace-nowrap w-[20%]">Agent</th>
-                <th className="px-4 py-4 whitespace-nowrap w-[25%]">Contact / Email</th>
-                <th className="px-4 py-4 whitespace-nowrap w-[15%]">City</th>
-                <th className="px-4 py-4 whitespace-nowrap w-[10%]">Jobs Completed</th>
-                <th className="px-4 py-4 whitespace-nowrap w-[10%]">Rating</th>
-                <th className="px-4 py-4 whitespace-nowrap w-[10%]">Status</th>
-                <th className="px-4 py-4 pr-6 text-right whitespace-nowrap w-[10%]">Actions</th>
+                <th className="px-4 py-4 pl-6 whitespace-nowrap">Agent</th>
+                <th className="px-4 py-4 whitespace-nowrap">Status</th>
+                <th className="px-4 py-4 pr-6 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -456,17 +437,13 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-4 py-4.5 pl-6"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
-                    <td className="px-4 py-4.5"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
-                    <td className="px-4 py-4.5"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
-                    <td className="px-4 py-4.5"><div className="h-4 w-12 bg-slate-200 rounded" /></td>
-                    <td className="px-4 py-4.5"><div className="h-4 w-12 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4.5"><div className="h-6 w-16 bg-slate-200 rounded-full" /></td>
                     <td className="px-4 py-4.5 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
                   </tr>
                 ))
               ) : filteredAgents.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
+                  <td colSpan={3} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
                 </tr>
               ) : filteredAgents.map(agent => (
                 <tr key={agent.id} className="hover:bg-red-50/20 transition-all duration-150 group cursor-pointer" onClick={(e) => handleViewDrawer(e, agent)}>
@@ -487,28 +464,6 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                       </div>
                       <span className="font-medium text-slate-900 text-sm tracking-tight whitespace-nowrap">{agent.name}</span>
                     </div>
-                  </td>
-                  <td className="px-4 py-4.5 whitespace-nowrap">
-                    <div className="text-xs">
-                      <span className="font-medium text-slate-600 block">{agent.email}</span>
-                      <span className="font-mono text-slate-400 text-[11px]">{agent.phone}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4.5 text-slate-600 font-semibold text-xs whitespace-nowrap">
-                    <div>
-                      <span>{agent.city}</span>
-                      <span className="text-[10px] text-slate-400 block font-normal">{agent.vehicle}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4.5 whitespace-nowrap">
-                    <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 font-bold">
-                      {agent.jobs}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4.5 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/60">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {agent.rating}
-                    </span>
                   </td>
                   <td className="px-4 py-4.5 whitespace-nowrap">
                     <StatusBadge status={agent.status as any} />
@@ -535,31 +490,32 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
       {isDrawerOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end transition-all duration-300">
-          <div className="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col border-l border-slate-200/80 animate-in slide-in-from-right duration-300">
-            {/* Drawer Header with Project Blue Accent */}
-            <div className="px-6 py-5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
-                  <Car className="w-5 h-5" />
+          <div className={getCompactDrawerClass()}>
+            {/* Drawer Header with Target Agent Name */}
+            <div className="px-5 py-3.5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
+                  <Car className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black tracking-tight text-white capitalize">
-                    {drawerMode === "view" ? "View Service Agent" : (drawerMode === "edit" ? "Edit Service Agent" : "Register New Service Agent")}
+                  <h3 className="text-base font-black tracking-tight text-white capitalize">
+                    {(drawerMode === "view" || drawerMode === "edit")
+                      ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || "Agent Details")
+                      : "Register Agent"}
                   </h3>
-                  <p className="text-xs text-red-100/90 font-medium">Configure agent profile, skills & security credentials</p>
                 </div>
               </div>
-              <button onClick={() => setIsDrawerOpen(false)} className="p-2 rounded-xl text-red-100 hover:text-white hover:bg-white/10 transition-all">
-                <X className="w-5 h-5" />
+              <button onClick={() => setIsDrawerOpen(false)} className="p-1.5 rounded-xl text-red-100 hover:text-white hover:bg-white/10 transition-all">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Form Content */}
-            <div className="flex-1 space-y-6 overflow-y-auto p-6 custom-scrollbar flex flex-col justify-between">
+            <div className="flex-1 space-y-3.5 overflow-y-auto p-5 custom-scrollbar flex flex-col justify-between">
               <div className="space-y-6">
-                {/* Profile Image Section */}
+                {/* Image Section */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Profile Photo</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">IMAGE</label>
                   <label className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-5 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs min-h-[130px] ${drawerMode === "view" ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}>
                     <input type="file" disabled={drawerMode === "view"} className="hidden" onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
@@ -579,42 +535,57 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                           onError={() => setImgError(true)} 
                         />
                       ) : (
-                        <Upload className="w-6 h-6 text-blue-500 group-hover:scale-110 transition-transform" />
+                        <Upload className="w-6 h-6 text-red-500 group-hover:scale-110 transition-transform" />
                       )}
                     </div>
-                    <p className="text-xs font-bold text-slate-700">Click to upload photo</p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">PNG, JPG or WEBP (MAX. 2MB)</p>
+                    <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
+                      <Upload className="w-3.5 h-3.5" /> Upload Image
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium mt-0.5">PNG, JPG or WEBP (MAX. 5MB)</span>
                   </label>
                 </div>
                 
                 {/* Form Fields */}
                 <div className="space-y-4">
+                  {/* Information Section with Active Toggle Opposite */}
+                  <div className="flex items-center justify-between pt-1 pb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-4 bg-red-600 rounded-full" />
+                      <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Information</h4>
+                    </div>
+                    <SectionActiveToggle 
+                      checked={formData.active !== undefined ? formData.active : true} 
+                      onChange={v => setFormData({...formData, active: v})} 
+                      disabled={drawerMode === "view"} 
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">First Name</label>
-                      <input type="text" disabled={drawerMode === "view"} placeholder="First Name" value={formData.firstName || ''} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60" />
+                      <label className="sub-admin-form-label">First Name</label>
+                      <input type="text" disabled={drawerMode === "view"} placeholder="First Name" value={formData.firstName || ''} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="sub-admin-form-input" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Last Name</label>
-                      <input type="text" disabled={drawerMode === "view"} placeholder="Last Name" value={formData.lastName || ''} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60" />
+                      <label className="sub-admin-form-label">Last Name</label>
+                      <input type="text" disabled={drawerMode === "view"} placeholder="Last Name" value={formData.lastName || ''} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="sub-admin-form-input" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Email Address</label>
-                      <input type="email" disabled={drawerMode === "view"} placeholder="agent@stylein.com" value={formData.email || ''} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60" />
+                      <label className="sub-admin-form-label">Email Address</label>
+                      <input type="email" disabled={drawerMode === "view"} placeholder="agent@stylein.com" value={formData.email || ''} onChange={(e) => setFormData({...formData, email: e.target.value})} className="sub-admin-form-input" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Phone Number</label>
-                      <input type="tel" disabled={drawerMode === "view"} placeholder="+91 98765 43210" value={formData.phone || ''} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60" />
+                      <label className="sub-admin-form-label">Phone Number</label>
+                      <input type="tel" disabled={drawerMode === "view"} placeholder="+91 98765 43210" value={formData.phone || ''} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="sub-admin-form-input" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Gender</label>
-                      <select disabled={drawerMode === "view"} value={formData.gender || ''} onChange={(e) => setFormData({...formData, gender: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60 cursor-pointer">
+                      <label className="sub-admin-form-label">Gender</label>
+                      <select disabled={drawerMode === "view"} value={formData.gender || ''} onChange={(e) => setFormData({...formData, gender: e.target.value})} className="sub-admin-form-input cursor-pointer">
                         <option value="">Select Gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
@@ -622,52 +593,48 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">City</label>
-                      <input type="text" disabled={drawerMode === "view"} placeholder="Delhi" value={formData.city || ''} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60" />
+                      <label className="sub-admin-form-label">City</label>
+                      <input type="text" disabled={drawerMode === "view"} placeholder="Delhi" value={formData.city || ''} onChange={(e) => setFormData({...formData, city: e.target.value})} className="sub-admin-form-input" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Country</label>
-                      <input type="text" disabled={drawerMode === "view"} placeholder="India" value={formData.country || ''} onChange={(e) => setFormData({...formData, country: e.target.value})} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60" />
+                      <label className="sub-admin-form-label">Country</label>
+                      <input type="text" disabled={drawerMode === "view"} placeholder="India" value={formData.country || ''} onChange={(e) => setFormData({...formData, country: e.target.value})} className="sub-admin-form-input" />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Agent Role</label>
-                    <select disabled={drawerMode === "view"} value={formData.role || ''} onChange={(e) => setFormData({...formData, role: e.target.value})} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60 cursor-pointer">
-                      <option value="service_agent">Service Agent</option>
-                      <option value="senior_agent">Senior Agent</option>
-                      <option value="lead_agent">Lead Agent</option>
-                    </select>
-                  </div>
-
-                  {/* Security Credentials Section */}
-                  <div className="pt-2 border-t border-slate-100 space-y-4">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Security & Access</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="relative">
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
+                  {/* Password & Role Side-by-side (Re-enter password removed) */}
+                  <div className="grid grid-cols-2 gap-4 pt-1">
+                    <div className="relative">
+                      <label className="sub-admin-form-label">Password</label>
+                      {!drawerMode || drawerMode !== "view" ? (
                         <div className="relative">
-                          <input type={showPassword ? "text" : "password"} disabled={drawerMode === "view"} placeholder="••••••••" value={formData.password || ''} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full px-3.5 py-2.5 pr-10 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs disabled:opacity-60" />
+                          <input type={showPassword ? "text" : "password"} disabled={drawerMode === "view"} placeholder="••••••••" value={formData.password || ''} onChange={(e) => setFormData({...formData, password: e.target.value})} className="sub-admin-form-input pr-10" />
                           <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Re-enter Password</label>
-                        <input type="password" disabled={drawerMode === "view"} placeholder="••••••••" value={formData.confirmPassword || ''} onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})} className={`w-full px-3.5 py-2.5 bg-slate-50/60 border rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-4 transition-all shadow-2xs ${formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/10'}`} />
-                      </div>
+                      ) : (
+                        <input disabled type="password" value="••••••••" className="sub-admin-form-input opacity-80" />
+                      )}
+                    </div>
+                    <div>
+                      <label className="sub-admin-form-label">Role</label>
+                      <select disabled={drawerMode === "view"} value={formData.role || ''} onChange={(e) => setFormData({...formData, role: e.target.value})} className="sub-admin-form-input cursor-pointer">
+                        <option value="service_agent">Service Agent</option>
+                        <option value="senior_agent">Senior Agent</option>
+                        <option value="lead_agent">Lead Agent</option>
+                      </select>
                     </div>
                   </div>
                   
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Skills & Qualifications</label>
+                  <div className="pt-1">
+                    <label className="sub-admin-form-label">Skills & Qualifications</label>
                     <div className="relative">
                       {(() => {
                         const skillsArr = parseSkillsArray(selectedSkills);
                         return (
                           <>
-                            <button type="button" disabled={drawerMode === "view"} onClick={() => setIsSkillsOpen(!isSkillsOpen)} className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs text-left flex justify-between items-center disabled:opacity-60 cursor-pointer">
+                            <button type="button" disabled={drawerMode === "view"} onClick={() => setIsSkillsOpen(!isSkillsOpen)} className="sub-admin-form-input text-left flex justify-between items-center cursor-pointer">
                               <span className={skillsArr.length === 0 ? 'text-slate-400' : 'text-slate-900 font-bold'}>
                                 {skillsArr.length > 0 ? skillsArr.join(', ') : 'Select Skills'}
                               </span>
@@ -676,7 +643,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                             {isSkillsOpen && (
                               <div className="absolute z-30 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl mt-1.5 max-h-48 overflow-y-auto custom-scrollbar p-1.5">
                                 {availableSkills.filter(s => !skillsArr.includes(s)).map(s => (
-                                  <button type="button" key={s} onClick={() => { setSelectedSkills([...skillsArr, s]); setIsSkillsOpen(false); }} className="w-full px-3.5 py-2.5 text-left hover:bg-blue-50 text-xs font-bold text-slate-700 hover:text-blue-600 rounded-xl transition-colors">
+                                  <button type="button" key={s} onClick={() => { setSelectedSkills([...skillsArr, s]); setIsSkillsOpen(false); }} className="w-full px-3.5 py-2.5 text-left hover:bg-red-50 text-xs font-bold text-slate-700 hover:text-red-600 rounded-xl transition-colors">
                                     {s}
                                   </button>
                                 ))}
@@ -699,10 +666,10 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                   <button 
                     type="button" 
                     onClick={handleSubmit} 
-                    disabled={loading || !(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim() && formData.phone?.trim() && formData.gender?.trim() && formData.city?.trim() && formData.country?.trim() && formData.role?.trim() && selectedSkills.length > 0 && (drawerMode === 'edit' || (Boolean(formData.password?.trim()) && formData.password === formData.confirmPassword)))}
+                    disabled={loading || !(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim() && formData.phone?.trim() && formData.gender?.trim() && formData.city?.trim() && formData.country?.trim() && formData.role?.trim() && selectedSkills.length > 0 && (drawerMode === 'edit' || Boolean(formData.password?.trim())))}
                     className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
                   >
-                    <Save className="w-4 h-4" /> {loading ? (statusMessage || 'Saving Data...') : (drawerMode === "edit" ? "Update Agent" : "Register Agent")}
+                    <Save className="w-4 h-4" /> {loading ? (statusMessage || 'Saving Data...') : (drawerMode === "edit" ? "Update" : "Register")}
                   </button>
                 )}
               </div>

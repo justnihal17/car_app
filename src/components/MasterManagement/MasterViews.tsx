@@ -49,11 +49,27 @@ export const CityPage = () => (
 export const ServicePage = () => (
     <MasterPage 
         moduleName="Service" 
-        columns={['Service Name', 'Category', 'Price', 'Status']} 
+        columns={['Service Name', 'Image', 'Price', 'Status']} 
         fields={[
             { name: 'name', label: 'Service Name', type: 'text' },
-            { name: 'category', label: 'Category', type: 'dropdown', options: ['Repair', 'Maintenance', 'Consultation'] },
-            { name: 'price', label: 'Price', type: 'number' },
+            { name: 'image', label: 'Image', type: 'text' },
+            { name: 'price', label: 'Price', type: 'text' },
+            { name: 'status', label: 'Status', type: 'toggle' }
+        ]} 
+    />
+);
+
+export const SubServicePage = () => (
+    <MasterPage 
+        moduleName="subservice" 
+        columns={['Name', 'Parent Service', 'Image', 'Price', 'Duration', 'Status']} 
+        fields={[
+            { name: 'name', label: 'Name', type: 'text' },
+            { name: 'serviceId', label: 'Service ID', type: 'dropdown' },
+            { name: 'price', label: 'Price', type: 'text' },
+            { name: 'description', label: 'Description', type: 'textarea' },
+            { name: 'duration', label: 'Duration (in mins)', type: 'text' },
+            { name: 'image', label: 'Image', type: 'text' },
             { name: 'status', label: 'Status', type: 'toggle' }
         ]} 
     />
@@ -84,3 +100,28 @@ export const ColorPage = () => (
     />
 );
 
+export const MakePage = () => (
+    <MasterPage 
+        moduleName="Make" 
+        columns={['Brand Name', 'Code', 'Image', 'Status']} 
+        fields={[
+            { name: 'name', label: 'Brand Name', type: 'text' },
+            { name: 'code', label: 'Brand Code (e.g. TOY)', type: 'text' },
+            { name: 'image', label: 'Image URL', type: 'text' },
+            { name: 'status', label: 'Status', type: 'toggle' }
+        ]} 
+    />
+);
+
+export const ModelPage = () => (
+    <MasterPage 
+        moduleName="Model" 
+        columns={['Model Name', 'Brand', 'Image', 'Status']} 
+        fields={[
+            { name: 'name', label: 'Model Name', type: 'text' },
+            { name: 'makeId', label: 'Brand', type: 'dropdown' },
+            { name: 'image', label: 'Image URL', type: 'text' },
+            { name: 'status', label: 'Status', type: 'toggle' }
+        ]} 
+    />
+);

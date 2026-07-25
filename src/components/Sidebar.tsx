@@ -1,6 +1,6 @@
 import { 
   LayoutDashboard, Users, Wrench, FileText, 
-  CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight
+  CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight, Car
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -17,8 +17,10 @@ const MENU_ITEMS = [
     { id: 'master-state', label: 'State', icon: MapPin },
     { id: 'master-city', label: 'City', icon: MapPin },
     { id: 'master-service', label: 'Service', icon: Wrench },
-    { id: 'master-brand', label: 'Brand', icon: Tags },
+    { id: 'master-subservice', label: 'Sub Service', icon: Wrench },
     { id: 'master-color', label: 'Color', icon: Palette },
+    { id: 'master-make', label: 'Brand', icon: Car },
+    { id: 'master-model', label: 'Model', icon: Car },
   ]},
   { id: 'orders', label: 'Order Management', icon: FileText },
   { id: 'payments', label: 'Payment Management', icon: CreditCard },
