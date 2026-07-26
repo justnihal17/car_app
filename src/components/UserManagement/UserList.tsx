@@ -22,7 +22,7 @@ export function UserList({ onUserSelect }: { onUserSelect: (id: string) => void 
             <Download className="w-4 h-4" /> Export
           </button>
           <button className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
-            <Plus className="w-4 h-4" /> Register User
+            <Plus className="w-4 h-4" /> Create
           </button>
         </div>
       </div>

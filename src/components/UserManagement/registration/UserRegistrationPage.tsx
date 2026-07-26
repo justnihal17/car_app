@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserRegistrationFormValues, userRegistrationSchema } from './UserRegistrationSchema';
 import { AddressSection } from './AddressSection';
 import { VehicleSection } from './VehicleSection';
 import { ProfilePreview } from './ProfilePreview';
-import { Save, X, Calendar as CalendarIcon, User, Mail, Phone } from 'lucide-react';
+import { Save, X, Calendar as CalendarIcon, User, Mail, Phone, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UserRegistrationFormValues>({
     resolver: zodResolver(userRegistrationSchema),
@@ -97,6 +99,36 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
                   <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${formData.active ? 'left-7' : 'left-1'}`} />
                 </button>
               </div>
+            </div>
+            {/* Image Upload Box */}
+            <div className="mb-6 space-y-2">
+              <div 
+                onClick={() => fileInputRef.current?.click()} 
+                className="border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs cursor-pointer hover:shadow-md hover:shadow-red-500/5"
+              >
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
+                  {userPhoto ? (
+                    <img src={userPhoto} className="w-full h-full object-cover" alt="User Photo" />
+                  ) : (
+                    <User className="w-8 h-8 text-red-500" />
+                  )}
+                </div>
+                <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5" /> Upload Image
+                </span>
+                <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
+              </div>
+              <input 
+                ref={fileInputRef} 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setUserPhoto(URL.createObjectURL(e.target.files[0]));
+                  }
+                }} 
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

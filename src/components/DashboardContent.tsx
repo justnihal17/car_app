@@ -21,7 +21,7 @@ import { SubAdminManagement } from './SubAdminManagement/SubAdminList';
 import { AgentWorkspace } from './AgentManagement/AgentWorkspace';
 import { AgentProfileWorkspace } from './AgentManagement/AgentProfileWorkspace';
 import { AgentRegistrationPage } from './AgentManagement/registration/AgentRegistrationPage';
-import { RolePage, SkillPage, StatePage, CityPage, ServicePage, SubServicePage, BrandPage, ColorPage, MakePage, ModelPage, VehicleTypePage } from './MasterManagement/MasterViews';
+import { RolePage, SkillPage, StatePage, CityPage, ServicePage, SubServicePage, BrandPage, ColorPage, MakePage, ModelPage, VehicleTypePage, FuelTypePage, BannerPage } from './MasterManagement/MasterViews';
 import { ProfileView } from './ProfileView';
 import { ReportsManager } from './ReportsManagement/ReportsManager';
 
@@ -79,6 +79,7 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return <RolePage />;
       case 'master-skill':
         return <SkillPage />;
+      case 'master-emirate':
       case 'master-state':
         return <StatePage />;
       case 'master-city':
@@ -97,6 +98,10 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return <ModelPage />;
       case 'master-vehicle-type':
         return <VehicleTypePage />;
+      case 'master-fuel-type':
+        return <FuelTypePage />;
+      case 'master-banner':
+        return <BannerPage />;
       case 'drivers':
         if (selectedDriverId) {
           return <DriverDetails driverId={selectedDriverId} onBack={() => setSelectedDriverId(null)} />;

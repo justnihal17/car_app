@@ -10,8 +10,6 @@ const AGENTS = [
   { id: 'A002', name: 'Jane Driver', email: 'jane@stylein.com', phone: '+1987654321', area: 'Marina', vehicle: 'Car-05', jobs: 8, rating: 4.5, status: 'Busy' },
 ];
 
-const AVAILABLE_SKILLS = ["Car Wash", "Oil Change", "Battery Replacement", "Tyre Change", "Fuel Delivery", "Jump Start", "Engine Check", "Car Cleaning"];
-
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
@@ -25,6 +23,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const loggedInAdminName = getLoggedInAdminName();
   const [agentsList, setAgentsList] = useState<any[]>([]);
   const [actionModal, setActionModal] = useState<{isOpen: boolean, actionType: ActionType, agent: any}>({isOpen: false, actionType: 'view', agent: null});
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -98,9 +97,32 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const [photo, setPhoto] = useState<any>(null);
   const [imgError, setImgError] = useState(false);
 
-  const [availableSkills, setAvailableSkills] = useState<string[]>(AVAILABLE_SKILLS);
+  const [availableSkills, setAvailableSkills] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await api.get('/master/skill');
+        const rawList = Array.isArray(response.data?.data)
+          ? response.data.data
+          : (Array.isArray(response.data) ? response.data : (response.data?.skills || response.data?.list || []));
+        
+        if (Array.isArray(rawList) && rawList.length > 0) {
+          const names = rawList
+            .map((item: any) => item.name || item.title || item.skillName || (typeof item === 'string' ? item : ''))
+            .filter((name: string) => Boolean(name.trim()));
+          if (names.length > 0) {
+            setAvailableSkills(Array.from(new Set(names)));
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load skills from /master/skill:', err);
+      }
+    };
+    fetchSkills();
+  }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -116,8 +138,8 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  const [formData, setFormData] = useState({
-      fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
+  const [formData, setFormData] = useState<Record<string, any>>({
+      fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0], active: true
   });
 
   const handleSubmit = async () => {
@@ -222,7 +244,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
   const handleViewDrawer = (e: React.MouseEvent, agent: any) => {
       e.stopPropagation();
-      setDrawerMode("view");
+      setDrawerMode("edit");
       setEditingAgentId(agent.id);
       const viewFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
       const viewLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
@@ -538,7 +560,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                   <h3 className="text-base font-black tracking-tight text-white capitalize">
                     {(drawerMode === "view" || drawerMode === "edit")
                       ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || "Agent Details")
-                      : "Register Agent"}
+                      : "Create"}
                   </h3>
                 </div>
               </div>
@@ -552,17 +574,11 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
               <div className="space-y-6">
                 {/* Image Section */}
                 <div className="space-y-2">
-                  <label className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-5 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs min-h-[130px] ${drawerMode === "view" ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}>
-                    <input type="file" disabled={drawerMode === "view"} className="hidden" onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        setRawSelectedFile(file);
-                        setRawPreviewUrl(URL.createObjectURL(file));
-                        setCropModalOpen(true);
-                        setImgError(false);
-                      }
-                    }} />
-                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-2.5 overflow-hidden group-hover:scale-105 transition-all relative">
+                  <div 
+                    onClick={() => drawerMode !== "view" && fileInputRef.current?.click()} 
+                    className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${drawerMode === "view" ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}
+                  >
+                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
                       {(photoPreview || (photo && !imgError)) ? (
                         <img 
                           src={photoPreview || (typeof photo === 'string' ? photo : undefined)} 
@@ -571,14 +587,34 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                           onError={() => setImgError(true)} 
                         />
                       ) : (
-                        <Upload className="w-6 h-6 text-red-500 group-hover:scale-110 transition-transform" />
+                        <User className="w-8 h-8 text-red-500" />
                       )}
                     </div>
-                    <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" /> Upload Image
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium mt-0.5">PNG, JPG or WEBP (MAX. 5MB)</span>
-                  </label>
+                    {drawerMode !== "view" && (
+                      <>
+                        <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
+                          <Upload className="w-3.5 h-3.5" /> Upload Image
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
+                      </>
+                    )}
+                  </div>
+                  <input 
+                    ref={fileInputRef} 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*" 
+                    disabled={drawerMode === "view"} 
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        setRawSelectedFile(file);
+                        setRawPreviewUrl(URL.createObjectURL(file));
+                        setCropModalOpen(true);
+                        setImgError(false);
+                      }
+                    }} 
+                  />
                 </div>
                 
                 {/* Form Fields */}
@@ -664,7 +700,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                   </div>
                   
                   <div className="pt-1">
-                    <label className="sub-admin-form-label">Skills & Qualifications</label>
+                    <label className="sub-admin-form-label">Skills</label>
                     <div className="relative">
                       {(() => {
                         const skillsArr = parseSkillsArray(selectedSkills);
@@ -727,9 +763,21 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
         imageSrc={rawPreviewUrl}
         file={rawSelectedFile}
         onClose={() => setCropModalOpen(false)}
-        onCropComplete={(croppedFile, croppedUrl) => {
-          setSelectedImageFile(croppedFile);
+        onCropComplete={async (croppedFile, croppedUrl) => {
           setPhotoPreview(croppedUrl);
+          toast.loading('Uploading Image...', { id: 'imgUpload' });
+          try {
+            const uploadedUrl = await uploadImage(croppedFile);
+            toast.dismiss('imgUpload');
+            toast.success('Image uploaded successfully');
+            setPhoto(uploadedUrl);
+            setPhotoPreview(uploadedUrl);
+            setSelectedImageFile(null);
+          } catch (err: any) {
+            toast.dismiss('imgUpload');
+            toast.error(err.message || 'Image upload failed');
+            setSelectedImageFile(croppedFile);
+          }
         }}
       />
     </div>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, Calendar, Tag, MapPin, BarChart2, DollarSign, Clock, Users } from 'lucide-react';
+import { ChevronLeft, Calendar, Tag, MapPin, BarChart2, DollarSign, Clock, Users, Wrench } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
+import { getAdminSubServicesByServiceId } from '../../services/subServiceService';
 
 function normalizeService(item: any) {
   const rawPrice = item.price ?? item.amount ?? 0;
@@ -29,6 +30,8 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBac
   const [service, setService] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [subServices, setSubServices] = useState<any[]>([]);
+  const [loadingSubServices, setLoadingSubServices] = useState(false);
 
   useEffect(() => {
     const fetchService = async () => {
@@ -44,7 +47,20 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBac
         setLoading(false);
       }
     };
+    const fetchSubServices = async () => {
+      setLoadingSubServices(true);
+      try {
+        const res = await getAdminSubServicesByServiceId(serviceId);
+        const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : (res?.subServices || res?.list || []));
+        setSubServices(list);
+      } catch (err: any) {
+        console.error('Failed to load subservices for service', err);
+      } finally {
+        setLoadingSubServices(false);
+      }
+    };
     fetchService();
+    fetchSubServices();
   }, [serviceId]);
 
   const handleDelete = async () => {
@@ -71,6 +87,9 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBac
         name: service.name,
         price: priceNumber,
         image: service.image,
+        description: service.description || service.detailedDescription || service.shortDescription,
+        shortDescription: service.shortDescription || service.description,
+        detailedDescription: service.detailedDescription || service.description,
         active,
       });
       setService((prev: any) => ({ ...prev, active, status: active ? 'Active' : 'Disabled' }));
@@ -152,6 +171,48 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBac
                 <div className="text-xl font-bold text-white">{service.duration}</div>
               </div>
             </div>
+          </div>
+
+          <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-red-500" /> Associated Sub-Services
+                <span className="text-xs bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full font-mono">{subServices.length}</span>
+              </h3>
+            </div>
+            {loadingSubServices ? (
+              <div className="text-slate-400 text-sm py-4 text-center">Loading sub-services...</div>
+            ) : subServices.length === 0 ? (
+              <div className="text-slate-500 text-sm py-6 text-center bg-slate-900/50 rounded-lg border border-slate-800/80">
+                No sub-services found for this service.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {subServices.map((sub: any) => (
+                  <div key={sub._id || sub.id} className="p-3.5 bg-slate-900/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3 hover:border-slate-700 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {sub.image ? (
+                        <img src={sub.image} alt={sub.name} className="w-10 h-10 rounded-lg object-cover border border-slate-700 shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-xs shrink-0">
+                          {(sub.name || sub.title || 'S')[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-semibold text-white truncate">{sub.name || sub.title || 'Untitled'}</h4>
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                          {sub.price !== undefined && <span>AED {sub.price}</span>}
+                          {sub.duration && <span>• {sub.duration}</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0 ${sub.active !== false && sub.status !== 'Inactive' && sub.status !== 'Disabled' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}>
+                      {sub.active !== false && sub.status !== 'Inactive' && sub.status !== 'Disabled' ? 'Active' : 'Disabled'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

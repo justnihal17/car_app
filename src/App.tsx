@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { Sidebar } from "./components/Sidebar";
 import { Header } from "./components/Header";
@@ -48,6 +48,16 @@ export default function App() {
     setCurrentView(view);
     localStorage.setItem('currentView', view);
   };
+
+  useEffect(() => {
+    const handleNavigate = (e: any) => {
+      if (e.detail && typeof e.detail === 'string') {
+        handleViewChange(e.detail);
+      }
+    };
+    window.addEventListener('navigate_view', handleNavigate as EventListener);
+    return () => window.removeEventListener('navigate_view', handleNavigate as EventListener);
+  }, []);
 
   if (!isAuthenticated) {
     return <LoginPage onLogin={() => setIsAuthenticated(true)} />;

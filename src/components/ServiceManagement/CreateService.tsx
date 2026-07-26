@@ -3,6 +3,7 @@ import { ArrowLeft, Check, ChevronRight, Upload, Info, MapPin, Tag, Plus } from 
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { uploadImage } from '../../services/uploadService';
+import { ImageCropModal } from '../common/ImageCropModal';
 
 const STEPS = [
   { id: 1, label: 'Basic Information' },
@@ -47,6 +48,9 @@ export function CreateService({
   const [formData, setFormData] = useState(initialFormState);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawSelectedFile, setRawSelectedFile] = useState<File | null>(null);
+  const [rawPreviewUrl, setRawPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialService) {
@@ -54,8 +58,8 @@ export function CreateService({
         ...initialFormState,
         name: initialService.name || '',
         code: initialService.code || '',
-        shortDescription: initialService.shortDescription || '',
-        detailedDescription: initialService.detailedDescription || '',
+        shortDescription: initialService.shortDescription || initialService.description || '',
+        detailedDescription: initialService.detailedDescription || initialService.description || '',
         category: initialService.category || 'Fuel Delivery',
         subcategory: initialService.subcategory || 'Premium Fuel',
         image: initialService.image || '',
@@ -121,15 +125,16 @@ export function CreateService({
 
     setIsSaving(true);
     try {
-      const payload = {
+      const payload: any = {
         name: formData.name,
         price: Number(formData.price),
         image: formData.image,
         active: formData.active,
         category: formData.category,
         code: formData.code || undefined,
-        shortDescription: formData.shortDescription || undefined,
-        detailedDescription: formData.detailedDescription || undefined,
+        description: formData.detailedDescription || formData.shortDescription || undefined,
+        shortDescription: formData.shortDescription || formData.detailedDescription || undefined,
+        detailedDescription: formData.detailedDescription || formData.shortDescription || undefined,
       };
 
       if (initialService?.id) {
@@ -239,9 +244,13 @@ export function CreateService({
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={async (e) => {
+                      onChange={(e) => {
                         if (e.target.files?.[0]) {
-                          await handleImageUpload(e.target.files[0]);
+                          const file = e.target.files[0];
+                          setRawSelectedFile(file);
+                          setRawPreviewUrl(URL.createObjectURL(file));
+                          setCropModalOpen(true);
+                          e.target.value = '';
                         }
                       }}
                     />
@@ -621,6 +630,16 @@ export function CreateService({
           </div>
         </div>
       </div>
+
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        onClose={() => setCropModalOpen(false)}
+        onCropComplete={async (croppedFile) => {
+          await handleImageUpload(croppedFile);
+        }}
+      />
     </div>
   );
 }

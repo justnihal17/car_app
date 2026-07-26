@@ -94,7 +94,7 @@ export function CompanyProfile() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">State/Emirate</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Emirate</label>
               <input 
                 type="text" 
                 defaultValue="Dubai"

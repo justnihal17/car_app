@@ -193,7 +193,7 @@ export function SubAdminManagement() {
           created: raw.createdAt ? new Date(raw.createdAt).toISOString().split('T')[0] : '-',
           lastLogin: raw.lastLoginAt || raw.lastLogin || localTime || raw.createdAt || new Date().toISOString()
         };
-        setDrawerMode('view');
+        setDrawerMode('edit');
         setSelectedAdmin(mappedAdmin);
         setIsDrawerOpen(true);
       }

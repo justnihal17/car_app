@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, Eye, EyeOff, Save, User, Shield, Upload, Check, ChevronDown } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -12,6 +12,13 @@ const formatRoleName = (roleName: string) => {
   if (roleName.toLowerCase() === 'super_admin' || roleName.toLowerCase() === 'superadmin') return 'Super Admin';
   return roleName.charAt(0).toUpperCase() + roleName.slice(1).toLowerCase();
 };
+
+interface CreateSubAdminDrawerProps {
+  mode: 'create' | 'edit' | 'view';
+  admin?: any;
+  onSave: (data?: any) => void;
+  onClose: () => void;
+}
 
 export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSubAdminDrawerProps) {
   const loggedInAdminName = getLoggedInAdminName();
@@ -143,8 +150,8 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
   }, [admin, mode]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const isView = mode === 'view';
+  const isView = false;
+  const isEdit = mode === 'edit' || mode === 'view' || Boolean(admin);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -157,9 +164,22 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
     }
   };
 
-  const handleCropComplete = (croppedFile: File, croppedPreviewUrl: string) => {
-    setSelectedFile(croppedFile);
+  const handleCropComplete = async (croppedFile: File, croppedPreviewUrl: string) => {
     setPreviewUrl(croppedPreviewUrl);
+    setFormData(prev => ({ ...prev, imageUrl: croppedPreviewUrl }));
+    toast.loading('Uploading Image...', { id: 'imgUpload' });
+    try {
+      const uploadedUrl = await uploadImage(croppedFile);
+      toast.dismiss('imgUpload');
+      toast.success('Image uploaded successfully');
+      setPreviewUrl(uploadedUrl);
+      setFormData(prev => ({ ...prev, imageUrl: uploadedUrl }));
+      setSelectedFile(null);
+    } catch (err: any) {
+      toast.dismiss('imgUpload');
+      toast.error(err.message || 'Image upload failed');
+      setSelectedFile(croppedFile);
+    }
   };
 
   const validate = () => {
@@ -177,6 +197,16 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const isFormValid = useMemo(() => {
+    if (!formData.firstName?.trim()) return false;
+    if (!formData.lastName?.trim()) return false;
+    if (!formData.email?.trim()) return false;
+    if (!formData.phone?.trim()) return false;
+    if (!formData.role?.trim()) return false;
+    if (mode === 'create' && !formData.password?.trim()) return false;
+    return true;
+  }, [formData, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,22 +246,22 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
       settings: !!formData.permissions.settings,
     };
 
-    const payload = {
+    const payload: any = {
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
       phone: formData.phone,
-      password: formData.password || 'Admin@123',
+      password: formData.password || '••••••••',
       role: formData.role?.toLowerCase() === 'admin' ? 'admin' : (formData.role || 'admin'),
       profileUrl: finalProfileUrl,
+      permissions: apiPermissions,
       active: formData.active,
-      blocked: formData.blocked || false,
-      permissions: apiPermissions
+      blocked: formData.blocked || false
     };
 
     try {
       let response;
-      if (mode === 'edit' && admin?.id) {
+      if (isEdit && admin?.id) {
         const updatePayload: any = {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -254,8 +284,8 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
       const result = response.data;
 
       if (result.success) {
-        toast.success(mode === 'edit' ? 'Admin updated successfully!' : 'Admin registered successfully!');
-        setApiSuccess(mode === 'edit' ? 'Admin updated successfully!' : `Admin registered successfully! ID: ${result.data?.adminId || 'N/A'}`);
+        toast.success(isEdit ? 'Admin updated successfully!' : 'Admin registered successfully!');
+        setApiSuccess(isEdit ? 'Admin updated successfully!' : `Admin registered successfully! ID: ${result.data?.adminId || 'N/A'}`);
         
         setTimeout(() => {
           onSave(null); 
@@ -265,10 +295,9 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
         setApiError(result.message || 'Operation failed from server.');
       }
     } catch (err: any) {
-      console.warn('API operation failed:', err);
-      const errMsg = err.response?.data?.message || 'Operation failed. Please try again.';
-      toast.error(errMsg);
-      setApiError(errMsg);
+      const errorMsg = err.response?.data?.message || err.message || 'Error saving sub admin';
+      toast.error(errorMsg);
+      setApiError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -278,15 +307,6 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
     const key = m.toLowerCase().replace(' ', '');
     return !!formData.permissions[key];
   });
-
-  const isSubAdminFormValid = Boolean(
-    formData.firstName?.trim() &&
-    formData.lastName?.trim() &&
-    formData.email?.trim() &&
-    formData.phone?.trim() &&
-    formData.role?.trim() &&
-    (mode === 'edit' || formData.password)
-  );
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end transition-all duration-300">
@@ -299,9 +319,9 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
             </div>
             <div>
               <h3 className="text-base font-black tracking-tight text-white capitalize">
-                {(mode === 'view' || mode === 'edit')
+                {isEdit
                   ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'Admin Details')
-                  : 'Create Sub Admin'}
+                  : 'Create'}
               </h3>
             </div>
           </div>
@@ -311,47 +331,49 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
         </div>
 
         {/* Form Content with space-y-3.5 matching email & first name spacing */}
-        <form className="flex-1 space-y-3.5 overflow-y-auto p-5 custom-scrollbar" onSubmit={handleSubmit}>
-          {apiSuccess && (
-            <div className="p-4 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-              {apiSuccess}
-            </div>
-          )}
-          {apiError && (
-            <div className="p-4 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
-              <X className="w-4 h-4 text-rose-600 shrink-0" />
-              {apiError}
-            </div>
-          )}
+        <form className="flex-1 flex flex-col justify-between overflow-hidden" onSubmit={handleSubmit}>
+          <div className="flex-1 space-y-3.5 overflow-y-auto p-5 custom-scrollbar">
+            {apiSuccess && (
+              <div className="p-4 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                {apiSuccess}
+              </div>
+            )}
+            {apiError && (
+              <div className="p-4 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
+                <X className="w-4 h-4 text-rose-600 shrink-0" />
+                {apiError}
+              </div>
+            )}
 
-          {/* Form Fields Component from utils/subAdminFormUtils */}
-          <SubAdminFormFields
-            formData={formData}
-            setFormData={setFormData}
-            errors={errors}
-            isView={isView}
-            fileInputRef={fileInputRef}
-            previewUrl={previewUrl}
-            imgError={imgError}
-            setImgError={setImgError}
-            handleFileChange={handleFileChange}
-            showPassword={showPassword}
-            setShowPassword={setShowPassword}
-            isRoleDropdownOpen={isRoleDropdownOpen}
-            setIsRoleDropdownOpen={setIsRoleDropdownOpen}
-            roleDropdownRef={roleDropdownRef}
-            roles={roles}
-            formatRoleName={formatRoleName}
-            isAccessDropdownOpen={isAccessDropdownOpen}
-            setIsAccessDropdownOpen={setIsAccessDropdownOpen}
-            accessDropdownRef={accessDropdownRef}
-            selectedModules={selectedModules}
-            allAccessModules={ALL_ACCESS_MODULES}
-          />
+            {/* Form Fields Component from utils/subAdminFormUtils */}
+            <SubAdminFormFields
+              formData={formData}
+              setFormData={setFormData}
+              errors={errors}
+              isView={isView}
+              fileInputRef={fileInputRef}
+              previewUrl={previewUrl}
+              imgError={imgError}
+              setImgError={setImgError}
+              handleFileChange={handleFileChange}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              isRoleDropdownOpen={isRoleDropdownOpen}
+              setIsRoleDropdownOpen={setIsRoleDropdownOpen}
+              roleDropdownRef={roleDropdownRef}
+              roles={roles}
+              formatRoleName={formatRoleName}
+              isAccessDropdownOpen={isAccessDropdownOpen}
+              setIsAccessDropdownOpen={setIsAccessDropdownOpen}
+              accessDropdownRef={accessDropdownRef}
+              selectedModules={selectedModules}
+              allAccessModules={ALL_ACCESS_MODULES}
+            />
+          </div>
 
-          {/* Form Actions Footer - Unified Cancel & Register/Update Buttons */}
-          <div className="pt-4 border-t border-slate-200/80 flex items-center gap-3">
+          {/* Form Actions Footer - Fixed at the bottom of the drawer */}
+          <div className="p-4 border-t border-slate-200/80 flex items-center gap-3 bg-white shrink-0 mt-auto">
             <button 
               type="button" 
               onClick={onClose} 
@@ -361,10 +383,10 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
             </button>
             <button 
               type="submit" 
-              disabled={isView || loading} 
+              disabled={loading || !isFormValid} 
               className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
             >
-              <Save className="w-4 h-4" /> {loading ? 'Saving...' : (mode === 'edit' ? 'Update' : 'Register')}
+              <Save className="w-4 h-4" /> {loading ? 'Saving...' : (isEdit ? 'Update' : 'Register')}
             </button>
           </div>
         </form>

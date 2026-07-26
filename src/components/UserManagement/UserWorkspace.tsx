@@ -54,7 +54,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
 
     if (actionType === 'view') {
       setActionModal({ isOpen: false, actionType: 'view', user: null });
-      setDrawerMode("view");
+      setDrawerMode("edit");
       setSelectedUserForDrawer(user);
       setIsDrawerOpen(true);
     } else if (actionType === 'edit') {
@@ -260,7 +260,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                   <td colSpan={4} className="p-8 text-center text-slate-400 font-semibold">No registered users found</td>
                 </tr>
               ) : filteredUsers.map(user => (
-                <tr key={user.id} className="hover:bg-red-50/20 transition-all duration-150 group cursor-pointer" onClick={() => { setDrawerMode('view'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }}>
+                <tr key={user.id} className="hover:bg-red-50/20 transition-all duration-150 group cursor-pointer" onClick={() => { setDrawerMode('edit'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }}>
                   <td className="px-4 py-4.5 pl-6 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(user.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
@@ -299,7 +299,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                           }`}
                         />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); setDrawerMode('view'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }} className="text-blue-600 hover:text-blue-800 p-1 transition-transform hover:scale-110"><Eye className="w-4 h-4"/></button>
+                      <button onClick={(e) => { e.stopPropagation(); setDrawerMode('edit'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }} className="text-blue-600 hover:text-blue-800 p-1 transition-transform hover:scale-110"><Eye className="w-4 h-4"/></button>
                       <button onClick={(e) => { e.stopPropagation(); setDrawerMode('edit'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }} className="text-emerald-600 hover:text-emerald-800 p-1 transition-transform hover:scale-110"><Edit2 className="w-4 h-4"/></button>
                       <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'delete', user }); }} className="text-red-600 hover:text-red-800 p-1 transition-transform hover:scale-110"><Trash2 className="w-4 h-4"/></button>
                       {user.status === 'Blocked' ? (

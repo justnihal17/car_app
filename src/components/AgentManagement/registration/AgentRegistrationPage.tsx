@@ -27,12 +27,12 @@ export function AgentRegistrationPage() {
         
         <div className="flex justify-between items-start">
             <div>
-                <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Register New Service Agent</h1>
+                <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Create</h1>
                 <p className="text-slate-500 text-lg mt-2">Professional Enterprise Onboarding</p>
             </div>
             <div className="flex gap-3">
                 <button className="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 shadow-sm">Cancel</button>
-                <button className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-medium shadow-lg shadow-blue-200 hover:bg-red-700">Register Agent</button>
+                <button className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-medium shadow-lg shadow-blue-200 hover:bg-red-700">Create</button>
             </div>
         </div>
 
@@ -74,7 +74,7 @@ export function AgentRegistrationPage() {
                     </div>
                 </FormCard>
 
-                <FormCard title="Professional Skills"><SkillChips /></FormCard>
+                <FormCard title="Skills"><SkillChips /></FormCard>
             </div>
 
             <div className="lg:col-span-1">
@@ -86,7 +86,7 @@ export function AgentRegistrationPage() {
         <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-200 flex justify-end gap-4 shadow-lg z-50">
             <button className="flex items-center gap-2 px-6 py-2.5 bg-slate-100 rounded-xl"><X className="w-4 h-4"/> Cancel</button>
             <button className="flex items-center gap-2 px-6 py-2.5 bg-slate-100 rounded-xl"><RefreshCcw className="w-4 h-4"/> Reset</button>
-            <button className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-xl"><Save className="w-4 h-4"/> Register Agent</button>
+            <button className="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-xl"><Save className="w-4 h-4"/> Create</button>
         </div>
       </motion.div>
     </FormProvider>

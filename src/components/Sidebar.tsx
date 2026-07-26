@@ -14,7 +14,7 @@ const MENU_ITEMS = [
   { id: 'master-mgmt', label: 'Master Management', icon: Shield, isAccordion: true, children: [
     { id: 'master-role', label: 'Role', icon: Shield },
     { id: 'master-skill', label: 'Skill', icon: Wrench },
-    { id: 'master-state', label: 'State', icon: MapPin },
+    { id: 'master-emirate', label: 'Emirate', icon: MapPin },
     { id: 'master-city', label: 'City', icon: MapPin },
     { id: 'master-service', label: 'Service', icon: Wrench },
     { id: 'master-subservice', label: 'Sub Service', icon: Wrench },
@@ -22,6 +22,8 @@ const MENU_ITEMS = [
     { id: 'master-make', label: 'Brand', icon: Car },
     { id: 'master-model', label: 'Model', icon: Car },
     { id: 'master-vehicle-type', label: 'Vehicle Type', icon: Car },
+    { id: 'master-fuel-type', label: 'Fuel Type', icon: Car },
+    { id: 'master-banner', label: 'Banner', icon: FileText },
   ]},
   { id: 'orders', label: 'Order Management', icon: FileText },
   { id: 'payments', label: 'Payment Management', icon: CreditCard },

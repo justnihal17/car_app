@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { User, Sparkles, X, Upload, Check, Save } from "lucide-react";
 import { UserRegistrationFormValues } from "./UserRegistrationSchema";
 import api from "../../../api/axios";
@@ -20,6 +20,7 @@ export function UserRegistrationDrawer({
   initialData?: any;
 }) {
   const loggedInAdminName = getLoggedInAdminName();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -103,7 +104,7 @@ export function UserRegistrationDrawer({
     setStatusMessage("Saving Data...");
 
     try {
-      if (mode === "edit" && initialData?.id) {
+      if ((mode === "edit" || mode === "view" || Boolean(initialData?.id)) && initialData?.id) {
         const response = await api.put(`/customer/customer/admin/${initialData.id}`, {
           name: formData.fullName,
           fullName: formData.fullName,
@@ -151,8 +152,8 @@ export function UserRegistrationDrawer({
     }
   };
 
-  const isView = mode === "view";
-  const isEdit = mode === "edit";
+  const isView = false;
+  const isEdit = mode === "edit" || mode === "view" || Boolean(initialData);
 
   if (!isOpen) return null;
 
@@ -169,7 +170,7 @@ export function UserRegistrationDrawer({
               <h3 className="text-base font-black tracking-tight text-white capitalize">
                 {(isView || isEdit)
                   ? (formData.fullName || initialData?.name || initialData?.fullName || "User Details")
-                  : "Register User"}
+                  : "Create"}
               </h3>
             </div>
           </div>
@@ -221,24 +222,12 @@ export function UserRegistrationDrawer({
             <div className="space-y-6">
               {/* Image Section */}
               <div className="space-y-2">
-                <label className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${isView ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    disabled={isView}
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        setRawSelectedFile(file);
-                        setRawPreviewUrl(URL.createObjectURL(file));
-                        setCropModalOpen(true);
-                        setImgError(false);
-                      }
-                    }}
-                  />
+                <div 
+                  onClick={() => !isView && fileInputRef.current?.click()} 
+                  className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${isView ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}
+                >
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
-                    {(photoPreview || photo) && !imgError ? (
+                    {(photoPreview || (photo && !imgError)) ? (
                       <img
                         src={photoPreview || photo || undefined}
                         className="w-full h-full object-cover"
@@ -250,12 +239,30 @@ export function UserRegistrationDrawer({
                     )}
                   </div>
                   {!isView && (
-                    <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5" /> Upload Image
-                    </span>
+                    <>
+                      <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
+                        <Upload className="w-3.5 h-3.5" /> Upload Image
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
+                    </>
                   )}
-                  <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
-                </label>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  disabled={isView}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      const file = e.target.files[0];
+                      setRawSelectedFile(file);
+                      setRawPreviewUrl(URL.createObjectURL(file));
+                      setCropModalOpen(true);
+                      setImgError(false);
+                    }
+                  }}
+                />
               </div>
 
               {/* Information Section with Active Toggle Opposite */}
@@ -347,9 +354,21 @@ export function UserRegistrationDrawer({
         imageSrc={rawPreviewUrl}
         file={rawSelectedFile}
         onClose={() => setCropModalOpen(false)}
-        onCropComplete={(croppedFile, croppedUrl) => {
-          setSelectedFile(croppedFile);
+        onCropComplete={async (croppedFile, croppedUrl) => {
           setPhotoPreview(croppedUrl);
+          toast.loading('Uploading Image...', { id: 'imgUpload' });
+          try {
+            const uploadedUrl = await uploadImage(croppedFile);
+            toast.dismiss('imgUpload');
+            toast.success('Image uploaded successfully');
+            setPhoto(uploadedUrl);
+            setPhotoPreview(uploadedUrl);
+            setSelectedFile(null);
+          } catch (err: any) {
+            toast.dismiss('imgUpload');
+            toast.error(err.message || 'Image upload failed');
+            setSelectedFile(croppedFile);
+          }
         }}
       />
     </div>
