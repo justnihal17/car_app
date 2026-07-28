@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Plus, Edit, Edit2, Trash2, Eye, LayoutDashboard, Shield, Wrench, UserCheck, UserX, ChevronRight, Sparkles, Upload, X, User, Car, Image as ImageIcon, ChevronDown, Layers, ExternalLink } from 'lucide-react';
+import { Search, Plus, Edit, Edit2, Trash2, Eye, LayoutDashboard, Shield, Wrench, UserCheck, UserX, ChevronRight, Sparkles, Upload, X, User, Car, Image as ImageIcon, ChevronDown, Layers, ExternalLink, Zap } from 'lucide-react';
 import { AnalyticsCard } from '../common/AnalyticsCard';
+import { CustomSelect } from '../common/CustomSelect';
 import { StatusBadge } from '../StatusBadge';
 import { SlidePanel } from '../common/SlidePanel';
 import api from '../../api/axios';
@@ -272,7 +273,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const displayName = pluralNames[moduleName.toLowerCase()] || `${moduleName}s`;
 
   const stats = [
-    { label: `Total ${displayName}`, value: data.length, icon: LayoutDashboard, color: 'text-red-600 bg-red-50 border-red-100', bgGrad: 'from-red-50/50 via-white to-white', sub: 'All' },
+    { label: displayName, value: data.length, icon: LayoutDashboard, color: 'text-red-600 bg-red-50 border-red-100', bgGrad: 'from-red-50/50 via-white to-white', sub: 'All' },
     { label: 'Active', value: data.filter(d => d.status === 'Active').length, icon: Shield, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', bgGrad: 'from-emerald-50/50 via-white to-white', sub: 'Operational' },
     { label: 'Inactive', value: data.filter(d => d.status === 'Inactive').length, icon: Wrench, color: 'text-amber-600 bg-amber-50 border-amber-100', bgGrad: 'from-amber-50/50 via-white to-white', sub: 'Disabled' },
   ];
@@ -347,6 +348,42 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const handleToggleInstant = async (item: any) => {
+    try {
+      const currentIsInstant = item.isInstant === true || item.isInstant === 'true';
+      const isSubService = moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service';
+      const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
+      const isFuelType = moduleName.toLowerCase() === 'fueltype';
+      const cleanModuleName = isVehicleType ? 'vehicleType' : (isFuelType ? 'fuelType' : moduleName.toLowerCase());
+      const endpoint = isSubService ? `/master/subservice/${item.id || item._id}` : `/master/${cleanModuleName}/${item.id || item._id}`;
+      
+      const payload: any = {
+        active: item.status === 'Active' || item.active === true,
+        status: item.status,
+        isInstant: !currentIsInstant
+      };
+      if (item.name) payload.name = item.name;
+      if (item.code) payload.code = item.code;
+      if (item.image) payload.image = item.image;
+      if (item.price) payload.price = item.price;
+      if (item.makeId) payload.makeId = typeof item.makeId === 'object' ? item.makeId.id || item.makeId._id : item.makeId;
+      if (item.description || item.shortDescription || item.detailedDescription) {
+        const desc = item.description || item.shortDescription || item.detailedDescription;
+        payload.description = desc;
+        payload.shortDescription = desc;
+        payload.detailedDescription = desc;
+      }
+
+      const response = await api.put(endpoint, payload);
+      if (response.data?.success) {
+        toast.success(`Instant status updated`);
+        fetchData();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update instant status');
     }
   };
 
@@ -651,22 +688,30 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search..." className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-red-500 outline-none" />
         </div>
         {(moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service') && (
-          <select 
-            value={serviceFilter} 
-            onChange={(e) => setServiceFilter(e.target.value)} 
-            className="border border-slate-200 rounded-xl px-5 py-3 bg-white text-slate-700 font-medium outline-none cursor-pointer"
-          >
-            <option value="all">All Services</option>
-            {serviceOptions.map((s: any) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
+          <div className="w-56">
+            <CustomSelect
+              value={serviceFilter}
+              onChange={setServiceFilter}
+              options={[
+                { label: 'All Services', value: 'all' },
+                ...serviceOptions
+              ]}
+              className="bg-white border-slate-200 hover:border-slate-300 rounded-xl"
+            />
+          </div>
         )}
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-slate-200 rounded-xl px-5 py-3 bg-white text-slate-700 font-medium outline-none">
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Inactive</option>
-        </select>
+        <div className="w-48">
+          <CustomSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { label: 'All Status', value: 'All Status' },
+              { label: 'Active', value: 'Active' },
+              { label: 'Inactive', value: 'Inactive' }
+            ]}
+            className="bg-white border-slate-200 hover:border-slate-300 rounded-xl"
+          />
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -749,6 +794,29 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                         ) : (
                           <span className="text-slate-400 font-mono text-xs">-</span>
                         )}
+                      </td>
+                    );
+                  }
+                  if (col.toLowerCase() === 'instant') {
+                    const isInstant = row.isInstant === true || row.isInstant === 'true';
+                    return (
+                      <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleInstant(row);
+                          }}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            isInstant ? 'bg-emerald-500' : 'bg-slate-300'
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                              isInstant ? 'translate-x-4' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
                       </td>
                     );
                   }
@@ -856,38 +924,50 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                 />
               </div>
 
-              {fields.filter(f => f.name !== 'image' && f.name !== 'status' && f.type !== 'toggle').map(f => (
+              {fields.filter(f => f.name !== 'image' && f.name !== 'status').map(f => (
                   <div key={f.name}>
                       <label className="sub-admin-form-label">{f.label}</label>
-                      {f.type === 'dropdown' ? (
-                          <select 
-                              disabled={mode === 'view' || ((moduleName === 'State' || moduleName === 'Emirate') && f.name === 'country')} 
-                              value={editingItem[f.name] || ((moduleName === 'State' || moduleName === 'Emirate') && f.name === 'country' ? 'UAE' : '')} 
-                              onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} 
-                              className="sub-admin-form-input cursor-pointer"
-                          >
-                              <option value="">Select {f.label}</option>
-                              {(
-                                (f.name === 'state' || f.name === 'emirate') && moduleName.toLowerCase() === 'city' ? stateOptions :
-                                (f.name === 'makeId' && moduleName.toLowerCase() === 'model' ? makeOptions :
-                                (f.name === 'serviceId' && (moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service') ? serviceOptions : (f.options || [])))
-                              ).map((o: any) => {
-                                 const isObj = typeof o === 'object';
-                                 const label = isObj ? o.label : o;
-                                 const val = isObj ? o.value : o;
-                                 return <option key={val} value={val}>{label}</option>;
-                              })}
-                          </select>
-                      ) : f.type === 'toggle' ? (
-                          <div className="flex items-center justify-between p-3.5 bg-slate-50/60 border border-slate-200 rounded-xl">
-                            <span className="text-xs font-semibold text-slate-900">{editingItem[f.name] || 'Inactive'}</span>
+                      {f.type === 'dropdown' ? (() => {
+                          const rawOptions = (f.name === 'state' || f.name === 'emirate') && moduleName.toLowerCase() === 'city' ? stateOptions :
+                                           (f.name === 'makeId' && moduleName.toLowerCase() === 'model' ? makeOptions :
+                                           (f.name === 'serviceId' && (moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service') ? serviceOptions : (f.options || [])));
+                          
+                          const formattedOptions = rawOptions.map((o: any) => {
+                             const isObj = typeof o === 'object';
+                             return {
+                               label: isObj ? o.label : o,
+                               value: isObj ? o.value : o
+                             };
+                          });
+
+                          return (
+                            <CustomSelect
+                              disabled={mode === 'view' || ((moduleName === 'State' || moduleName === 'Emirate') && f.name === 'country')}
+                              value={editingItem[f.name] || ((moduleName === 'State' || moduleName === 'Emirate') && f.name === 'country' ? 'UAE' : '')}
+                              onChange={(val) => setEditingItem({...editingItem, [f.name]: val})}
+                              options={formattedOptions}
+                              placeholder={`Select ${f.label}`}
+                              className="w-full bg-slate-50/50"
+                            />
+                          );
+                      })() : f.type === 'toggle' ? (
+                          <div className="flex items-center justify-between p-3.5 bg-slate-50/60 border border-slate-200 rounded-xl mt-1">
+                            <span className="text-xs font-semibold text-slate-900">
+                              {f.name === 'isInstant' ? (editingItem[f.name] ? 'Yes' : 'No') : (editingItem[f.name] || 'Inactive')}
+                            </span>
                             <button 
                               type="button" 
                               disabled={mode === 'view'}
-                              onClick={() => setEditingItem({...editingItem, [f.name]: editingItem[f.name] === 'Active' ? 'Inactive' : 'Active'})}
-                              className={`w-11 h-6 rounded-full transition-colors relative disabled:opacity-50 ${editingItem[f.name] === 'Active' ? 'bg-red-600' : 'bg-slate-300'}`}
+                              onClick={() => {
+                                if (f.name === 'isInstant') {
+                                  setEditingItem({...editingItem, [f.name]: !editingItem[f.name]});
+                                } else {
+                                  setEditingItem({...editingItem, [f.name]: editingItem[f.name] === 'Active' ? 'Inactive' : 'Active'});
+                                }
+                              }}
+                              className={`w-11 h-6 rounded-full transition-colors relative disabled:opacity-50 ${(f.name === 'isInstant' ? editingItem[f.name] : editingItem[f.name] === 'Active') ? 'bg-emerald-500' : 'bg-slate-300'}`}
                             >
-                              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${editingItem[f.name] === 'Active' ? 'translate-x-6' : 'translate-x-1'}`} />
+                              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${(f.name === 'isInstant' ? editingItem[f.name] : editingItem[f.name] === 'Active') ? 'translate-x-6' : 'translate-x-1'}`} />
                             </button>
                           </div>
                       ) : f.type === 'textarea' ? (

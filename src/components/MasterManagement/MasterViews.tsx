@@ -17,7 +17,6 @@ export const SkillPage = () => (
         columns={['Skill Name', 'Status']} 
         fields={[
             { name: 'name', label: 'Skill Name', type: 'text' },
-            { name: 'category', label: 'Category', type: 'dropdown', options: ['General', 'Technical', 'Safety'] },
             { name: 'status', label: 'Status', type: 'toggle' }
         ]} 
     />
@@ -51,12 +50,13 @@ export const CityPage = () => (
 export const ServicePage = () => (
     <MasterPage 
         moduleName="Service" 
-        columns={['Name', 'Image', 'Price', 'Status']} 
+        columns={['Name', 'Image', 'Price', 'Instant', 'Status']} 
         fields={[
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'image', label: 'Image', type: 'text' },
             { name: 'price', label: 'Price', type: 'text' },
             { name: 'description', label: 'Description', type: 'textarea' },
+            { name: 'isInstant', label: 'Instant Service', type: 'toggle' },
             { name: 'status', label: 'Status', type: 'toggle' }
         ]} 
     />
@@ -65,7 +65,7 @@ export const ServicePage = () => (
 export const SubServicePage = () => (
     <MasterPage 
         moduleName="subservice" 
-        columns={['Name', 'Parent Service', 'Image', 'Price', 'Duration', 'Status']} 
+        columns={['Name', 'Parent Service', 'Image', 'Price', 'Duration', 'Instant', 'Status']} 
         fields={[
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'serviceId', label: 'Service ID', type: 'dropdown' },
@@ -73,6 +73,7 @@ export const SubServicePage = () => (
             { name: 'description', label: 'Description', type: 'textarea' },
             { name: 'duration', label: 'Duration (in mins)', type: 'text' },
             { name: 'image', label: 'Image', type: 'text' },
+            { name: 'isInstant', label: 'Instant Service', type: 'toggle' },
             { name: 'status', label: 'Status', type: 'toggle' }
         ]} 
     />

@@ -127,7 +127,7 @@ export function SubAdminManagement() {
             phone: admin.phone || '-',
             role: admin.role,
             department: admin.role === 'super_admin' ? 'Management' : 'Operations',
-            password: admin.plainPassword || admin.password || localPass || 'Admin@123',
+            password: admin.plainPassword || admin.password || localPass || '',
             status: admin.blocked ? 'Blocked' : (admin.active ? 'Active' : 'Inactive'),
             created: admin.createdAt ? new Date(admin.createdAt).toISOString().split('T')[0] : '-',
             lastLogin: admin.lastLoginAt || admin.lastLogin || localTime || admin.createdAt || new Date().toISOString()
@@ -188,7 +188,7 @@ export function SubAdminManagement() {
           phone: raw.phone || '-',
           role: raw.role,
           department: raw.role === 'super_admin' ? 'Management' : 'Operations',
-          password: raw.plainPassword || raw.password || localPass || 'Admin@123',
+            password: raw.plainPassword || raw.password || localPass || '',
           status: raw.blocked ? 'Blocked' : (raw.active ? 'Active' : 'Inactive'),
           created: raw.createdAt ? new Date(raw.createdAt).toISOString().split('T')[0] : '-',
           lastLogin: raw.lastLoginAt || raw.lastLogin || localTime || raw.createdAt || new Date().toISOString()

@@ -103,7 +103,7 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
         email: admin.email || '',
         phone: admin.phone || '',
         role: admin.role || 'admin',
-        password: admin.password || '••••••••',
+        password: admin.password || '',
         imageUrl: admin.imageUrl || admin.profileUrl || '',
         active: admin.status ? admin.status === 'Active' : (admin.active !== undefined ? admin.active : true),
         blocked: admin.blocked || false,

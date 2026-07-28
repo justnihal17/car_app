@@ -16,18 +16,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
           <span className="text-slate-900 font-medium">Dashboard</span>
         </div>
 
-        <div className="flex-1 max-w-xl ml-4 relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Search users, drivers, orders..." 
-            className="w-full bg-slate-50 border border-slate-200 text-sm text-slate-900 rounded-full pl-10 pr-4 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-slate-200 text-slate-500 rounded">⌘</kbd>
-            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-slate-200 text-slate-500 rounded">K</kbd>
-          </div>
-        </div>
+
       </div>
 
       <div className="flex items-center gap-3 ml-4">

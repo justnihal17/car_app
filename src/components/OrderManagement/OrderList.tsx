@@ -1,10 +1,13 @@
-import { useState } from 'react';
-import { Search, Filter, Download, Plus, MoreHorizontal, ChevronLeft, ChevronRight, Clock, MapPin, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
-import { ORDERS } from '../../data/orders';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, Filter, Download, Plus, ChevronLeft, ChevronRight, Clock, MapPin, RefreshCw, AlertCircle } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../../store/store';
+import { fetchOrders, setFilters } from '../../store/orderSlice';
 
 const STATUS_COLORS: Record<string, string> = {
   'Pending': 'bg-[#FEF3C7] text-[#B45309] border-[#FEF3C7]',
   'On The Way': 'bg-red-50 text-red-700 border-red-100',
+  'Started': 'bg-blue-50 text-blue-700 border-blue-100',
   'Arrived': 'bg-purple-50 text-purple-700 border-purple-100',
   'Completed': 'bg-[#DCFCE7] text-[#16A34A] border-[#DCFCE7]',
   'Cancelled': 'bg-[#FEE2E2] text-[#DC2626] border-[#FEE2E2]',
@@ -17,55 +20,95 @@ const PAYMENT_BADGE_COLORS: Record<string, string> = {
   'Refunded': 'bg-[#F1F5F9] text-[#64748B]',
 };
 
-export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => void }) {
-  const [activeTab, setActiveTab] = useState('orders');
+const capitalize = (str?: string) => {
+  if (!str) return '';
+  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+};
 
-  const filteredOrders = ORDERS.filter(order => {
-    if (activeTab === 'orders') return true;
-    if (activeTab === 'live-orders') return order.status === 'On The Way';
-    if (activeTab === 'pending-orders') return order.status === 'Pending';
-    if (activeTab === 'assigned-orders') return order.status === 'Assigned';
-    if (activeTab === 'in-progress') return order.status === 'On The Way';
-    if (activeTab === 'completed-orders') return order.status === 'Completed';
-    if (activeTab === 'cancelled-orders') return order.status === 'Cancelled';
-    return true;
-  });
+export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => void }) {
+  const dispatch = useDispatch<AppDispatch>();
+  const { orders, loading, filters, pagination, error } = useSelector((state: RootState) => state.order);
+
+  const [activeTab, setActiveTab] = useState('orders');
+  const [searchInput, setSearchInput] = useState('');
+
+  useEffect(() => {
+    dispatch(fetchOrders(filters));
+  }, [dispatch, filters]);
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    let status = '';
+    if (tabId === 'live-orders') status = 'on the way';
+    if (tabId === 'pending-orders') status = 'pending';
+    if (tabId === 'assigned-orders') status = 'pending';
+    if (tabId === 'in-progress') status = 'started';
+    if (tabId === 'completed-orders') status = 'completed';
+    if (tabId === 'cancelled-orders') status = 'cancelled';
+    
+    dispatch(setFilters({ status, page: 1 }));
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch(setFilters({ search: searchInput, page: 1 }));
+  };
+
+  const handleRefresh = () => {
+    dispatch(fetchOrders(filters));
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      dispatch(setFilters({ page: newPage }));
+    }
+  };
+
+  const filteredOrders = useMemo(() => {
+    let result = [...orders];
+    if (activeTab === 'assigned-orders') {
+      result = result.filter(o => o.agent_id);
+    } else if (activeTab === 'pending-orders') {
+      result = result.filter(o => !o.agent_id);
+    }
+    return result;
+  }, [orders, activeTab]);
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-2">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Order Management</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage all service orders</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Orders</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 font-medium rounded-lg hover:bg-slate-50 hover:text-slate-950 transition-colors text-sm shadow-sm">
-            <RefreshCw className="w-4 h-4" />
+          <button onClick={handleRefresh} className="flex items-center justify-center w-10 h-10 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-slate-950 transition-all shadow-sm hover:shadow">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 font-medium rounded-lg hover:bg-slate-50 hover:text-slate-950 transition-colors text-sm shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:text-slate-950 transition-all shadow-sm hover:shadow text-sm">
             <Download className="w-4 h-4" />
             Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg shadow-lg shadow-red-600/10 transition-all text-sm">
+          <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold rounded-xl shadow-lg shadow-red-500/25 transition-all hover:-translate-y-0.5 active:translate-y-0 text-sm">
             <Plus className="w-4 h-4" />
-            Create Order
+            Create
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto custom-scrollbar border-b border-slate-200 pb-px">
-        {['Orders', 'Live Orders', 'Pending Orders', 'Assigned Orders', 'In Progress', 'Completed Orders', 'Cancelled Orders', 'Refund Requests'].map(tab => {
+      <div className="flex overflow-x-auto custom-scrollbar bg-slate-100/50 p-1.5 rounded-xl gap-1">
+        {['Orders', 'Live Orders', 'Pending Orders', 'Assigned Orders', 'In Progress', 'Completed Orders', 'Cancelled Orders'].map(tab => {
           const tabId = tab.toLowerCase().replace(' ', '-');
+          const isActive = activeTab === tabId;
           return (
             <button
               key={tabId}
-              onClick={() => setActiveTab(tabId)}
-              className={`px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tabId 
-                  ? 'border-red-600 text-red-600 font-semibold' 
-                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+              onClick={() => handleTabChange(tabId)}
+              className={`px-4 py-2 text-sm font-semibold whitespace-nowrap rounded-lg transition-all duration-200 ${
+                isActive 
+                  ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/50' 
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
               }`}
             >
               {tab}
@@ -74,134 +117,171 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
         })}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
         {/* Search and Filter Bar */}
-        <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="relative w-full max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <div className="p-5 border-b border-slate-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <form onSubmit={handleSearch} className="flex items-center gap-3 flex-1">
+            <div className="relative w-full max-w-md group">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500 transition-colors" />
               <input 
                 type="text" 
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search by Order ID, Customer, Agent or Phone..." 
-                className="bg-white border border-slate-200 text-sm text-slate-800 placeholder-slate-400 rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 w-full transition-all shadow-sm"
+                className="bg-slate-50 border border-slate-200 text-sm text-slate-800 placeholder-slate-400 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 focus:bg-white w-full transition-all"
               />
             </div>
-            <button className="p-2 bg-white border border-slate-200 text-slate-600 hover:text-slate-900 rounded-lg transition-colors flex items-center gap-2 text-sm px-3 shadow-sm">
-              <Filter className="w-4 h-4 text-slate-400" />
-              <span className="hidden sm:inline">Advanced Filters</span>
+            <button type="button" className="p-2.5 bg-white border border-slate-200 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2 text-sm px-4 shadow-sm hover:shadow">
+              <Filter className="w-4 h-4" />
+              <span className="hidden sm:inline font-medium">Filters</span>
             </button>
-          </div>
+          </form>
           
           <div className="flex items-center gap-3 text-sm">
-            <select className="bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:border-red-500 shadow-sm text-xs">
-              <option>Status: All</option>
-              <option>Pending</option>
-              <option>Assigned</option>
-              <option>On The Way</option>
-            </select>
-            <select className="bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:border-red-500 shadow-sm text-xs">
-              <option>City: All</option>
-              <option>Dubai</option>
-              <option>Abu Dhabi</option>
+            <select 
+              value={filters.payment || ''} 
+              onChange={(e) => dispatch(setFilters({ payment: e.target.value, page: 1 }))}
+              className="bg-white border border-slate-200 text-slate-700 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all shadow-sm text-xs font-medium cursor-pointer hover:bg-slate-50 appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.5em 1.5em`, paddingRight: `2.5rem` }}
+            >
+              <option value="">Payment: All</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
             </select>
           </div>
         </div>
 
         {/* Data Table */}
-        <div className="overflow-x-auto custom-scrollbar bg-white">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
-                <th className="px-5 py-4 font-medium">Order Details</th>
-                <th className="px-5 py-4 font-medium">Customer & Location</th>
-                <th className="px-5 py-4 font-medium">Agent & Vehicle</th>
-                <th className="px-5 py-4 font-medium">Amount & Payment</th>
-                <th className="px-5 py-4 font-medium">Status & ETA</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm divide-y divide-slate-100">
-              {filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-slate-50/70 transition-colors group cursor-pointer" onClick={() => onSelectOrder(order.id)}>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <img src={order.service.image} alt={order.service.name} className="w-10 h-10 rounded-lg border border-slate-200 object-cover" />
-                      <div>
-                        <div className="font-semibold text-slate-900 flex items-center gap-2">
-                          {order.id}
-                          {order.priority === 'Urgent' && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FEE2E2] text-[#DC2626] border border-[#FEE2E2] uppercase">Urgent</span>}
-                          {order.priority === 'High' && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFEDD5] text-[#C2410C] border border-[#FFEDD5] uppercase">High</span>}
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">{order.service.name}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="font-semibold text-slate-800">{order.customer.name}</div>
-                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1 max-w-[180px] truncate">
-                      <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-                      {order.location.address}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    {order.driver ? (
-                      <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/60 hover:border-red-500/20 px-3 py-1.5 rounded-lg transition-all w-fit">
-                        <img src={order.driver.image} alt={order.driver.name} className="w-7 h-7 rounded-full border border-slate-200 object-cover shadow-sm shrink-0" />
-                        <div>
-                          <div className="font-semibold text-slate-800 text-xs tracking-wide">{order.driver.name}</div>
-                          <div className="text-[10px] text-red-600 font-semibold mt-0.5">{order.driver.vehicle}</div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FEF3C7] border border-[#FEF3C7] text-[#B45309] rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse"></span>
-                        Unassigned
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="font-semibold text-slate-900">{order.amount}</div>
-                    <div className="text-xs font-medium mt-1 flex items-center gap-1.5">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${PAYMENT_BADGE_COLORS[order.paymentStatus] || 'bg-slate-100 text-slate-500'}`}>
-                        {order.paymentStatus}
-                      </span>
-                      <span className="text-slate-300">•</span>
-                      <span className="text-slate-500">{order.paymentMethod}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider border ${STATUS_COLORS[order.status] || 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                      {order.status}
-                    </span>
-                    <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      {order.eta}
-                    </div>
-                  </td>
+        <div className="overflow-x-auto custom-scrollbar bg-white min-h-[400px]">
+          {error ? (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+              <AlertCircle className="w-10 h-10 text-red-500 mb-3" />
+              <p>{error}</p>
+            </div>
+          ) : loading && filteredOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+              <div className="w-8 h-8 border-4 border-slate-200 border-t-red-500 rounded-full animate-spin mb-3"></div>
+              <p>Loading orders...</p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+              <p>No orders found matching your criteria.</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse whitespace-nowrap">
+              <thead>
+                <tr className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-widest font-bold border-b border-slate-100">
+                  <th className="px-6 py-4">Order Details</th>
+                  <th className="px-6 py-4">Customer & Location</th>
+                  <th className="px-6 py-4">Agent</th>
+                  <th className="px-6 py-4">Amount & Payment</th>
+                  <th className="px-6 py-4">Status & Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="text-sm divide-y divide-slate-100">
+                {filteredOrders.map((order) => {
+                  const srv = order.services?.[0]?.serviceId;
+                  const paymentStatus = capitalize(order.payment?.status || 'Pending');
+                  const orderStatus = capitalize(order.status || 'Pending');
+                  
+                  return (
+                    <tr key={order._id} className="hover:bg-slate-50/70 transition-colors group cursor-pointer" onClick={() => onSelectOrder(order._id)}>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          {srv?.image ? (
+                            <img src={srv.image} alt={srv.name} className="w-10 h-10 rounded-lg border border-slate-200 object-cover" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 text-xs">IMG</div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-slate-900 flex items-center gap-2">
+                              {order.order_number}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-0.5">{capitalize(srv?.name || 'Service')}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="font-semibold text-slate-800">{order.customer_id?.fullName || 'Unknown Customer'}</div>
+                        <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1 max-w-[180px] truncate">
+                          <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                          {order.pickup_location?.address || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        {order.agent_id ? (
+                          <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/60 px-3 py-1.5 rounded-lg w-fit">
+                            <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold shrink-0">
+                              {order.agent_id.firstName?.[0]}{order.agent_id.lastName?.[0]}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-slate-800 text-xs tracking-wide">{order.agent_id.firstName} {order.agent_id.lastName}</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FEF3C7] border border-[#FEF3C7] text-[#B45309] rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse"></span>
+                            Unassigned
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="font-semibold text-slate-900">AED {order.final_amount}</div>
+                        <div className="text-xs font-medium mt-1 flex items-center gap-1.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${PAYMENT_BADGE_COLORS[paymentStatus] || 'bg-slate-100 text-slate-500'}`}>
+                            {paymentStatus}
+                          </span>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-slate-500">{capitalize(order.payment?.method) || 'Cash'}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider border ${STATUS_COLORS[orderStatus] || 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                          {orderStatus}
+                        </span>
+                        <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          {order.time_slot?.from ? `${order.time_slot.from} - ${order.time_slot.to}` : 'N/A'}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
         
         {/* Pagination */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between text-xs text-slate-500">
-          <div className="flex items-center gap-3">
-            <span>Showing 1 to 5 of 1,245 orders</span>
+        {pagination.totalPages > 1 && (
+          <div className="p-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between text-xs text-slate-500">
+            <div className="flex items-center gap-3">
+              <span>Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} orders</span>
+            </div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-500 transition-colors flex items-center justify-center"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              <button className="px-3 py-1.5 rounded-lg border border-red-600 bg-red-600 text-white font-semibold shadow-sm">
+                {pagination.page}
+              </button>
+              
+              <button 
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-500 transition-colors flex items-center justify-center"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <div className="flex gap-1">
-            <button className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-500 transition-colors flex items-center justify-center" disabled>
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button className="px-3 py-1.5 rounded-lg border border-red-600 bg-red-600 text-white font-semibold shadow-sm">1</button>
-            <button className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-semibold shadow-sm">2</button>
-            <button className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-semibold shadow-sm">3</button>
-            <span className="px-2 py-1.5 text-slate-400">...</span>
-            <button className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-semibold shadow-sm">125</button>
-            <button className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 transition-colors flex items-center justify-center">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
