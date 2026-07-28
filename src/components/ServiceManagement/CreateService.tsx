@@ -234,12 +234,12 @@ export function CreateService({
 
         {/* Form Area */}
         <div className="lg:col-span-3">
-          <div className="bg-[#0f1218] p-6 md:p-8 rounded-xl border border-slate-800/60 shadow-lg min-h-[500px] flex flex-col">
+          <div className="bg-[#0f1218] p-6 md:p-8 rounded-xl border border-slate-800/60 shadow-lg min-h-125 flex flex-col">
             {currentStep === 1 && (
               <div className="flex-1 space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">IMAGE</label>
-                  <label className="block w-full border-2 border-dashed border-slate-700 rounded-3xl p-8 flex flex-col items-center justify-center bg-slate-950/50 hover:border-emerald-400 transition-all cursor-pointer">
+                  <label className="block w-full border-2 border-dashed border-slate-700 rounded-3xl p-8  flex-col items-center justify-center bg-slate-950/50 hover:border-emerald-400 transition-all cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"

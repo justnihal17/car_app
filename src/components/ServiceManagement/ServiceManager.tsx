@@ -220,7 +220,7 @@ export function ServiceManager() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex gap-1.5 flex-wrap max-w-[150px]">
+                      <div className="flex gap-1.5 flex-wrap max-w-37.5">
                         {service.cities.map((city: string, idx: number) => (
                           <span key={idx} className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
                             {city}

@@ -17,7 +17,13 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
     const fetchUser = async () => {
       try {
         const response = await api.get(`/customer/customer/${userId}`);
-        setUser(response.data.data);
+        const fetchedUser = response.data.data;
+        const statusMapStr = localStorage.getItem('customerStatusMap');
+        const statusMap = statusMapStr ? JSON.parse(statusMapStr) : {};
+        if (statusMap[fetchedUser._id] !== undefined) {
+          fetchedUser.active = statusMap[fetchedUser._id];
+        }
+        setUser(fetchedUser);
       } catch (error) {
         console.error("Failed to fetch customer details", error);
       }
@@ -97,7 +103,7 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
                     { label: 'Phone', value: user.phone || 'N/A' },
                     { label: 'City', value: 'N/A' }, // City not in customer payload currently
                     { label: 'Member Since', value: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' },
-                    { label: 'Status', value: user.active ? 'Active' : (user.blocked ? 'Blocked' : 'Pending') },
+                    { label: 'Status', value: user.active ? 'Active' : (user.blocked ? 'Blocked' : 'Inactive') },
                 ].map(item => (
                     <div key={item.label}>
                         <p className="text-slate-500">{item.label}</p>

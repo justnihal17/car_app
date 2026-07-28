@@ -272,8 +272,9 @@ export function SubAdminManagement() {
 
   const handleToggleStatus = async (admin: SubAdmin) => {
     const newStatus = admin.status === 'Active' ? 'Inactive' : 'Active';
+    const isActive = newStatus === 'Active';
     try {
-      await api.put(`/admin/admin/${admin.id}`, { status: newStatus });
+      await api.put(`/admin/admin/${admin.id}`, { active: isActive });
       toast.success(`Status updated to ${newStatus}`);
     } catch (error: any) {
       console.error('Failed to update status:', error);

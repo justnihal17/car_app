@@ -67,10 +67,13 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     try {
       const isSubService = moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service';
       const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
-      const isFuelType = moduleName.toLowerCase() === 'fueltype';
-      const endpoint = isSubService 
-        ? '/master/subservice' 
-        : (isVehicleType ? '/master/vehicleType' : (isFuelType ? '/master/fuelType' : `/master/${moduleName.toLowerCase()}`));
+      let baseEndpoint = moduleName.toLowerCase();
+      if (baseEndpoint === 'subservice' || baseEndpoint === 'sub-service') baseEndpoint = 'subservice';
+      else if (baseEndpoint === 'vehicletype') baseEndpoint = 'vehicletype';
+      else if (baseEndpoint === 'fueltype') baseEndpoint = 'fueltype';
+      else if (baseEndpoint === 'brand') baseEndpoint = 'make';
+      
+      const endpoint = `/master/${baseEndpoint}/admin`;
       let response;
       try {
         response = await api.get(endpoint);
@@ -144,7 +147,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     if (moduleName.toLowerCase() === 'city') {
       const fetchStatesForDropdown = async () => {
         try {
-          const response = await api.get('/master/state');
+          const response = await api.get('/master/state/admin');
           if (response.data?.success || Array.isArray(response.data?.data)) {
             const list = response.data?.data || response.data || [];
             setStateOptions(list.map((s: any) => ({ label: s.name, value: s._id || s.id })));
@@ -159,9 +162,9 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         try {
           let response;
           try {
-            response = await api.get('/master/make');
+            response = await api.get('/master/make/admin');
           } catch (err: any) {
-            response = await api.get('/master/make?all=true');
+            response = await api.get('/master/make/admin?all=true');
           }
           if (response && (response.data?.success || Array.isArray(response.data?.data) || Array.isArray(response.data))) {
             const rawList = Array.isArray(response.data?.data) 
@@ -177,7 +180,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     } else if (moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service') {
       const fetchServicesForDropdown = async () => {
         try {
-          const response = await api.get('/master/service');
+          const response = await api.get('/master/service/admin');
           if (response && (response.data?.success || Array.isArray(response.data?.data) || Array.isArray(response.data))) {
             const rawList = Array.isArray(response.data?.data) 
               ? response.data.data 
@@ -194,9 +197,9 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         try {
           let response;
           try {
-            response = await api.get('/master/subservice');
+            response = await api.get('/master/subservice/admin');
           } catch (err: any) {
-            response = await api.get('/master/subservice?all=true');
+            response = await api.get('/master/subservice/admin?all=true');
           }
           if (response && (response.data?.success || Array.isArray(response.data?.data) || Array.isArray(response.data))) {
             const rawList = Array.isArray(response.data?.data) 
@@ -694,8 +697,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
               <React.Fragment key={row.id || Math.random()}>
               <tr 
                 key={row.id} 
-                onClick={() => moduleName.toLowerCase() === 'service' && setExpandedServiceId(prev => prev === row.id ? null : row.id)}
-                className={`hover:bg-slate-50 transition-colors group ${moduleName.toLowerCase() === 'service' ? 'cursor-pointer' : ''} ${expandedServiceId === row.id ? 'bg-red-50/20' : ''}`}
+                className={`hover:bg-slate-50 transition-colors group`}
               >
                 {columns.filter(col => col.toLowerCase() !== 'status').map(col => {
                   const cUpper = col.toUpperCase();
@@ -708,20 +710,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                     return <td key={col} className={`px-6 py-5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{index + 1}</td>;
                   }
                   if (col.toLowerCase().includes('name') || col.toLowerCase() === 'title') {
-                    if (moduleName.toLowerCase() === 'service') {
-                      const subList = getServiceSubServices(row);
-                      return (
-                        <td key={col} className={`px-6 py-5 text-slate-800 font-semibold ${widthClass} ${alignClass}`}>
-                          <div className="flex items-center gap-2.5">
-                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 shrink-0 ${expandedServiceId === row.id ? 'rotate-180 text-red-600' : 'text-slate-400 group-hover:text-red-500'}`} />
-                            <span className="group-hover:text-red-600 transition-colors">{row.title || row.name || '-'}</span>
-                            <span className="ml-1 px-2.5 py-0.5 text-[11px] font-bold uppercase rounded-full bg-slate-100 group-hover:bg-red-50 text-slate-600 group-hover:text-red-600 border border-slate-200 group-hover:border-red-100 transition-colors shadow-2xs">
-                              {subList.length} Sub Service{subList.length !== 1 ? 's' : ''}
-                            </span>
-                          </div>
-                        </td>
-                      );
-                    }
+                    return <td key={col} className={`px-6 py-5 text-slate-800 font-semibold ${widthClass} ${alignClass}`}>{row.title || row.name || '-'}</td>;
                     return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{row.title || row.name || '-'}</td>;
                   }
                   if (col.toLowerCase() === 'make' || col.toLowerCase() === 'make / brand' || col.toLowerCase() === 'brand') {
@@ -798,86 +787,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                   </div>
                 </td>
               </tr>
-              {moduleName.toLowerCase() === 'service' && expandedServiceId === row.id && (
-                <tr className="bg-slate-50/90 border-b-2 border-slate-200">
-                  <td colSpan={columns.length} className="p-6">
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-6 bg-red-600 rounded-full" />
-                          <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                            <span>Sub Services for</span>
-                            <span className="text-red-600 font-extrabold px-2 py-0.5 bg-red-50 rounded-lg border border-red-100">{row.name || row.title}</span>
-                          </h4>
-                          <span className="ml-2 px-2.5 py-0.5 text-xs font-bold bg-slate-100 text-slate-600 rounded-full border border-slate-200">
-                            {getServiceSubServices(row).length} items
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2.5">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              localStorage.setItem('master_service_filter', row.id || row._id || row.name || row.value);
-                              localStorage.setItem('currentView', 'master-subservice');
-                              window.dispatchEvent(new CustomEvent('navigate_view', { detail: 'master-subservice' }));
-                            }}
-                            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-xs text-xs inline-flex items-center gap-1.5 transition-all active:scale-95"
-                          >
-                            <span>Manage in Sub-Service Module</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                      {getServiceSubServices(row).length === 0 ? (
-                        <div className="text-center py-10 bg-slate-50/60 rounded-xl border border-dashed border-slate-200 flex flex-col items-center justify-center">
-                          <Layers className="w-10 h-10 text-slate-300 mb-2 stroke-1" />
-                          <p className="text-sm font-semibold text-slate-600 mb-1">No sub-services found for {row.name || row.title}.</p>
-                          <p className="text-xs text-slate-400 mb-4 max-w-sm">You can add and configure sub-services under this main service category.</p>
-                          <button 
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              localStorage.setItem('master_service_filter', row.id || row._id || row.name || row.value);
-                              localStorage.setItem('currentView', 'master-subservice');
-                              window.dispatchEvent(new CustomEvent('navigate_view', { detail: 'master-subservice' }));
-                            }}
-                            className="px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:bg-red-700 text-xs inline-flex items-center gap-1.5 transition-all active:scale-95"
-                          >
-                            <Plus className="w-3.5 h-3.5 stroke-[2.5]" /> Add Sub-Service for {row.name || row.title}
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {getServiceSubServices(row).map((sub: any) => (
-                            <div key={sub.id || sub._id || Math.random()} className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-red-200 hover:shadow-md transition-all flex items-center justify-between gap-3 group/card">
-                              <div className="flex items-center gap-3.5 min-w-0">
-                                {sub.image ? (
-                                  <img src={sub.image} alt={sub.name} className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 bg-white shadow-2xs group-hover/card:scale-105 transition-transform" />
-                                ) : (
-                                  <div className="w-12 h-12 rounded-xl bg-slate-200/70 border border-slate-300 flex items-center justify-center shrink-0 font-bold text-slate-500 text-xs">No Img</div>
-                                )}
-                                <div className="min-w-0">
-                                  <h5 className="font-bold text-slate-800 text-sm truncate group-hover/card:text-red-600 transition-colors">{sub.name || sub.title}</h5>
-                                  <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 font-medium">
-                                    {sub.price && <span className="text-emerald-600 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">₹{sub.price}</span>}
-                                    {sub.duration && <span>• {sub.duration}</span>}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full border ${sub.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                                  {sub.status || 'Active'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )}
+
               </React.Fragment>
             )))}
           </tbody>

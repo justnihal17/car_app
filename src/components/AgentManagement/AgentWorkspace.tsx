@@ -180,7 +180,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           joiningDate: formData.joiningDate,
           skills: selectedSkills,
           active: true,
-          ...(finalProfileUrl ? { profileUrl: finalProfileUrl, imageUrl: finalProfileUrl } : {})
+          ...(finalProfileUrl ? { profileImage: finalProfileUrl, profileUrl: finalProfileUrl, imageUrl: finalProfileUrl } : {})
         };
 
         if (editingAgentId) {
@@ -237,7 +237,8 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           country: agent.country || 'India',
           joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
       });
-      // setPhoto(agent.profileImage || null);
+      setPhoto(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
+      setPhotoPreview(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
       setSelectedSkills(parseSkillsArray(agent.skills));
       setIsDrawerOpen(true);
   };
@@ -264,7 +265,8 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           country: agent.country || 'India',
           joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
       });
-      // setPhoto(agent.profileImage || null);
+      setPhoto(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
+      setPhotoPreview(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
       setSelectedSkills(parseSkillsArray(agent.skills));
       setIsDrawerOpen(true);
   };
@@ -276,6 +278,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
         fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
     });
     setPhoto(null);
+    setPhotoPreview(null);
     setSelectedSkills([]);
     setIsDrawerOpen(true);
   };
@@ -494,9 +497,9 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                   <td className="px-4 py-4.5 pl-6 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(agent.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
-                        {(agent.profileUrl || agent.imageUrl) ? (
+                        {(agent.profileImage || agent.profileUrl || agent.imageUrl) ? (
                           <img 
-                            src={agent.profileUrl || agent.imageUrl} 
+                            src={agent.profileImage || agent.profileUrl || agent.imageUrl} 
                             alt={agent.name} 
                             className="w-full h-full object-cover absolute inset-0" 
                             onError={(e) => {

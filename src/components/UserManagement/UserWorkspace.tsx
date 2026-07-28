@@ -24,18 +24,26 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
     try {
       const response = await api.get('/customer/customer');
       const rawUsers = Array.isArray(response.data.data) ? response.data.data : (response.data.data?.customers || []);
-      const mapped = rawUsers.map((user: any) => ({
-        id: user._id,
-        name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
-        email: user.email || '-',
-        phone: user.phone || '-',
-        city: user.city || 'N/A',
-        status: user.active ? 'Active' : (user.blocked ? 'Blocked' : 'Pending'),
-        orders: user.ordersCount || 0,
-        membership: user.membership || 'Standard',
-        createdAt: user.createdAt,
-        ...user
-      }));
+      const statusMapStr = localStorage.getItem('customerStatusMap');
+      const statusMap = statusMapStr ? JSON.parse(statusMapStr) : {};
+      
+      const mapped = rawUsers.map((user: any) => {
+        const localActive = statusMap[user._id];
+        const finalActive = localActive !== undefined ? localActive : user.active;
+        return {
+          id: user._id,
+          name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
+          email: user.email || '-',
+          phone: user.phone || '-',
+          city: user.city || 'N/A',
+          status: finalActive ? 'Active' : (user.blocked ? 'Blocked' : 'Inactive'),
+          orders: user.ordersCount || 0,
+          membership: user.membership || 'Standard',
+          createdAt: user.createdAt,
+          ...user,
+          active: finalActive
+        };
+      });
       setUsersList(mapped);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to fetch customers');
@@ -118,6 +126,12 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
     const newStatus = isCurrentlyActive ? 'Inactive' : 'Active';
     try {
       await api.put(`/customer/customer/admin/${user.id}`, { active: !isCurrentlyActive });
+      
+      const statusMapStr = localStorage.getItem('customerStatusMap');
+      const statusMap = statusMapStr ? JSON.parse(statusMapStr) : {};
+      statusMap[user.id] = !isCurrentlyActive;
+      localStorage.setItem('customerStatusMap', JSON.stringify(statusMap));
+      
       toast.success(`Status updated to ${newStatus}`);
       setUsersList(prev => prev.map(item => item.id === user.id ? { ...item, status: newStatus, active: !isCurrentlyActive } : item));
     } catch (error: any) {
