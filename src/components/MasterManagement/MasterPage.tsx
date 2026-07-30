@@ -79,11 +79,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       try {
         response = await api.get(endpoint);
       } catch (err: any) {
-        if (err.response?.status === 404) {
-          response = await api.get(`${endpoint}?all=true`);
-        } else {
-          throw err;
-        }
+        throw err;
       }
 
       if (response && response.data) {
@@ -142,6 +138,14 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => {
+      fetchData();
+    };
+    window.addEventListener('refresh_master_data', handleRefresh);
+    return () => {
+      window.removeEventListener('refresh_master_data', handleRefresh);
+    };
   }, [moduleName, serviceFilter]);
 
   useEffect(() => {
@@ -161,12 +165,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     } else if (moduleName.toLowerCase() === 'model') {
       const fetchMakesForDropdown = async () => {
         try {
-          let response;
-          try {
-            response = await api.get('/master/make/admin');
-          } catch (err: any) {
-            response = await api.get('/master/make/admin?all=true');
-          }
+          const response = await api.get('/master/make/admin');
           if (response && (response.data?.success || Array.isArray(response.data?.data) || Array.isArray(response.data))) {
             const rawList = Array.isArray(response.data?.data) 
               ? response.data.data 
@@ -196,12 +195,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     } else if (moduleName.toLowerCase() === 'service') {
       const fetchAllSubServices = async () => {
         try {
-          let response;
-          try {
-            response = await api.get('/master/subservice/admin');
-          } catch (err: any) {
-            response = await api.get('/master/subservice/admin?all=true');
-          }
+          const response = await api.get('/master/subservice/admin');
           if (response && (response.data?.success || Array.isArray(response.data?.data) || Array.isArray(response.data))) {
             const rawList = Array.isArray(response.data?.data) 
               ? response.data.data 
@@ -435,10 +429,6 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   };
   
   const handleDeleteClick = (id: string, name: string) => {
-    if ((moduleName === 'State' || moduleName === 'Emirate') && data.some(d => d.name === name)) { // Placeholder: needs actual linked-city check
-        alert(`This emirate has linked cities. Remove them first.`);
-        return;
-    }
     setDeleteModal({ isOpen: true, id, name });
   };
 

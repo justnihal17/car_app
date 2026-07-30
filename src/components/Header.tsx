@@ -1,5 +1,6 @@
 import { Search, Bell, MessageSquare, Moon, Globe, ChevronRight, LogOut } from 'lucide-react';
 import { useUIStore } from '../store/uiStore';
+import { NotificationInitializer } from './NotificationInitializer';
 
 export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCollapsed: boolean, onViewChange: (view: string) => void, onLogout: () => void }) {
   const { toggleNotification, toggleMessage } = useUIStore();
@@ -15,8 +16,6 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
           <ChevronRight className="w-4 h-4" />
           <span className="text-slate-900 font-medium">Dashboard</span>
         </div>
-
-
       </div>
 
       <div className="flex items-center gap-3 ml-4">

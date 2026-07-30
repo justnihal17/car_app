@@ -11,6 +11,10 @@ import { ConfirmationModal } from "./components/ConfirmationModal";
 import { useUIStore } from "./store/uiStore";
 import api from "./api/axios";
 import { Toaster } from "react-hot-toast";
+import { notificationService } from "./services/notification.service";
+import { NotificationProvider } from "./context/NotificationContext";
+import { NotificationDebugPanel } from "./components/NotificationDebugPanel";
+import { NotificationPermissionGuard } from "./components/NotificationPermissionGuard";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -29,6 +33,7 @@ export default function App() {
 
   const confirmLogout = async () => {
     try {
+      await notificationService.unregisterToken();
       await api.post('/admin/admin/logout');
     } catch (e) {
       console.error(e);
@@ -39,6 +44,7 @@ export default function App() {
       localStorage.removeItem('userRole');
       localStorage.removeItem('userEmail');
       localStorage.removeItem('userName');
+      localStorage.removeItem('currentView');
       setIsAuthenticated(false);
       setIsLogoutModalOpen(false);
     }
@@ -53,10 +59,27 @@ export default function App() {
     const handleNavigate = (e: any) => {
       if (e.detail && typeof e.detail === 'string') {
         handleViewChange(e.detail);
+      } else if (e.detail && typeof e.detail === 'object' && e.detail.view) {
+        handleViewChange(e.detail.view);
       }
     };
+    const handleUnauthorized = () => {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('adminProfile');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('currentView');
+      setIsAuthenticated(false);
+    };
     window.addEventListener('navigate_view', handleNavigate as EventListener);
-    return () => window.removeEventListener('navigate_view', handleNavigate as EventListener);
+    window.addEventListener('auth_unauthorized', handleUnauthorized);
+    
+    return () => {
+      window.removeEventListener('navigate_view', handleNavigate as EventListener);
+      window.removeEventListener('auth_unauthorized', handleUnauthorized);
+    };
   }, []);
 
   if (!isAuthenticated) {
@@ -64,8 +87,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex">
-      <Toaster position="top-center" />
+    <NotificationProvider>
+      <NotificationPermissionGuard>
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex">
+          <Toaster position="top-center" />
+          <NotificationDebugPanel />
       {isNotificationOpen && <NotificationPanel onClose={toggleNotification} />}
       {isMessageOpen && <MessagePanel onClose={toggleMessage} />}
       {isEditProfileOpen && <EditProfileModal />}
@@ -98,5 +124,7 @@ export default function App() {
         onConfirm={confirmLogout}
       />
     </div>
+    </NotificationPermissionGuard>
+    </NotificationProvider>
   );
 }

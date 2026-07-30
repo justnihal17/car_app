@@ -102,27 +102,30 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
 
   useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        const response = await api.get('/master/skill');
-        const rawList = Array.isArray(response.data?.data)
-          ? response.data.data
-          : (Array.isArray(response.data) ? response.data : (response.data?.skills || response.data?.list || []));
-        
-        if (Array.isArray(rawList) && rawList.length > 0) {
-          const names = rawList
-            .map((item: any) => item.name || item.title || item.skillName || (typeof item === 'string' ? item : ''))
-            .filter((name: string) => Boolean(name.trim()));
-          if (names.length > 0) {
-            setAvailableSkills(Array.from(new Set(names)));
+    if (isDrawerOpen) {
+      const fetchSkills = async () => {
+        try {
+          const response = await api.get('/master/skill/admin');
+          
+          const rawList = Array.isArray(response.data?.data)
+            ? response.data.data
+            : (Array.isArray(response.data) ? response.data : (response.data?.skills || response.data?.list || []));
+          
+          if (Array.isArray(rawList) && rawList.length > 0) {
+            const names = rawList
+              .map((item: any) => item.name || item.title || item.skillName || (typeof item === 'string' ? item : ''))
+              .filter((name: string) => Boolean(name.trim()));
+            if (names.length > 0) {
+              setAvailableSkills(Array.from(new Set(names)));
+            }
           }
+        } catch (err) {
+          console.warn('Failed to load skills:', err);
         }
-      } catch (err) {
-        console.warn('Failed to load skills from /master/skill:', err);
-      }
-    };
-    fetchSkills();
-  }, []);
+      };
+      fetchSkills();
+    }
+  }, [isDrawerOpen]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -188,7 +191,16 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           toast.success(response.data?.message || 'Agent updated successfully');
         } else {
           if (!payload.password) payload.password = "Agent@123";
-          const response = await api.post('/agent/agent/register', payload);
+          let response;
+          try {
+            response = await api.post('/agent/agent/register', payload);
+          } catch (e: any) {
+            if (e.response?.data?.message === "Customer not found" || e.response?.status === 404) {
+              response = await api.post('/agent/register', payload);
+            } else {
+              throw e;
+            }
+          }
           toast.success(response.data?.message || 'Agent registered successfully');
         }
         

@@ -24,9 +24,11 @@ import { AgentRegistrationPage } from './AgentManagement/registration/AgentRegis
 import { RolePage, SkillPage, StatePage, CityPage, ServicePage, SubServicePage, BrandPage, ColorPage, MakePage, ModelPage, VehicleTypePage, FuelTypePage, BannerPage } from './MasterManagement/MasterViews';
 import { ProfileView } from './ProfileView';
 import { ReportsManager } from './ReportsManagement/ReportsManager';
-
+import { NotificationDeniedBanner } from './NotificationDeniedBanner';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 export function DashboardContent({ currentView, onViewChange }: { currentView: string; onViewChange: (view: string) => void }) {
+  const { permission } = usePushNotifications();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
@@ -36,14 +38,30 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
     setSelectedUserId(null);
     setSelectedDriverId(null);
     setSelectedAgentId(null);
-    setSelectedOrderId(null);
+    if (currentView !== 'orders') {
+      setSelectedOrderId(null);
+    }
   }, [currentView]);
+
+  useEffect(() => {
+    const handleSelectOrder = (e: any) => {
+      const id = typeof e.detail === 'string' ? e.detail : e.detail?.orderId;
+      if (id) {
+        setSelectedOrderId(id);
+      }
+    };
+    window.addEventListener('select_order', handleSelectOrder as EventListener);
+    return () => {
+      window.removeEventListener('select_order', handleSelectOrder as EventListener);
+    };
+  }, []);
 
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
         return (
           <div className="flex-1 p-6 space-y-6 max-w-[1600px] mx-auto">
+            {permission === 'denied' && <NotificationDeniedBanner />}
             <WelcomeSection onViewChange={onViewChange} />
             <KpiCards onViewChange={onViewChange} />
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

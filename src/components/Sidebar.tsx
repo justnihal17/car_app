@@ -105,7 +105,12 @@ export function Sidebar({
                       return (
                         <button
                           key={child.id}
-                          onClick={() => onViewChange(child.id)}
+                          onClick={() => {
+                            if (currentView === child.id) {
+                              window.dispatchEvent(new CustomEvent('refresh_master_data'));
+                            }
+                            onViewChange(child.id);
+                          }}
                           className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm transition-all whitespace-nowrap relative ${
                             isSubActive 
                               ? 'bg-gradient-to-r from-red-50 to-red-50/20 text-red-600 font-bold rounded-r-2xl rounded-l-none border-l-4 border-red-600 -ml-[26px] pl-6' 

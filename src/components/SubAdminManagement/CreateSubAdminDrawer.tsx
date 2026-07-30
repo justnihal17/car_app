@@ -37,22 +37,35 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
   const [rawPreviewUrl, setRawPreviewUrl] = useState<string | null>(null);
 
   const [roles, setRoles] = useState<any[]>([]);
-  const roleDropdownRef = useRef<HTMLDivElement>(null);
-  const accessDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const response = await api.get('/master/role');
-        if (response.data?.success) {
-          setRoles(response.data.data);
+        const response = await api.get('/master/role/admin');
+        
+        const rawList = Array.isArray(response.data?.data)
+          ? response.data.data
+          : (Array.isArray(response.data) ? response.data : (response.data?.roles || response.data?.list || []));
+        
+        if (Array.isArray(rawList) && rawList.length > 0) {
+          const formattedRoles = rawList.map((item: any) => ({
+            _id: item._id || item.id || item.name,
+            name: item.name || item.title || 'Unknown',
+            title: item.title || item.name || 'Unknown'
+          })).filter(r => Boolean(r.name));
+          
+          if (formattedRoles.length > 0) {
+            setRoles(formattedRoles);
+          }
         }
-      } catch (e) {
-        console.error("Failed to fetch roles", e);
+      } catch (err) {
+        console.warn('Failed to load roles for drawer:', err);
       }
     };
     fetchRoles();
   }, []);
+  const roleDropdownRef = useRef<HTMLDivElement>(null);
+  const accessDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -8,23 +8,8 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('/admin/notification');
-        if (response.data?.status || response.data?.success) {
-          setNotifications(response.data.data || []);
-        } else {
-          setError('Failed to load notifications.');
-        }
-      } catch (err: any) {
-        setError('Error fetching notifications.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchNotifications();
+    setLoading(false);
+    setNotifications([]);
   }, []);
 
   return (

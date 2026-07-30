@@ -30,12 +30,15 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
 
       const response = await api.post('/admin/admin/login', payload);
 
-      const { success, message, data } = response.data;
+      const { success, message, data, token, accessToken } = response.data;
+      
+      const finalToken = data?.accessToken || data?.token || token || accessToken;
+      const finalRefreshToken = data?.refreshToken || response.data.refreshToken;
 
-      if (success !== false && (data?.accessToken || response.status === 200)) {
+      if (success !== false && (finalToken || response.status === 200)) {
         if (data?.profile) localStorage.setItem('adminProfile', JSON.stringify(data.profile));
-        if (data?.accessToken) localStorage.setItem('accessToken', data.accessToken);
-        if (data?.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+        if (finalToken) localStorage.setItem('accessToken', finalToken);
+        if (finalRefreshToken) localStorage.setItem('refreshToken', finalRefreshToken);
         
         try {
           const history = JSON.parse(localStorage.getItem('adminLoginHistory') || '{}');
