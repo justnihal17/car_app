@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, User, ChevronDown, Check, Eye, EyeOff } from 'lucide-react';
+import { Upload, User, ChevronDown, Check, Eye, EyeOff, X } from 'lucide-react';
 import './subAdminForm.css';
 
 export const getCompactDrawerClass = (): string => {
@@ -79,15 +79,25 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
   selectedModules,
   allAccessModules
 }) => {
+  const [showImageModal, setShowImageModal] = React.useState(false);
   return (
     <>
       {/* Profile Photo Section (Labeled as IMAGE) */}
-      <div className="space-y-2">
+      <div className="space-y-2 relative">
         <div 
-          onClick={() => !isView && fileInputRef.current?.click()} 
-          className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${isView ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}
+          className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${isView ? 'cursor-default' : 'hover:shadow-md hover:shadow-red-500/5'}`}
         >
-          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
+          <div 
+            onClick={() => {
+              if (previewUrl || (formData.imageUrl && !imgError)) {
+                setShowImageModal(true);
+              } else if (!isView) {
+                fileInputRef.current?.click();
+              }
+            }}
+            className={`w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden transition-all relative ${previewUrl || formData.imageUrl ? 'cursor-pointer hover:scale-105' : (!isView ? 'cursor-pointer group-hover:scale-105' : '')}`}
+            title={previewUrl || formData.imageUrl ? "Click to view image" : ""}
+          >
             {(previewUrl || (formData.imageUrl && !imgError)) ? (
               <img 
                 src={previewUrl || formData.imageUrl} 
@@ -101,7 +111,10 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
           </div>
           {!isView && (
             <>
-              <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
+              <span 
+                onClick={() => fileInputRef.current?.click()}
+                className="text-xs font-bold text-red-600 flex items-center gap-1.5 cursor-pointer hover:text-red-700 p-1"
+              >
                 <Upload className="w-3.5 h-3.5" /> Upload Image
               </span>
               <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
@@ -109,6 +122,29 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
           )}
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+        
+        {/* Full Screen Image Modal */}
+        {showImageModal && (previewUrl || formData.imageUrl) && (
+          <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowImageModal(false)}
+          >
+            <div className="relative max-w-4xl max-h-[90vh] mx-4">
+              <button 
+                onClick={(e) => { e.stopPropagation(); setShowImageModal(false); }}
+                className="absolute -top-12 right-0 md:-right-12 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors border border-white/20 backdrop-blur-md"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <img 
+                src={previewUrl || formData.imageUrl} 
+                alt="Admin Photo Preview" 
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/20"
+                onClick={(e) => e.stopPropagation()} 
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Information Section with Active Toggle Opposite */}

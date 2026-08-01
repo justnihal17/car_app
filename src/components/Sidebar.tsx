@@ -24,8 +24,8 @@ const MENU_ITEMS = [
     { id: 'master-vehicle-type', label: 'Vehicle Type', icon: Car },
     { id: 'master-fuel-type', label: 'Fuel Type', icon: Car },
     { id: 'master-banner', label: 'Banner', icon: FileText },
-    { id: 'master-promotions', label: 'Promotions & Offers', icon: Tags },
   ]},
+  { id: 'promotions', label: 'Promotion & Offer Management', icon: Tags },
   { id: 'orders', label: 'Order Management', icon: FileText },
   { id: 'payments', label: 'Payment Management', icon: CreditCard },
   { id: 'notifications', label: 'Notification Management', icon: Bell },
@@ -88,7 +88,7 @@ export function Sidebar({
               <div key={item.id} className="space-y-1">
                 <button
                   onClick={() => toggleAccordion(item.id)}
-                  className={`w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 text-slate-800 font-bold hover:bg-slate-100/70 ${collapsed ? 'justify-center' : ''}`}
+                  className={`w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 text-slate-800 font-bold hover:bg-slate-100/70 outline-none focus:outline-none focus:ring-0 ${collapsed ? 'justify-center' : ''}`}
                 >
                   <div className="flex items-center gap-3 whitespace-nowrap">
                     <Icon className="w-5 h-5 shrink-0 text-slate-700" />
@@ -110,7 +110,7 @@ export function Sidebar({
                             }
                             onViewChange(child.id);
                           }}
-                          className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm transition-all whitespace-nowrap relative ${
+                          className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm transition-all whitespace-nowrap relative outline-none focus:outline-none focus:ring-0 ${
                             isSubActive 
                               ? 'bg-gradient-to-r from-red-50 to-red-50/20 text-red-600 font-bold rounded-r-2xl rounded-l-none border-l-4 border-red-600 -ml-[26px] pl-6' 
                               : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/60 rounded-xl font-semibold'
@@ -131,7 +131,7 @@ export function Sidebar({
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 group relative whitespace-nowrap ${
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 group relative whitespace-nowrap outline-none focus:outline-none focus:ring-0 ${
                 isDirectActive 
                   ? 'bg-red-50/80 text-red-600 font-bold border border-red-100/80 shadow-2xs' 
                   : 'text-slate-800 font-bold hover:bg-slate-100/70 hover:text-slate-900'
@@ -152,7 +152,7 @@ export function Sidebar({
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 group relative whitespace-nowrap text-slate-800 font-bold ${
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 group relative whitespace-nowrap text-slate-800 font-bold outline-none focus:outline-none focus:ring-0 ${
                 isActive 
                   ? 'bg-red-50/80 text-red-600 font-bold border border-red-100/80' 
                   : 'hover:bg-slate-100/70 hover:text-slate-900'
@@ -169,7 +169,7 @@ export function Sidebar({
       <div className="p-4 border-t border-slate-100 flex justify-center">
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full py-3 rounded-2xl bg-slate-100/80 hover:bg-slate-200/80 text-slate-700 font-bold transition-all flex items-center justify-center shadow-2xs border border-slate-200/60 active:scale-95"
+          className="w-full py-3 rounded-2xl bg-slate-100/80 hover:bg-slate-200/80 text-slate-700 font-bold transition-all flex items-center justify-center shadow-2xs border border-slate-200/60 active:scale-95 outline-none focus:outline-none focus:ring-0"
         >
           {collapsed ? <ChevronsRight className="w-5 h-5" /> : <ChevronsLeft className="w-5 h-5" />}
         </button>

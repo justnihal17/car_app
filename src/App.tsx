@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, Trash2 } from "lucide-react";
 import { Sidebar } from "./components/Sidebar";
 import { Header } from "./components/Header";
 import { DashboardContent } from "./components/DashboardContent";
@@ -13,7 +13,6 @@ import api from "./api/axios";
 import { Toaster } from "react-hot-toast";
 import { notificationService } from "./services/notification.service";
 import { NotificationProvider } from "./context/NotificationContext";
-import { NotificationDebugPanel } from "./components/NotificationDebugPanel";
 import { NotificationPermissionGuard } from "./components/NotificationPermissionGuard";
 
 export default function App() {
@@ -90,8 +89,47 @@ export default function App() {
     <NotificationProvider>
       <NotificationPermissionGuard>
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex">
-          <Toaster position="top-center" />
-          <NotificationDebugPanel />
+          <Toaster 
+            position="top-center" 
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#ffffff',
+                color: '#0f172a',
+                borderRadius: '16px',
+                padding: '14px 18px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+                border: '1px solid #e2e8f0',
+                fontSize: '14px',
+                fontWeight: '500',
+                maxWidth: '600px',
+                lineHeight: '1.5',
+              },
+              success: {
+                iconTheme: { primary: '#10b981', secondary: '#fff' },
+                style: {
+                  background: '#ffffff',
+                  border: '1px solid #a7f3d0',
+                  color: '#065f46',
+                },
+              },
+              error: {
+                duration: 6000,
+                icon: (
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0 mt-0.5">
+                    <Trash2 className="w-4 h-4" />
+                  </div>
+                ),
+                style: {
+                  background: '#ffffff',
+                  border: '1px solid #fecaca',
+                  color: '#991b1b',
+                  alignItems: 'flex-start',
+                  boxShadow: '0 20px 25px -5px rgba(239, 68, 68, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+                },
+              },
+            }}
+          />
       {isNotificationOpen && <NotificationPanel onClose={toggleNotification} />}
       {isMessageOpen && <MessagePanel onClose={toggleMessage} />}
       {isEditProfileOpen && <EditProfileModal />}

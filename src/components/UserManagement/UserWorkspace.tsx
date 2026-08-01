@@ -8,6 +8,12 @@ import { ConfirmationModal, ActionType } from '../ConfirmationModal';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
+const getFullImageUrl = (url: string | null) => {
+  if (!url) return undefined;
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  return `${import.meta.env.VITE_API_URL || 'https://stylein-backend.onrender.com'}${url}`;
+};
+
 export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => void }) {
   const [usersList, setUsersList] = useState<any[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -278,9 +284,9 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                   <td className="px-4 py-4.5 pl-6 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(user.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
-                        {(user.profileUrl || user.imageUrl) ? (
+                        {(user.image || user.profileUrl || user.imageUrl) ? (
                           <img 
-                            src={user.profileUrl || user.imageUrl} 
+                            src={getFullImageUrl(user.image || user.profileUrl || user.imageUrl)} 
                             alt={user.name} 
                             className="w-full h-full object-cover absolute inset-0" 
                             onError={(e) => {

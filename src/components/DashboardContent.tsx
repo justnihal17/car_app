@@ -124,6 +124,7 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return <FuelTypePage />;
       case 'master-banner':
         return <BannerPage />;
+      case 'promotions':
       case 'master-promotions':
         return (
           <React.Suspense fallback={<StatsShimmer />}>

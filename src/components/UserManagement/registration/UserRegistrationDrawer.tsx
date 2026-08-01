@@ -8,6 +8,12 @@ import { ImageCropModal } from "../../common/ImageCropModal";
 import { getCompactDrawerClass, SectionActiveToggle } from "../../SubAdminManagement/utils/subAdminFormUtils";
 import { getLoggedInAdminName } from "../../SubAdminManagement/subAdminDrawerUtils";
 
+const getFullImageUrl = (url: string | null) => {
+  if (!url) return undefined;
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  return `${import.meta.env.VITE_API_URL || 'https://stylein-backend.onrender.com'}${url}`;
+};
+
 export function UserRegistrationDrawer({
   isOpen,
   onClose,
@@ -46,7 +52,7 @@ export function UserRegistrationDrawer({
           email: initialData.email || "",
           phone: initialData.phone || "",
         });
-        setPhoto(initialData.profileUrl || initialData.imageUrl || null);
+        setPhoto(initialData.image || initialData.profileUrl || initialData.imageUrl || null);
         setSelectedFile(null);
         setPhotoPreview(null);
         setIsActive(initialData.active !== undefined ? initialData.active : !initialData.blocked);
@@ -110,7 +116,7 @@ export function UserRegistrationDrawer({
           fullName: formData.fullName,
           email: formData.email,
           phone: formData.phone,
-          profileUrl: finalProfileUrl,
+          image: finalProfileUrl,
           active: isActive,
         });
 
@@ -125,7 +131,7 @@ export function UserRegistrationDrawer({
           fullName: formData.fullName,
           email: formData.email,
           phone: formData.phone,
-          profileUrl: finalProfileUrl,
+          image: finalProfileUrl,
           active: isActive,
         });
 
@@ -229,7 +235,7 @@ export function UserRegistrationDrawer({
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
                     {(photoPreview || (photo && !imgError)) ? (
                       <img
-                        src={photoPreview || photo || undefined}
+                        src={getFullImageUrl(photoPreview || photo)}
                         className="w-full h-full object-cover"
                         alt="User Photo"
                         onError={() => setImgError(true)}
@@ -362,7 +368,6 @@ export function UserRegistrationDrawer({
             toast.dismiss('imgUpload');
             toast.success('Image uploaded successfully');
             setPhoto(uploadedUrl);
-            setPhotoPreview(uploadedUrl);
             setSelectedFile(null);
           } catch (err: any) {
             toast.dismiss('imgUpload');

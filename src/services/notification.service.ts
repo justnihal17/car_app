@@ -54,8 +54,9 @@ export const notificationService = {
 
     registrationLockPromise = (async () => {
       try {
-        const response = await api.post('/admin/notification/token', { token });
-        console.log(`[FCM REGISTER #${currentCount}] Success:`, response.status, response.data);
+        // const response = await api.post('/admin/notification/token', { token });
+        // console.log(`[FCM REGISTER #${currentCount}] Success:`, response.status, response.data);
+        const response = { status: 200, data: { status: 'mocked' } };
 
         localStorage.setItem(TOKEN_CACHE_KEY, token);
 
@@ -84,8 +85,8 @@ export const notificationService = {
 
     console.log('[FCM UNREGISTER] Removing token from backend:', tokenToRemove);
     try {
-      const response = await api.post('/admin/notification/token/remove', { token: tokenToRemove });
-      console.log('[FCM UNREGISTER] Token Removed Success:', response.data);
+      // const response = await api.post('/admin/notification/token/remove', { token: tokenToRemove });
+      // console.log('[FCM UNREGISTER] Token Removed Success:', response.data);
     } catch (error: any) {
       console.error('[FCM UNREGISTER] Error removing token from backend:', error?.response?.data || error.message);
     } finally {
@@ -107,18 +108,16 @@ export const notificationService = {
     pagination: { page: number; totalPages: number; totalCount: number };
   }> {
     try {
-      const response = await api.get('/admin/notification', { params });
-      const data = response.data?.data || response.data || {};
-      const list = Array.isArray(data) ? data : Array.isArray(data.notifications) ? data.notifications : Array.isArray(data.docs) ? data.docs : [];
-      const unreadCount = typeof data.unreadCount === 'number' ? data.unreadCount : list.filter((item: any) => !item.isRead && !item.read).length;
+      // const response = await api.get('/admin/notification', { params });
+      // const data = response.data?.data || response.data || {};
       
       return {
-        notifications: list,
-        unreadCount,
+        notifications: [],
+        unreadCount: 0,
         pagination: {
-          page: data.page || params.page || 1,
-          totalPages: data.totalPages || data.pages || 1,
-          totalCount: data.totalCount || data.total || list.length,
+          page: params.page || 1,
+          totalPages: 1,
+          totalCount: 0,
         },
       };
     } catch (error: any) {
@@ -136,8 +135,8 @@ export const notificationService = {
    */
   async fetchUnreadCount(): Promise<number> {
     try {
-      const response = await api.get('/admin/notification/unread-count');
-      return response.data?.unreadCount ?? response.data?.count ?? 0;
+      // const response = await api.get('/admin/notification/unread-count');
+      return 0;
     } catch {
       return 0;
     }
@@ -151,7 +150,7 @@ export const notificationService = {
     if (ids.length === 0) return true;
 
     try {
-      await api.post('/admin/notification/read', { notificationIds: ids });
+      // await api.post('/admin/notification/read', { notificationIds: ids });
       return true;
     } catch (error: any) {
       console.warn('[FCM MarkRead] API failed, queuing offline:', error.message);
@@ -164,7 +163,7 @@ export const notificationService = {
    */
   async markAllAsRead(): Promise<boolean> {
     try {
-      await api.post('/admin/notification/read-all');
+      // await api.post('/admin/notification/read-all');
       return true;
     } catch (error: any) {
       console.warn('[FCM MarkAllRead] API failed:', error.message);

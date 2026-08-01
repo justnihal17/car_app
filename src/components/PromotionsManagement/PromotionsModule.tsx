@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Promotion, PromotionFilterState } from './types/promotion.types';
 import { INITIAL_PROMOTIONS } from './data/dummyPromotions';
 import { PromotionsHeader } from './components/PromotionsHeader';
@@ -10,9 +10,18 @@ import { ConfirmationModal } from './components/PromotionModals';
 import toast from 'react-hot-toast';
 
 export default function PromotionsModule() {
-  const [promotions, setPromotions] = useState<Promotion[]>(INITIAL_PROMOTIONS);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit' | 'details'>('list');
   const [selectedPromo, setSelectedPromo] = useState<Promotion | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPromotions(INITIAL_PROMOTIONS);
+      setLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Filter State
   const [filters, setFilters] = useState<PromotionFilterState>({
@@ -124,6 +133,7 @@ export default function PromotionsModule() {
         <>
           <PromotionsHeader
             promotions={promotions}
+            loading={loading}
             onCreateClick={() => {
               setSelectedPromo(null);
               setViewMode('create');
@@ -139,6 +149,7 @@ export default function PromotionsModule() {
           />
           <PromotionsTable
             promotions={filteredPromotions}
+            loading={loading}
             onView={(p) => {
               setSelectedPromo(p);
               setViewMode('details');

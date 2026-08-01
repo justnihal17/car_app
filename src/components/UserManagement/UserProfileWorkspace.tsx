@@ -6,6 +6,12 @@ import { ConfirmationModal } from '../ConfirmationModal';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
+const getFullImageUrl = (url: string | null) => {
+  if (!url) return undefined;
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  return `${import.meta.env.VITE_API_URL || 'https://stylein-backend.onrender.com'}${url}`;
+};
+
 const TABS = ['Overview', 'Orders', 'Payments', 'Wallet', 'Addresses', 'Activity', 'Security'];
 
 export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBack: () => void }) {
@@ -62,8 +68,20 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
         <div className="px-8 pb-8">
           <div className="relative -mt-16 flex items-end gap-6">
             <div className="w-32 h-32 rounded-2xl bg-white p-1 border-4 border-white shadow-lg">
-                <div className="w-full h-full bg-slate-200 rounded-xl flex items-center justify-center">
-                    <User className="w-16 h-16 text-slate-400" />
+                <div className="w-full h-full bg-slate-200 rounded-xl flex items-center justify-center overflow-hidden">
+                    {(user.image || user.profileUrl || user.imageUrl) ? (
+                        <img 
+                            src={getFullImageUrl(user.image || user.profileUrl || user.imageUrl)} 
+                            alt={user.fullName || 'User'} 
+                            className="w-full h-full object-cover" 
+                            onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'none';
+                                const nextSibling = (e.currentTarget as HTMLElement).nextElementSibling;
+                                if (nextSibling) (nextSibling as HTMLElement).style.display = 'block';
+                            }}
+                        />
+                    ) : null}
+                    <User className={`w-16 h-16 text-slate-400 ${(user.image || user.profileUrl || user.imageUrl) ? 'hidden' : ''}`} />
                 </div>
             </div>
             <div className="mb-2">

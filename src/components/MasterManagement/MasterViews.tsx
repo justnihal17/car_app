@@ -50,7 +50,7 @@ export const CityPage = () => (
 export const ServicePage = () => (
     <MasterPage 
         moduleName="Service" 
-        columns={['Name', 'Image', 'Price', 'Instant', 'Status']} 
+        columns={['Name', 'Price', 'Status']} 
         fields={[
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'image', label: 'Image', type: 'text' },
@@ -65,7 +65,7 @@ export const ServicePage = () => (
 export const SubServicePage = () => (
     <MasterPage 
         moduleName="subservice" 
-        columns={['Name', 'Parent Service', 'Image', 'Price', 'Duration', 'Instant', 'Status']} 
+        columns={['Name', 'Parent Service', 'Price', 'Status']} 
         fields={[
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'serviceId', label: 'Service ID', type: 'dropdown' },

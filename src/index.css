@@ -12,3 +12,21 @@ body {
   color: #1E293B;
   font-family: sans-serif;
 }
+
+*, *::before, *::after {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+*:focus, *:focus-visible, *:focus-within, *:active,
+button:focus, button:focus-visible, button:active,
+a:focus, a:focus-visible, a:active,
+div:focus, div:focus-visible, div:active {
+  outline: none !important;
+  outline-style: none !important;
+  outline-width: 0px !important;
+  outline-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+

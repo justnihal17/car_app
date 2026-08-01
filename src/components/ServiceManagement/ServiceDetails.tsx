@@ -64,8 +64,32 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBac
   }, [serviceId]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Delete this service? This will soft delete the record.')) return;
     setSaving(true);
+    try {
+      const res = await getAdminSubServicesByServiceId(serviceId);
+      const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : (res?.subServices || res?.list || []));
+      const activeSubs = list.filter((s: any) => s.deleted !== true && s.isDeleted !== true);
+      
+      if (activeSubs.length > 0) {
+        toast.error(
+          <div className="flex flex-col text-left">
+            <span className="font-bold text-red-900 text-sm">Cannot Delete Service</span>
+            <span className="text-xs text-red-700 font-normal mt-0.5">Please delete all associated sub-services first.</span>
+          </div>
+        );
+        setSaving(false);
+        return;
+      }
+    } catch (error) {
+      toast.error('Failed to verify service dependencies. Please try again.');
+      setSaving(false);
+      return;
+    }
+
+    if (!window.confirm('Delete this service? This will soft delete the record.')) {
+      setSaving(false);
+      return;
+    }
     try {
       await api.delete(`/master/service/${serviceId}`);
       toast.success('Service deleted successfully');

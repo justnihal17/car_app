@@ -5,6 +5,7 @@ import { PromoTypeBadge, PromotionStatusBadge, DiscountBadge, PriorityBadge } fr
 
 interface PromotionsTableProps {
   promotions: Promotion[];
+  loading?: boolean;
   onView: (promo: Promotion) => void;
   onEdit: (promo: Promotion) => void;
   onDuplicate: (promo: Promotion) => void;
@@ -14,6 +15,7 @@ interface PromotionsTableProps {
 
 export function PromotionsTable({
   promotions,
+  loading,
   onView,
   onEdit,
   onDuplicate,
@@ -21,6 +23,23 @@ export function PromotionsTable({
   onDelete,
 }: PromotionsTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden p-6 space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-4 animate-pulse">
+            <div className="w-12 h-12 bg-slate-200 rounded-xl" />
+            <div className="space-y-2 flex-1">
+              <div className="h-4 bg-slate-200 rounded w-1/4" />
+              <div className="h-3 bg-slate-200 rounded w-1/3" />
+            </div>
+            <div className="w-20 h-6 bg-slate-200 rounded-full" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (promotions.length === 0) {
     return (

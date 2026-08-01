@@ -414,7 +414,146 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     setIsPanelOpen(true);
   };
   
-  const handleDeleteClick = (id: string, name: string) => {
+  const handleDeleteClick = async (id: string, name: string) => {
+    if (moduleName.toLowerCase() === 'service') {
+      try {
+        const response = await api.get('/admin/subservice/admin/service/' + id);
+        const resData = response.data;
+        const list = Array.isArray(resData?.data) ? resData.data : (Array.isArray(resData) ? resData : (resData?.subServices || resData?.list || []));
+        const activeSubs = list.filter((s: any) => s.deleted !== true && s.isDeleted !== true);
+        
+        if (activeSubs.length > 0) {
+          toast.error(
+            <div className="flex flex-col text-left">
+              <span className="font-bold text-red-900 text-sm">Cannot Delete Service</span>
+              <span className="text-xs text-red-700 font-normal mt-0.5">Please delete all associated sub-services first.</span>
+            </div>
+          );
+          return;
+        }
+      } catch (error) {
+        toast.error('Failed to verify service dependencies. Please try again.');
+        return;
+      }
+    }
+    if (moduleName.toLowerCase() === 'brand' || moduleName.toLowerCase() === 'make') {
+      try {
+        let modelList: any[] = [];
+        try {
+          const response = await api.get('/master/model/admin');
+          const payload = response.data?.data || response.data;
+          if (Array.isArray(payload)) {
+            modelList = payload;
+          } else if (payload) {
+            modelList = payload.models || payload.model || payload.list || payload.data || [];
+            if (!Array.isArray(modelList) || modelList.length === 0) {
+              const possibleArray = Object.values(payload).find(v => Array.isArray(v));
+              if (possibleArray) modelList = possibleArray as any[];
+            }
+          }
+        } catch (e) {
+          const response = await api.get('/master/model');
+          const payload = response.data?.data || response.data;
+          if (Array.isArray(payload)) modelList = payload;
+          else if (payload) modelList = payload.models || payload.list || [];
+        }
+
+        const activeModels = modelList.filter((m: any) => {
+          if (m.deleted === true || m.isDeleted === true) return false;
+          
+          const mMakeId = typeof m.makeId === 'object' ? (m.makeId?._id || m.makeId?.id) : m.makeId;
+          const mMake = typeof m.make === 'object' ? (m.make?._id || m.make?.id) : m.make;
+          const mBrandId = typeof m.brandId === 'object' ? (m.brandId?._id || m.brandId?.id) : m.brandId;
+          const mBrand = typeof m.brand === 'object' ? (m.brand?._id || m.brand?.id) : m.brand;
+          
+          const mMakeName = typeof m.makeId === 'object' ? m.makeId?.name : (typeof m.make === 'object' ? m.make?.name : (m.makeName || m.brandName || m.make || m.brand));
+          
+          const matchesId = (
+            (mMakeId && String(mMakeId) === String(id)) ||
+            (mMake && String(mMake) === String(id)) ||
+            (mBrandId && String(mBrandId) === String(id)) ||
+            (mBrand && String(mBrand) === String(id))
+          );
+          
+          const matchesName = (
+            mMakeName && name && String(mMakeName).trim().toLowerCase() === String(name).trim().toLowerCase()
+          );
+
+          return matchesId || matchesName;
+        });
+
+        if (activeModels.length > 0) {
+          toast.error(
+            <div className="flex flex-col text-left">
+              <span className="font-bold text-red-900 text-sm">Cannot Delete Brand</span>
+              <span className="text-xs text-red-700 font-normal mt-0.5">Please delete all models under this brand first.</span>
+            </div>
+          );
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to verify brand model dependencies', error);
+      }
+    }
+    if (moduleName.toLowerCase() === 'emirate' || moduleName.toLowerCase() === 'state') {
+      try {
+        let cityList: any[] = [];
+        try {
+          const response = await api.get('/master/city/admin');
+          const payload = response.data?.data || response.data;
+          if (Array.isArray(payload)) {
+            cityList = payload;
+          } else if (payload) {
+            cityList = payload.cities || payload.city || payload.list || payload.data || [];
+            if (!Array.isArray(cityList) || cityList.length === 0) {
+              const possibleArray = Object.values(payload).find(v => Array.isArray(v));
+              if (possibleArray) cityList = possibleArray as any[];
+            }
+          }
+        } catch (e) {
+          const response = await api.get('/master/city');
+          const payload = response.data?.data || response.data;
+          if (Array.isArray(payload)) cityList = payload;
+          else if (payload) cityList = payload.cities || payload.list || [];
+        }
+
+        const activeCities = cityList.filter((c: any) => {
+          if (c.deleted === true || c.isDeleted === true) return false;
+          
+          const cStateId = typeof c.stateId === 'object' ? (c.stateId?._id || c.stateId?.id) : c.stateId;
+          const cState = typeof c.state === 'object' ? (c.state?._id || c.state?.id) : c.state;
+          const cEmirateId = typeof c.emirateId === 'object' ? (c.emirateId?._id || c.emirateId?.id) : c.emirateId;
+          const cEmirate = typeof c.emirate === 'object' ? (c.emirate?._id || c.emirate?.id) : c.emirate;
+          
+          const cStateName = typeof c.stateId === 'object' ? c.stateId?.name : (typeof c.state === 'object' ? c.state?.name : (c.stateName || c.emirateName || (typeof c.state === 'string' ? c.state : (typeof c.emirate === 'string' ? c.emirate : ''))));
+          
+          const matchesId = (
+            (cStateId && String(cStateId) === String(id)) ||
+            (cState && String(cState) === String(id)) ||
+            (cEmirateId && String(cEmirateId) === String(id)) ||
+            (cEmirate && String(cEmirate) === String(id))
+          );
+          
+          const matchesName = (
+            cStateName && name && String(cStateName).trim().toLowerCase() === String(name).trim().toLowerCase()
+          );
+
+          return matchesId || matchesName;
+        });
+
+        if (activeCities.length > 0) {
+          toast.error(
+            <div className="flex flex-col text-left">
+              <span className="font-bold text-red-900 text-sm">Cannot Delete Emirate</span>
+              <span className="text-xs text-red-700 font-normal mt-0.5">Please delete all cities under this emirate first.</span>
+            </div>
+          );
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to verify emirate city dependencies', error);
+      }
+    }
     setDeleteModal({ isOpen: true, id, name });
   };
 
