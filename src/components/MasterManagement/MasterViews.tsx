@@ -70,7 +70,7 @@ export const SubServicePage = () => (
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'serviceId', label: 'Service ID', type: 'dropdown' },
             { name: 'price', label: 'Price', type: 'text' },
-            { name: 'description', label: 'Description', type: 'textarea' },
+            { name: 'description', label: 'Description', type: 'string_array' },
             { name: 'duration', label: 'Duration (in mins)', type: 'text' },
             { name: 'image', label: 'Image', type: 'text' },
             { name: 'isInstant', label: 'Instant Service', type: 'toggle' },

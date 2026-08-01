@@ -37,7 +37,7 @@ const PRESETS: Record<ActionType, { title: string; message: string; confirmText:
   reset_password: { title: 'Reset Password?', message: 'Are you sure you want to reset the password?', confirmText: 'Reset Password', variant: 'warning', Icon: Key },
   assign_role: { title: 'Assign Role?', message: 'Are you sure you want to assign this role?', confirmText: 'Assign', variant: 'info', Icon: ShieldCheck },
   remove_role: { title: 'Remove Role?', message: 'Are you sure you want to remove this role?', confirmText: 'Remove', variant: 'danger', Icon: ShieldAlert },
-  logout: { title: 'Logout', message: 'Are you sure you want to logout from your account?', confirmText: 'Logout', variant: 'danger', Icon: LogOut },
+  logout: { title: 'Logout', message: '', confirmText: 'Logout', variant: 'danger', Icon: LogOut },
   custom: { title: 'Confirm Action', message: 'Are you sure you want to proceed?', confirmText: 'Confirm', variant: 'info', Icon: AlertTriangle },
 };
 
@@ -90,11 +90,27 @@ export function ConfirmationModal({
       onClick={(e) => { if (e.target === e.currentTarget && !isExecuting) onCancel(); }}
     >
       <div className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-200 border border-slate-100" role="dialog" aria-modal="true">
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 shadow-inner border ${style.iconWrapper}`}>
-          <Icon className="w-8 h-8" />
-        </div>
-        <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">{modalTitle}</h3>
-        <p className="text-slate-500 font-medium text-sm mb-8 px-4 leading-relaxed">{finalMessage}</p>
+        {actionType === 'logout' ? (
+          <div className="mb-6 flex items-center justify-center w-full">
+            <img 
+              src="/logo.png" 
+              alt="Logo" 
+              className="h-20 object-contain mix-blend-multiply [filter:contrast(130%)_brightness(110%)] mx-auto" 
+            />
+          </div>
+        ) : (
+          <>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 shadow-inner border ${style.iconWrapper}`}>
+              <Icon className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">{modalTitle}</h3>
+            {finalMessage ? (
+              <p className="text-slate-500 font-medium text-sm mb-8 px-4 leading-relaxed">{finalMessage}</p>
+            ) : (
+              <div className="mb-6" />
+            )}
+          </>
+        )}
         <div className="flex items-center gap-3 w-full">
           <button 
             onClick={onCancel}

@@ -16,7 +16,7 @@ import { StatsShimmer, TableShimmer } from '../shimmer/ShimmerLoader';
 interface FieldConfig {
     name: string;
     label: string;
-    type: 'text' | 'textarea' | 'dropdown' | 'toggle' | 'number';
+    type: 'text' | 'textarea' | 'dropdown' | 'toggle' | 'number' | 'string_array';
     options?: (string | { label: string; value: string; })[];
 }
 
@@ -32,6 +32,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const [loading, setLoading] = useState(true);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>({});
+  const [arrayInputs, setArrayInputs] = useState<Record<string, string>>({});
   const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, id: string, name: string}>({isOpen: false, id: '', name: ''});
   const [mode, setMode] = useState<'add' | 'edit' | 'view'>('add');
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,6 +61,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       setSelectedFile(null);
       setRawSelectedFile(null);
       setRawPreviewUrl(null);
+      setArrayInputs({});
     }
   }, [isPanelOpen, editingItem.image]);
 
@@ -381,51 +383,35 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     }
   };
 
-  const handleView = async (item: any) => { 
-    try {
-      const isSubService = moduleName.toLowerCase() === 'subservice';
-      const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
-      const isFuelType = moduleName.toLowerCase() === 'fueltype';
-      const endpoint = isSubService 
-        ? `/master/subservice/${item.id}` 
-        : (isVehicleType ? `/master/vehicleType/${item.id}` : (isFuelType ? `/master/fuelType/${item.id}` : `/master/${moduleName.toLowerCase()}/${item.id}`));
-      const response = await api.get(endpoint);
-      if (response.data?.success) {
-        const doc = response.data.data;
-        let mappedState = doc.state;
-        if (typeof doc.state === 'object' && doc.state) {
-          mappedState = doc.state._id || doc.state.id;
-        }
-        let mappedServiceId = doc.serviceId;
-        if (typeof doc.serviceId === 'object' && doc.serviceId) {
-          mappedServiceId = doc.serviceId._id || doc.serviceId.id;
-        }
-        let mappedMakeId = doc.makeId;
-        if (typeof doc.makeId === 'object' && doc.makeId) {
-          mappedMakeId = doc.makeId._id || doc.makeId.id;
-        }
-        const desc = doc.description || doc.shortDescription || doc.detailedDescription || '';
-        setEditingItem({
-          id: doc._id,
-          name: doc.name || doc.title || doc.type || '',
-          title: doc.title || doc.name || '',
-          description: desc,
-          shortDescription: desc,
-          detailedDescription: desc,
-          status: doc.active !== false ? 'Active' : 'Inactive',
-          ...doc,
-          state: mappedState,
-          serviceId: mappedServiceId,
-          makeId: mappedMakeId
-        });
-        setMode('view');
-        setIsPanelOpen(true);
-      }
-    } catch (error: any) {
-      setMode('view');
-      setEditingItem(item);
-      setIsPanelOpen(true);
+  const handleView = (item: any) => { 
+    let mappedState = item.state;
+    if (typeof item.state === 'object' && item.state) {
+      mappedState = item.state._id || item.state.id;
     }
+    let mappedServiceId = item.serviceId;
+    if (typeof item.serviceId === 'object' && item.serviceId) {
+      mappedServiceId = item.serviceId._id || item.serviceId.id;
+    }
+    let mappedMakeId = item.makeId;
+    if (typeof item.makeId === 'object' && item.makeId) {
+      mappedMakeId = item.makeId._id || item.makeId.id;
+    }
+    const desc = item.description || item.shortDescription || item.detailedDescription || '';
+    setEditingItem({
+      id: item._id || item.id,
+      name: item.name || item.title || item.type || '',
+      title: item.title || item.name || '',
+      description: desc,
+      shortDescription: desc,
+      detailedDescription: desc,
+      status: item.status || (item.active !== false ? 'Active' : 'Inactive'),
+      ...item,
+      state: mappedState,
+      serviceId: mappedServiceId,
+      makeId: mappedMakeId
+    });
+    setMode('view');
+    setIsPanelOpen(true);
   };
   
   const handleDeleteClick = (id: string, name: string) => {
@@ -960,6 +946,74 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                               <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${(f.name === 'isInstant' ? editingItem[f.name] : editingItem[f.name] === 'Active') ? 'translate-x-6' : 'translate-x-1'}`} />
                             </button>
                           </div>
+                      ) : f.type === 'string_array' ? (
+                          <div className="space-y-2">
+                            {mode !== 'view' && (
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="text"
+                                  value={arrayInputs[f.name] || ''}
+                                  onChange={(e) => setArrayInputs({...arrayInputs, [f.name]: e.target.value})}
+                                  placeholder={`Enter ${f.label.toLowerCase()} point`}
+                                  className="sub-admin-form-input flex-1"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      let val = arrayInputs[f.name]?.trim();
+                                      if (val) {
+                                        val = val.replace(/^[•\-\*]\s*/g, '');
+                                        const currentList = Array.isArray(editingItem[f.name]) ? editingItem[f.name] : (typeof editingItem[f.name] === 'string' && editingItem[f.name] ? [editingItem[f.name]] : []);
+                                        setEditingItem({...editingItem, [f.name]: [...currentList, val]});
+                                        setArrayInputs({...arrayInputs, [f.name]: ''});
+                                      }
+                                    }
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  disabled={!arrayInputs[f.name]?.trim()}
+                                  onClick={() => {
+                                    let val = arrayInputs[f.name]?.trim();
+                                    if (val) {
+                                      val = val.replace(/^[•\-\*]\s*/g, '');
+                                      const currentList = Array.isArray(editingItem[f.name]) ? editingItem[f.name] : (typeof editingItem[f.name] === 'string' && editingItem[f.name] ? [editingItem[f.name]] : []);
+                                      setEditingItem({...editingItem, [f.name]: [...currentList, val]});
+                                      setArrayInputs({...arrayInputs, [f.name]: ''});
+                                    }
+                                  }}
+                                  className="px-3 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors border border-red-100 flex items-center justify-center gap-1 font-semibold text-xs whitespace-nowrap disabled:opacity-50"
+                                >
+                                  <Plus className="w-4 h-4" /> Add
+                                </button>
+                              </div>
+                            )}
+                            {(() => {
+                              const list = Array.isArray(editingItem[f.name]) ? editingItem[f.name] : (typeof editingItem[f.name] === 'string' && editingItem[f.name] ? [editingItem[f.name]] : []);
+                              if (list.length === 0) return null;
+                              return (
+                                <ul className="space-y-1.5 mt-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                  {list.map((val: string, idx: number) => (
+                                    <li key={idx} className="flex items-start justify-between gap-2 bg-slate-50 border border-slate-100 p-2.5 rounded-lg group">
+                                      <span className="text-xs text-slate-700 leading-snug flex-1 break-words">{val}</span>
+                                      {mode !== 'view' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newList = [...list];
+                                            newList.splice(idx, 1);
+                                            setEditingItem({...editingItem, [f.name]: newList});
+                                          }}
+                                          className="text-slate-400 hover:text-red-500 transition-all p-1 mt-0.5 shrink-0"
+                                        >
+                                          <X className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                              );
+                            })()}
+                          </div>
                       ) : f.type === 'textarea' ? (
                           <textarea 
                               disabled={mode === 'view'} 
@@ -970,7 +1024,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                               className="sub-admin-form-input resize-none py-2.5" 
                           />
                       ) : (
-                          <input type={f.type || 'text'} disabled={mode === 'view'} required value={editingItem[f.name] || ''} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} placeholder={f.label} className="sub-admin-form-input" />
+                          <input type={f.type || 'text'} disabled={mode === 'view'} required={f.name !== 'description'} value={editingItem[f.name] || ''} onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} placeholder={f.label} className="sub-admin-form-input" />
                       )}
                   </div>
               ))}

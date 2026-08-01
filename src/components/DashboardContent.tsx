@@ -27,6 +27,10 @@ import { ReportsManager } from './ReportsManagement/ReportsManager';
 import { NotificationDeniedBanner } from './NotificationDeniedBanner';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 
+import React from 'react';
+import { StatsShimmer } from './shimmer/ShimmerLoader';
+const PromotionsModule = React.lazy(() => import('./PromotionsManagement/PromotionsModule'));
+
 export function DashboardContent({ currentView, onViewChange }: { currentView: string; onViewChange: (view: string) => void }) {
   const { permission } = usePushNotifications();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -120,6 +124,12 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return <FuelTypePage />;
       case 'master-banner':
         return <BannerPage />;
+      case 'master-promotions':
+        return (
+          <React.Suspense fallback={<StatsShimmer />}>
+            <PromotionsModule />
+          </React.Suspense>
+        );
       case 'drivers':
         if (selectedDriverId) {
           return <DriverDetails driverId={selectedDriverId} onBack={() => setSelectedDriverId(null)} />;

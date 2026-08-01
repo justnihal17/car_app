@@ -24,6 +24,7 @@ const MENU_ITEMS = [
     { id: 'master-vehicle-type', label: 'Vehicle Type', icon: Car },
     { id: 'master-fuel-type', label: 'Fuel Type', icon: Car },
     { id: 'master-banner', label: 'Banner', icon: FileText },
+    { id: 'master-promotions', label: 'Promotions & Offers', icon: Tags },
   ]},
   { id: 'orders', label: 'Order Management', icon: FileText },
   { id: 'payments', label: 'Payment Management', icon: CreditCard },
@@ -65,14 +66,12 @@ export function Sidebar({
     >
       {/* Brand Header */}
       <div className="h-20 flex items-center justify-between px-5 border-b border-slate-100">
-        <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center w-full' : ''}`}>
-          <div className="bg-red-600 p-2.5 rounded-2xl shrink-0 text-white shadow-md shadow-red-500/20 flex items-center justify-center">
-            {/* Flower 4-dot Grid Icon */}
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-              <path d="M7 3a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2a4 4 0 0 0 4-4V7a4 4 0 0 0-4-4H7zm10 0a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2a4 4 0 0 0 4-4V7a4 4 0 0 0-4-4h-2zM7 13a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2a4 4 0 0 0 4-4v-2a4 4 0 0 0-4-4H7zm10 0a4 4 0 0 0-4 4v2a4 4 0 0 0 4 4h2a4 4 0 0 0 4-4v-2a4 4 0 0 0-4-4h-2z"/>
-            </svg>
-          </div>
-          {!collapsed && <span className="font-extrabold text-xl text-slate-900 tracking-tight whitespace-nowrap">Stylein Admin</span>}
+        <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center w-full' : 'justify-center w-full'}`}>
+          <img 
+            src="/logo.png" 
+            alt="Stylein Logo" 
+            className={`object-contain transition-all duration-300 ${collapsed ? 'h-10' : 'h-16'} w-full`}
+          />
         </div>
       </div>
 

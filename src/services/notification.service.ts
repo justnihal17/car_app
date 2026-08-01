@@ -59,12 +59,6 @@ export const notificationService = {
 
         localStorage.setItem(TOKEN_CACHE_KEY, token);
 
-        try {
-          await api.get('/admin/admin/profile');
-        } catch (e) {
-          // Verification call optional
-        }
-
         return { success: true, statusText: 'Registered successfully', data: response.data };
       } catch (error: any) {
         console.error(`[FCM REGISTER #${currentCount}] Failed:`, error.response?.data || error.message);
@@ -102,5 +96,79 @@ export const notificationService = {
 
   getCachedToken(): string | null {
     return localStorage.getItem(TOKEN_CACHE_KEY);
+  },
+
+  /**
+   * Fetch paginated notification list from backend API
+   */
+  async fetchNotifications(params: { page?: number; limit?: number; status?: string; type?: string } = {}): Promise<{
+    notifications: any[];
+    unreadCount: number;
+    pagination: { page: number; totalPages: number; totalCount: number };
+  }> {
+    try {
+      const response = await api.get('/admin/notification', { params });
+      const data = response.data?.data || response.data || {};
+      const list = Array.isArray(data) ? data : Array.isArray(data.notifications) ? data.notifications : Array.isArray(data.docs) ? data.docs : [];
+      const unreadCount = typeof data.unreadCount === 'number' ? data.unreadCount : list.filter((item: any) => !item.isRead && !item.read).length;
+      
+      return {
+        notifications: list,
+        unreadCount,
+        pagination: {
+          page: data.page || params.page || 1,
+          totalPages: data.totalPages || data.pages || 1,
+          totalCount: data.totalCount || data.total || list.length,
+        },
+      };
+    } catch (error: any) {
+      console.warn('[FCM Sync] API /admin/notification failed or endpoint not ready:', error.message);
+      return {
+        notifications: [],
+        unreadCount: 0,
+        pagination: { page: 1, totalPages: 1, totalCount: 0 },
+      };
+    }
+  },
+
+  /**
+   * Fetch unread notification count from backend
+   */
+  async fetchUnreadCount(): Promise<number> {
+    try {
+      const response = await api.get('/admin/notification/unread-count');
+      return response.data?.unreadCount ?? response.data?.count ?? 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  /**
+   * Mark specific notification(s) as read on backend
+   */
+  async markAsRead(notificationIds: string | string[]): Promise<boolean> {
+    const ids = Array.isArray(notificationIds) ? notificationIds : [notificationIds];
+    if (ids.length === 0) return true;
+
+    try {
+      await api.post('/admin/notification/read', { notificationIds: ids });
+      return true;
+    } catch (error: any) {
+      console.warn('[FCM MarkRead] API failed, queuing offline:', error.message);
+      return false;
+    }
+  },
+
+  /**
+   * Mark all notifications as read on backend
+   */
+  async markAllAsRead(): Promise<boolean> {
+    try {
+      await api.post('/admin/notification/read-all');
+      return true;
+    } catch (error: any) {
+      console.warn('[FCM MarkAllRead] API failed:', error.message);
+      return false;
+    }
   },
 };
