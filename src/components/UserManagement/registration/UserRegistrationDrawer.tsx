@@ -328,7 +328,7 @@ export function UserRegistrationDrawer({
                         value={formData.fullName}
                         disabled={isView}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${isView ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${isView ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
 
@@ -340,7 +340,7 @@ export function UserRegistrationDrawer({
                         value={formData.email}
                         disabled={isView}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${isView ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${isView ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
 
@@ -352,7 +352,7 @@ export function UserRegistrationDrawer({
                         value={formData.phone}
                         disabled={isView}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${isView ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${isView ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
                   </div>

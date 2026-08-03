@@ -38,9 +38,9 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
 
       {/* Summary Cards Grid */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-[105px] bg-slate-200/70 animate-pulse rounded-3xl p-5 border border-slate-200/50 flex flex-col justify-between">
+            <div key={i} className="h-[105px] bg-slate-200/70 animate-pulse rounded-2xl p-5 border border-slate-200/50 flex flex-col justify-between">
               <div className="flex justify-between items-center">
                 <div className="h-3 w-16 bg-slate-300 rounded" />
                 <div className="w-8 h-8 bg-slate-300 rounded-xl" />
@@ -50,72 +50,34 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
           ))}
         </div>
       ) : (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div className="text-left bg-white/80 backdrop-blur-xl p-5 rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Total Promos</span>
-            <div className="p-2 rounded-xl bg-blue-50 transition-all duration-300 group-hover:scale-110">
-              <Tag className="w-5 h-5 text-blue-500" />
-            </div>
-          </div>
-          <div className="flex items-baseline justify-between mt-2">
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">{totalPromotions}</span>
-            <span className="text-[11px] font-semibold text-slate-400">Configured campaigns</span>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {[
+            { label: 'Total Promos', value: totalPromotions, icon: Tag, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Configured campaigns' },
+            { label: 'Active', value: activeCount, icon: CheckCircle2, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Currently live' },
+            { label: 'Inactive / Expired', value: inactiveCount, icon: XCircle, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Paused or ended' },
+            { label: 'Redemptions', value: totalRedemptions.toLocaleString(), icon: RefreshCw, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Times applied' },
+            { label: 'Discount Given', value: `₹${totalDiscountGiven.toLocaleString()}`, icon: BadgePercent, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Customer savings' },
+          ].map((card, i) => {
+            const Icon = card.icon;
+            return (
+              <div 
+                key={i} 
+                className={`bg-white p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between group border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 hover:-translate-y-1`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-xs font-bold tracking-tight transition-colors uppercase text-slate-500 group-hover:text-slate-800`}>{card.label}</span>
+                  <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
+                    <Icon className="w-4 h-4 text-slate-600" />
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        <div className="text-left bg-white/80 backdrop-blur-xl p-5 rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Active</span>
-            <div className="p-2 rounded-xl bg-emerald-50 transition-all duration-300 group-hover:scale-110">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-            </div>
-          </div>
-          <div className="flex items-baseline justify-between mt-2">
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">{activeCount}</span>
-            <span className="text-[11px] font-semibold text-emerald-600">Currently live</span>
-          </div>
-        </div>
-
-        <div className="text-left bg-white/80 backdrop-blur-xl p-5 rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Inactive / Expired</span>
-            <div className="p-2 rounded-xl bg-slate-100 transition-all duration-300 group-hover:scale-110">
-              <XCircle className="w-5 h-5 text-slate-500" />
-            </div>
-          </div>
-          <div className="flex items-baseline justify-between mt-2">
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">{inactiveCount}</span>
-            <span className="text-[11px] font-semibold text-slate-400">Paused or ended</span>
-          </div>
-        </div>
-
-        <div className="text-left bg-white/80 backdrop-blur-xl p-5 rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Redemptions</span>
-            <div className="p-2 rounded-xl bg-purple-50 transition-all duration-300 group-hover:scale-110">
-              <RefreshCw className="w-5 h-5 text-purple-500" />
-            </div>
-          </div>
-          <div className="flex items-baseline justify-between mt-2">
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">{totalRedemptions.toLocaleString()}</span>
-            <span className="text-[11px] font-semibold text-purple-600">Times applied</span>
-          </div>
-        </div>
-
-        <div className="text-left bg-white/80 backdrop-blur-xl p-5 rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1 col-span-2 sm:col-span-1">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Discount Given</span>
-            <div className="p-2 rounded-xl bg-amber-50 transition-all duration-300 group-hover:scale-110">
-              <BadgePercent className="w-5 h-5 text-amber-500" />
-            </div>
-          </div>
-          <div className="flex items-baseline justify-between mt-2">
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">₹{totalDiscountGiven.toLocaleString()}</span>
-            <span className="text-[11px] font-semibold text-amber-600">Customer savings</span>
-          </div>
-        </div>
-      </div>
       )}
     </div>
   );

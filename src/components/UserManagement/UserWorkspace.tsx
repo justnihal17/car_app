@@ -222,7 +222,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
           [
             { label: 'USERS', value: usersList.length, icon: Users, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Accounts' },
             { label: 'ACTIVE', value: usersList.filter(u => u.status === 'Active').length, icon: UserCheck, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Operational' },
-            { label: 'DEACTIVATED', value: usersList.filter(u => u.status === 'Inactive').length, icon: UserMinus, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
+            { label: 'INACTIVE', value: usersList.filter(u => u.status === 'Inactive').length, icon: UserMinus, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
             { label: 'BLOCKED', value: usersList.filter(u => u.status === 'Blocked').length, icon: UserX, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Restricted' },
             { label: 'PENDING', value: usersList.filter(u => u.status === 'Pending').length, icon: LogIn, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Awaiting' },
             { label: 'REGISTERED', value: usersList.filter(u => u.createdAt && new Date(u.createdAt).toDateString() === new Date().toDateString()).length, icon: Plus, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'New Today' },

@@ -15,6 +15,7 @@ interface CustomSelectProps {
   className?: string;
   disabled?: boolean;
   searchable?: boolean;
+  placement?: 'top' | 'bottom' | 'auto';
 }
 
 export function CustomSelect({
@@ -25,11 +26,32 @@ export function CustomSelect({
   className,
   disabled = false,
   searchable = false,
+  placement = 'auto',
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [computedPlacement, setComputedPlacement] = useState<'top' | 'bottom'>('bottom');
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (placement === 'top') {
+        setComputedPlacement('top');
+      } else if (placement === 'bottom') {
+        setComputedPlacement('bottom');
+      } else if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        if (spaceBelow < 260 && spaceAbove > spaceBelow) {
+          setComputedPlacement('top');
+        } else {
+          setComputedPlacement('bottom');
+        }
+      }
+    }
+  }, [isOpen, placement]);
 
   // Close when clicking outside
   useEffect(() => {
@@ -68,7 +90,7 @@ export function CustomSelect({
         className={clsx(
           'w-full flex items-center justify-between text-left border rounded-xl px-5 py-3.5 transition-all outline-none font-medium',
           disabled ? 'bg-slate-50 cursor-not-allowed opacity-70' : 'bg-white cursor-pointer',
-          isOpen ? 'border-red-500 ring-2 ring-red-500/20' : 'border-slate-200 hover:border-slate-300',
+          isOpen ? 'border-slate-300 ring-1 ring-slate-200' : 'border-slate-200 hover:border-slate-300',
           !selectedOption && 'text-slate-500'
         )}
       >
@@ -81,7 +103,10 @@ export function CustomSelect({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 py-2 max-h-72 flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+        <div className={clsx(
+          "absolute z-50 w-full bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 py-2 max-h-72 flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-hidden",
+          computedPlacement === 'top' ? "bottom-full mb-2" : "mt-2"
+        )}>
           {searchable && (
             <div className="px-3 pb-2 mb-1 border-b border-slate-100 sticky top-0 bg-white z-10 shrink-0">
               <div className="relative">

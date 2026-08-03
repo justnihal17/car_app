@@ -139,7 +139,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 onChange={e => setFormData({...formData, firstName: e.target.value})} 
                 type="text" 
                 placeholder="First name" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
               />
               {errors.firstName && <p className="text-rose-500 text-xs font-medium mt-1">{errors.firstName}</p>}
             </div>
@@ -151,7 +151,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 onChange={e => setFormData({...formData, lastName: e.target.value})} 
                 type="text" 
                 placeholder="Last name" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
               />
               {errors.lastName && <p className="text-rose-500 text-xs font-medium mt-1">{errors.lastName}</p>}
             </div>
@@ -163,7 +163,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 onChange={e => setFormData({...formData, email: e.target.value})} 
                 type="email" 
                 placeholder="Enter email" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
               />
               {errors.email && <p className="text-rose-500 text-xs font-medium mt-1">{errors.email}</p>}
             </div>
@@ -175,7 +175,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 onChange={e => setFormData({...formData, phone: e.target.value})} 
                 type="text" 
                 placeholder="Enter phone number" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
               />
               {errors.phone && <p className="text-rose-500 text-xs font-medium mt-1">{errors.phone}</p>}
             </div>
@@ -211,7 +211,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 onChange={e => !isView && setFormData({...formData, password: e.target.value})}
                 disabled={isView}
                 placeholder="Enter password" 
-                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm transition-colors pr-10 ${isView ? 'bg-slate-50 text-slate-500' : 'placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500'}`} 
+                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm transition-colors pr-10 ${isView ? 'bg-slate-50 text-slate-500' : 'placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200'}`} 
               />
                 <button 
                   type="button" 
@@ -230,7 +230,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 onClick={() => !isView && setIsRoleDropdownOpen(!isRoleDropdownOpen)}
                 className={`w-full px-3 py-2 border rounded-lg text-sm flex items-center justify-between text-left transition-all ${
                   isView ? 'bg-slate-50 text-slate-500 cursor-default' : 'bg-white cursor-pointer hover:bg-slate-50'
-                } ${isRoleDropdownOpen ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-200'}`}
+                } ${isRoleDropdownOpen ? 'border-slate-300 ring-1 ring-slate-200' : 'border-slate-200'}`}
               >
                 <span className={formData.role ? 'text-slate-900' : 'text-slate-400'}>
                   {formData.role ? formatRoleName(formData.role) : 'Select Role'}

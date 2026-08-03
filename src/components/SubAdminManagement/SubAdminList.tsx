@@ -359,7 +359,7 @@ export function SubAdminManagement() {
           [
             { label: 'ADMIN', value: data.length, icon: Shield, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Accounts' },
             { label: 'ACTIVE', value: data.filter(a => a.status === 'Active').length, icon: UserCheck, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Operational' },
-            { label: 'DEACTIVATED', value: data.filter(a => a.status === 'Inactive').length, icon: User, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
+            { label: 'INACTIVE', value: data.filter(a => a.status === 'Inactive').length, icon: User, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
             { label: 'BLOCKED', value: data.filter(a => a.status === 'Blocked').length, icon: UserX, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Restricted' },
             { label: 'LOGIN', value: data.filter(a => isToday(a.lastLogin)).length, icon: Clock, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Active Today' },
             { label: 'PENDING', value: data.filter(a => a.status === 'Inactive' && !a.blocked).length, icon: AlertCircle, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Review' },

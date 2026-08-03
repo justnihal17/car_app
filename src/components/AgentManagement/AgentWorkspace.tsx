@@ -534,7 +534,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
             { label: 'AGENTS', value: agentsList.length, icon: Car, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Accounts' },
             { label: 'AVAILABLE', value: agentsList.filter(a => a.status === 'Available').length, icon: UserCheck, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'On Duty' },
             { label: 'BUSY', value: agentsList.filter(a => a.status === 'Busy').length, icon: Briefcase, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Assigned' },
-            { label: 'DEACTIVATED', value: agentsList.filter(a => a.status === 'Inactive').length, icon: UserMinus, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
+            { label: 'INACTIVE', value: agentsList.filter(a => a.status === 'Inactive').length, icon: UserMinus, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
             { label: 'BLOCKED', value: agentsList.filter(a => a.blocked).length, icon: UserX, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Restricted' },
             { label: 'TOP RATED', value: agentsList.filter(a => Number(a.rating || 0) > 4).length, icon: Star, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Rating > 4.0' },
           ].map((card, i) => {
@@ -594,7 +594,6 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
             <thead className="bg-[#FFF] backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
               <tr className="bg-slate-50/50 border-b border-slate-200">
                 <th className="px-4 py-4 pl-6 text-left text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-xl w-[300px]">Agent Name</th>
-                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Role</th>
                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Phone</th>
                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Status</th>
                 <th className="px-4 py-4 pr-6 text-right text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tr-xl w-[120px]">Actions</th>
@@ -605,7 +604,6 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-4 py-4 pl-6"><div className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
-                    <td className="px-4 py-4"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
@@ -613,7 +611,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 ))
               ) : filteredAgents.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
+                  <td colSpan={4} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
                 </tr>
               ) : paginatedAgents.map((agent, index) => (
                 <tr key={agent.id} className="hover:bg-[#FEFEFE] transition-all duration-150 group cursor-pointer border-b border-slate-100 last:border-0" onClick={(e) => handleViewDrawer(e, agent)}>
@@ -638,7 +636,6 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm">{agent.role || 'Service Agent'}</td>
                   <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm font-mono">{agent.phone || '-'}</td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <StatusBadge status={agent.blocked ? 'Blocked' : (agent.active !== false ? 'Active' : 'Inactive')} />
@@ -868,7 +865,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         value={formData.firstName || ''}
                         disabled={drawerMode === "view"}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
                     <div>
@@ -879,7 +876,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         value={formData.lastName || ''}
                         disabled={drawerMode === "view"}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
 
@@ -891,7 +888,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         value={formData.email || ''}
                         disabled={drawerMode === "view"}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
 
@@ -903,7 +900,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         value={formData.phone || ''}
                         disabled={drawerMode === "view"}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
                   </div>
@@ -946,7 +943,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         type="button" 
                         disabled={drawerMode === "view"} 
                         onClick={() => { setIsGenderOpen(!isGenderOpen); setIsEmirateOpen(false); setIsCityOpen(false); setIsSkillsOpen(false); }} 
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-slate-300 focus:ring-1 focus:ring-slate-200'}`}
                       >
                         <span className={!formData.gender ? 'text-slate-400' : 'text-slate-900 font-medium'}>
                           {formData.gender || 'Select Gender'}
@@ -954,7 +951,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         <ChevronDown className="w-4 h-4 text-slate-400" />
                       </button>
                       {isGenderOpen && (
-                        <div className="absolute mt-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-y-auto custom-scrollbar p-1.5">
+                        <div className="absolute bottom-full mb-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
                           {['Male', 'Female', 'Other'].map(s => (
                             <button 
                               type="button" 
