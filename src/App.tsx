@@ -147,7 +147,7 @@ export default function App() {
       />
       
       <div 
-        className={`transition-all duration-300 flex-1 w-full min-w-0 flex flex-col ${collapsed ? 'pl-20' : 'pl-64'}`}
+        className={`transition-all duration-300 flex-1 w-full min-w-0 flex flex-col ${collapsed ? 'pl-20' : 'pl-[285px]'}`}
       >
         <Header sidebarCollapsed={collapsed} onViewChange={handleViewChange} onLogout={handleLogoutRequest} />
         <main className="pt-16 flex-1 w-full min-w-0">

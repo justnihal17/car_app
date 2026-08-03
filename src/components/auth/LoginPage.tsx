@@ -98,7 +98,7 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
             initial={{ scale: 1.1, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-            src="/images/login-car.png" 
+            src="/images/login-car.jpg" 
             alt="HD Premium Red Sports Car" 
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />

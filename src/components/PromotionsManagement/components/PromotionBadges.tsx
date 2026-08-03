@@ -4,25 +4,25 @@ import { Tag, Zap, Share2, Wallet, CheckCircle2, XCircle, Clock } from 'lucide-r
 
 export function PromoTypeBadge({ type }: { type: PromoType }) {
   switch (type) {
-    case 'coupon':
+    case 'COUPON':
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/60 shadow-2xs">
           <Tag className="w-3.5 h-3.5" /> Coupon
         </span>
       );
-    case 'automatic':
+    case 'AUTOMATIC':
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200/60 shadow-2xs">
           <Zap className="w-3.5 h-3.5 text-purple-600" /> Automatic
         </span>
       );
-    case 'referral':
+    case 'REFERRAL':
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/60 shadow-2xs">
           <Share2 className="w-3.5 h-3.5 text-amber-600" /> Referral
         </span>
       );
-    case 'cashback':
+    case 'CASHBACK':
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
           <Wallet className="w-3.5 h-3.5 text-emerald-600" /> Cashback
@@ -50,7 +50,7 @@ export function PromotionStatusBadge({
     );
   }
 
-  if (status === 'active') {
+  if (status === 'ACTIVE') {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
         <CheckCircle2 className="w-3.5 h-3.5" /> Active
@@ -77,11 +77,11 @@ export function DiscountBadge({
   referralReward?: number;
 }) {
   let label = '';
-  if (discountType === 'flat') {
+  if (discountType === 'FLAT') {
     label = `₹${discountValue || 0} Flat`;
-  } else if (discountType === 'percentage') {
+  } else if (discountType === 'PERCENTAGE') {
     label = `${discountValue || 0}% Off`;
-  } else if (discountType === 'free_service') {
+  } else if (discountType === 'FREE_SERVICE') {
     label = 'Free Service';
   }
 

@@ -21,8 +21,8 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
     onChange({ validDays: updated });
   };
 
-  const selectDayGroup = (type: 'all' | 'weekdays' | 'weekends') => {
-    if (type === 'all') {
+  const selectDayGroup = (type: 'ALL' | 'weekdays' | 'weekends') => {
+    if (type === 'ALL') {
       onChange({ validDays: [...DAYS_OF_WEEK] });
     } else if (type === 'weekdays') {
       onChange({ validDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] });
@@ -86,7 +86,7 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
           <div className="flex items-center gap-2 text-xs font-semibold">
             <button
               type="button"
-              onClick={() => selectDayGroup('all')}
+              onClick={() => selectDayGroup('ALL')}
               className="text-red-600 hover:underline"
             >
               Select All
@@ -179,7 +179,7 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
       </div>
 
       {/* Type-Specific Reward Fields */}
-      {formData.promoType === 'cashback' && (
+      {formData.promoType === 'CASHBACK' && (
         <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-2">
           <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
             <Wallet className="w-4 h-4 text-emerald-600" /> Wallet Cashback Amount <span className="text-red-500">*</span>
@@ -200,7 +200,7 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
         </div>
       )}
 
-      {formData.promoType === 'referral' && (
+      {formData.promoType === 'REFERRAL' && (
         <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-2">
           <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
             <Share2 className="w-4 h-4 text-amber-600" /> Referral Reward Amount <span className="text-red-500">*</span>
@@ -252,11 +252,11 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
           </div>
           <button
             type="button"
-            disabled={formData.promoType === 'automatic'}
+            disabled={formData.promoType === 'AUTOMATIC'}
             onClick={() => onChange({ autoApply: !formData.autoApply })}
             className={`w-11 h-6 rounded-full transition-colors relative ${
               formData.autoApply ? 'bg-purple-600' : 'bg-slate-300'
-            } ${formData.promoType === 'automatic' ? 'opacity-80 cursor-not-allowed' : ''}`}
+            } ${formData.promoType === 'AUTOMATIC' ? 'opacity-80 cursor-not-allowed' : ''}`}
           >
             <div
               className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${

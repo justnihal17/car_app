@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Car, UserCheck, UserMinus, UserX, Clock, Star, Plus, Download, Search, Filter, MoreHorizontal, RefreshCw, Briefcase, FileText, ChevronDown, X, Trash2, Edit2, Eye, EyeOff, Upload, Save, Check, ChevronRight, Sparkles, User, Copy } from 'lucide-react';
+import { Car, UserCheck, UserMinus, UserX, Clock, Star, Plus, Download, Search, Filter, MoreHorizontal, RefreshCw, Briefcase, FileText, ChevronDown, ChevronLeft, X, Trash2, Edit2, Eye, EyeOff, Upload, Save, Check, ChevronRight, Sparkles, User, Copy } from 'lucide-react';
 import { AnalyticsCard } from '../common/AnalyticsCard';
 import { SlidePanel } from '../common/SlidePanel';
 import { StatusBadge } from '../StatusBadge';
@@ -15,7 +15,6 @@ import toast from 'react-hot-toast';
 import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
 import { ConfirmationModal, ActionType } from '../ConfirmationModal';
 import { uploadImage } from '../../services/uploadService';
-import { ImageCropModal } from '../common/ImageCropModal';
 import { getCompactDrawerClass, SectionActiveToggle } from '../SubAdminManagement/utils/subAdminFormUtils';
 import { getLoggedInAdminName } from '../SubAdminManagement/subAdminDrawerUtils';
 
@@ -33,6 +32,19 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const [statusMessage, setStatusMessage] = useState('');
   const [showRowPasswords, setShowRowPasswords] = useState<{ [id: string]: boolean }>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openActionMenuId && !(event.target as HTMLElement).closest('.action-menu-container')) {
+        setOpenActionMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openActionMenuId]);
 
   const toggleRowPassword = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -64,8 +76,8 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           name: a.name || `${a.firstName || ''} ${a.lastName || ''}`.trim() || 'Agent',
           phone: a.phone || '-',
           email: a.email || '-',
-          city: a.city || 'Delhi',
-          country: a.country || 'India',
+          emirate: a.emirate || a.state || 'Dubai',
+          city: a.city || 'Dubai',
           password: autoPassword,
           role: formattedRole,
           gender: a.gender || 'Male',
@@ -96,17 +108,37 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
   const [photo, setPhoto] = useState<any>(null);
   const [imgError, setImgError] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const [availableSkills, setAvailableSkills] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+  const [isGenderOpen, setIsGenderOpen] = useState(false);
+  const [isEmirateOpen, setIsEmirateOpen] = useState(false);
+  const [isCityOpen, setIsCityOpen] = useState(false);
+
+  const DEFAULT_EMIRATES = [
+    'Abu Dhabi', 'Ajman', 'Dubai', 'Fujairah', 'Ras Al Khaimah', 'Sharjah', 'Umm Al Quwain'
+  ];
+
+  const EMIRATE_CITIES_MAP: Record<string, string[]> = {
+    'Abu Dhabi': ['Abu Dhabi', 'Al Ain', 'Al Dhafra', 'Ruwais'],
+    'Ajman': ['Ajman', 'Al Manama', 'Masfout'],
+    'Dubai': ['Dubai', 'Jebel Ali', 'Hatta'],
+    'Fujairah': ['Fujairah', 'Al Aqah', 'Al Bidyah', 'Dibba Al-Fujairah'],
+    'Ras Al Khaimah': ['Ras Al Khaimah', 'Al Jazira Al Hamra', 'Al Rams', 'Digdaga'],
+    'Sharjah': ['Sharjah', 'Al Hamriyah', 'Khor Fakkan', 'Kalba', 'Diba Al Hisn'],
+    'Umm Al Quwain': ['Umm Al Quwain', 'Al Raas', 'Al Salamah', 'Falaj Al Mualla'],
+  };
+
+  const [availableEmirates, setAvailableEmirates] = useState<string[]>(DEFAULT_EMIRATES);
+  const [cityMasterList, setCityMasterList] = useState<{ name: string; emirate: string }[]>([]);
 
   useEffect(() => {
     if (isDrawerOpen) {
       const fetchSkills = async () => {
         try {
           const response = await api.get('/master/skill/admin');
-          
           const rawList = Array.isArray(response.data?.data)
             ? response.data.data
             : (Array.isArray(response.data) ? response.data : (response.data?.skills || response.data?.list || []));
@@ -123,7 +155,48 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           console.warn('Failed to load skills:', err);
         }
       };
+
+      const fetchEmiratesAndCities = async () => {
+        try {
+          const stateRes = await api.get('/master/state/admin').catch(() => api.get('/master/state'));
+          const stateList = Array.isArray(stateRes.data?.data)
+            ? stateRes.data.data
+            : (Array.isArray(stateRes.data) ? stateRes.data : (stateRes.data?.states || stateRes.data?.list || []));
+
+          if (Array.isArray(stateList) && stateList.length > 0) {
+            const eNames = stateList
+              .map((s: any) => s.name || s.title || s.stateName || (typeof s === 'string' ? s : ''))
+              .filter((n: string) => Boolean(n.trim()));
+            if (eNames.length > 0) {
+              setAvailableEmirates(Array.from(new Set([...DEFAULT_EMIRATES, ...eNames])));
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to load emirates:', e);
+        }
+
+        try {
+          const cityRes = await api.get('/master/city/admin').catch(() => api.get('/master/city'));
+          const cList = Array.isArray(cityRes.data?.data)
+            ? cityRes.data.data
+            : (Array.isArray(cityRes.data) ? cityRes.data : (cityRes.data?.cities || cityRes.data?.list || []));
+
+          if (Array.isArray(cList) && cList.length > 0) {
+            const mapped = cList.map((c: any) => {
+              const cName = c.name || c.cityName || c.title || (typeof c === 'string' ? c : '');
+              const cEmirate = typeof c.stateId === 'object' ? c.stateId?.name : (typeof c.state === 'object' ? c.state?.name : (c.stateName || c.emirateName || (typeof c.state === 'string' ? c.state : (typeof c.emirate === 'string' ? c.emirate : ''))));
+              return { name: cName, emirate: cEmirate || '' };
+            }).filter((c: any) => Boolean(c.name.trim()));
+
+            setCityMasterList(mapped);
+          }
+        } catch (e) {
+          console.warn('Failed to load cities:', e);
+        }
+      };
+
       fetchSkills();
+      fetchEmiratesAndCities();
     }
   }, [isDrawerOpen]);
   const [showPassword, setShowPassword] = useState(false);
@@ -142,8 +215,37 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   const [formData, setFormData] = useState<Record<string, any>>({
-      fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0], active: true
+      fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', gender: '', userId: '', password: '', confirmPassword: '', emirate: 'Dubai', city: 'Dubai', joiningDate: new Date().toISOString().split('T')[0], active: true
   });
+
+  const getCitiesForEmirate = (selectedEmirate: string) => {
+    if (!selectedEmirate) return [];
+    
+    const matched = cityMasterList
+      .filter(c => c.emirate && c.emirate.toLowerCase().trim() === selectedEmirate.toLowerCase().trim())
+      .map(c => c.name);
+
+    if (matched.length > 0) {
+      return Array.from(new Set(matched));
+    }
+
+    const fallbackKey = Object.keys(EMIRATE_CITIES_MAP).find(k => k.toLowerCase().trim() === selectedEmirate.toLowerCase().trim());
+    if (fallbackKey) {
+      return EMIRATE_CITIES_MAP[fallbackKey];
+    }
+
+    return [selectedEmirate];
+  };
+
+  const handleEmirateChange = (newEmirate: string) => {
+    const cities = getCitiesForEmirate(newEmirate);
+    const defaultCity = cities[0] || newEmirate;
+    setFormData(prev => ({
+      ...prev,
+      emirate: newEmirate,
+      city: defaultCity,
+    }));
+  };
 
   const handleSubmit = async () => {
       if (loading) return;
@@ -256,8 +358,8 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   };
 
   const handleViewDrawer = (e: React.MouseEvent, agent: any) => {
-      e.stopPropagation();
-      setDrawerMode("edit");
+      e?.stopPropagation();
+      setDrawerMode("view");
       setEditingAgentId(agent.id);
       const viewFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
       const viewLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
@@ -271,10 +373,10 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           role: agent.role || 'service_agent',
           gender: agent.gender || '',
           userId: agent.userId || '',
-          password: '',
+          password: agent.password || '',
           confirmPassword: '',
-          city: agent.city || 'Delhi',
-          country: agent.country || 'India',
+          emirate: agent.emirate || agent.state || 'Dubai',
+          city: agent.city || 'Dubai',
           joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
       });
       setPhoto(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
@@ -287,7 +389,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     setDrawerMode("register");
     setEditingAgentId(null);
     setFormData({
-        fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', role: 'service_agent', gender: '', userId: '', password: '', confirmPassword: '', city: 'Delhi', country: 'India', joiningDate: new Date().toISOString().split('T')[0]
+        fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', gender: '', userId: '', password: '', confirmPassword: '', emirate: 'Dubai', city: 'Dubai', joiningDate: new Date().toISOString().split('T')[0]
     });
     setPhoto(null);
     setPhotoPreview(null);
@@ -376,15 +478,18 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
     if (!matchesSearch) return false;
 
-    if (!selectedCard || selectedCard === 'Total Agents') return true;
-    if (selectedCard === 'Available') return a.status === 'Available';
-    if (selectedCard === 'Busy') return a.status === 'Busy';
-    if (selectedCard === 'Inactive') return a.status === 'Inactive';
-    if (selectedCard === 'Blocked') return Boolean(a.blocked);
-    if (selectedCard === 'Top Rated') return (a.rating || 0) >= 4.5;
+    if (!selectedCard || selectedCard === 'Total Agents' || selectedCard === 'AGENTS') return true;
+    if (selectedCard === 'Available' || selectedCard === 'AVAILABLE') return a.status === 'Available';
+    if (selectedCard === 'Busy' || selectedCard === 'BUSY') return a.status === 'Busy';
+    if (selectedCard === 'Inactive' || selectedCard === 'INACTIVE' || selectedCard === 'DEACTIVATED') return a.status === 'Inactive';
+    if (selectedCard === 'Blocked' || selectedCard === 'BLOCKED') return Boolean(a.blocked);
+    if (selectedCard === 'Top Rated' || selectedCard === 'TOP RATED') return (a.rating || 0) >= 4.5;
 
     return true;
   });
+
+  const totalPages = Math.ceil(filteredAgents.length / ITEMS_PER_PAGE);
+  const paginatedAgents = filteredAgents.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
@@ -426,12 +531,12 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           ))
         ) : (
           [
-            { label: 'Agents', value: agentsList.length, icon: Car, color: 'text-red-600 bg-red-50 border-red-100', activeBorder: 'border-red-600', activeBg: 'bg-red-50/50', activeText: 'text-red-600', bgGrad: 'from-red-50/50 via-white to-white', sub: 'Accounts' },
-            { label: 'Available', value: agentsList.filter(a => a.status === 'Available').length, icon: UserCheck, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', activeBorder: 'border-emerald-600', activeBg: 'bg-emerald-50/50', activeText: 'text-emerald-700', bgGrad: 'from-emerald-50/50 via-white to-white', sub: 'On Duty' },
-            { label: 'Busy', value: agentsList.filter(a => a.status === 'Busy').length, icon: Briefcase, color: 'text-blue-600 bg-blue-50 border-blue-100', activeBorder: 'border-blue-600', activeBg: 'bg-blue-50/50', activeText: 'text-blue-700', bgGrad: 'from-blue-50/50 via-white to-white', sub: 'Assigned' },
-            { label: 'Inactive', value: agentsList.filter(a => a.status === 'Inactive').length, icon: UserMinus, color: 'text-amber-600 bg-amber-50 border-amber-100', activeBorder: 'border-amber-500', activeBg: 'bg-amber-50/50', activeText: 'text-amber-700', bgGrad: 'from-amber-50/50 via-white to-white', sub: 'Off-line' },
-            { label: 'Blocked', value: agentsList.filter(a => a.blocked).length, icon: UserX, color: 'text-rose-600 bg-rose-50 border-rose-100', activeBorder: 'border-rose-600', activeBg: 'bg-rose-50/50', activeText: 'text-rose-700', bgGrad: 'from-rose-50/50 via-white to-white', sub: 'Restricted' },
-            { label: 'Top Rated', value: agentsList.filter(a => Number(a.rating || 0) > 4).length, icon: Star, color: 'text-purple-600 bg-purple-50 border-purple-100', activeBorder: 'border-purple-600', activeBg: 'bg-purple-50/50', activeText: 'text-purple-700', bgGrad: 'from-purple-50/50 via-white to-white', sub: 'Rating > 4.0' },
+            { label: 'AGENTS', value: agentsList.length, icon: Car, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Accounts' },
+            { label: 'AVAILABLE', value: agentsList.filter(a => a.status === 'Available').length, icon: UserCheck, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'On Duty' },
+            { label: 'BUSY', value: agentsList.filter(a => a.status === 'Busy').length, icon: Briefcase, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Assigned' },
+            { label: 'DEACTIVATED', value: agentsList.filter(a => a.status === 'Inactive').length, icon: UserMinus, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
+            { label: 'BLOCKED', value: agentsList.filter(a => a.blocked).length, icon: UserX, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Restricted' },
+            { label: 'TOP RATED', value: agentsList.filter(a => Number(a.rating || 0) > 4).length, icon: Star, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Rating > 4.0' },
           ].map((card, i) => {
             const Icon = card.icon;
             const isFocused = selectedCard === card.label;
@@ -439,16 +544,16 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
               <div 
                 key={i} 
                 onClick={() => setSelectedCard(prev => prev === card.label ? null : card.label)}
-                className={`bg-gradient-to-br ${card.bgGrad} p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
+                className={`bg-white p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
                   isFocused 
-                    ? `border-2 ${card.activeBorder} ${card.activeBg}` 
+                    ? `border border-slate-300 bg-white shadow-md` 
                     : 'border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className={`text-xs font-semibold tracking-tight transition-colors uppercase ${isFocused ? `${card.activeText} font-bold` : 'text-slate-500 group-hover:text-slate-800'}`}>{card.label}</span>
+                  <span className={`text-xs font-bold tracking-tight transition-colors uppercase ${isFocused ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-800'}`}>{card.label}</span>
                   <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 text-slate-600" />
                   </div>
                 </div>
                 <div className="flex items-baseline justify-between mt-2">
@@ -464,50 +569,56 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       {/* Main Content */}
       <div className="space-y-4">
 
-      {/* Title & Search Bar */}
-      <div className="space-y-4">
-        <div className="flex justify-end gap-4">
-          <div className="relative w-full md:w-80 group">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search agent name, email, phone..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all shadow-xs" 
-            />
+        {/* Title & Search Bar */}
+        <div className="flex justify-end">
+          <div className="flex items-center gap-2.5 w-full md:w-auto">
+            <div className="relative w-full md:w-80 group">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search by name..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-lg text-sm font-medium placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-sm" 
+              />
+            </div>
+            <button className="px-6 py-2.5 bg-red-600 text-white hover:bg-red-700 font-medium rounded-lg shadow-sm transition-all text-sm shrink-0">
+              Search
+            </button>
           </div>
         </div>
 
-        {/* Table Container - Exact Match with SubAdmin */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        {/* Table Container */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-visible">
           <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-slate-50/80 backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
-              <tr>
-                <th className="px-4 py-4 whitespace-nowrap">Agent</th>
-                <th className="px-4 py-4 whitespace-nowrap">Email</th>
-                <th className="px-4 py-4 whitespace-nowrap">Phone</th>
-                <th className="px-4 py-4 pr-6 text-right whitespace-nowrap">Actions</th>
+            <thead className="bg-[#FFF] backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
+              <tr className="bg-slate-50/50 border-b border-slate-200">
+                <th className="px-4 py-4 pl-6 text-left text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-xl w-[300px]">Agent Name</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Role</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Phone</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Status</th>
+                <th className="px-4 py-4 pr-6 text-right text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tr-xl w-[120px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-4.5 pl-6"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
-                    <td className="px-4 py-4.5"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
-                    <td className="px-4 py-4.5"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
-                    <td className="px-4 py-4.5 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
+                    <td className="px-4 py-4 pl-6"><div className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
+                    <td className="px-4 py-4"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
+                    <td className="px-4 py-4 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
                   </tr>
                 ))
               ) : filteredAgents.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
+                  <td colSpan={5} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
                 </tr>
-              ) : filteredAgents.map(agent => (
-                <tr key={agent.id} className="hover:bg-red-50/20 transition-all duration-150 group cursor-pointer" onClick={(e) => handleViewDrawer(e, agent)}>
-                  <td className="px-4 py-4.5 pl-6 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
+              ) : paginatedAgents.map((agent, index) => (
+                <tr key={agent.id} className="hover:bg-[#FEFEFE] transition-all duration-150 group cursor-pointer border-b border-slate-100 last:border-0" onClick={(e) => handleViewDrawer(e, agent)}>
+                  <td className="px-4 py-4 pl-6 whitespace-nowrap">
+                    <div className="flex items-center gap-2.5">
                       <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(agent.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
                         {(agent.profileImage || agent.profileUrl || agent.imageUrl) ? (
                           <img 
@@ -521,245 +632,505 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         ) : null}
                         <span>{getInitials(agent.name)}</span>
                       </div>
-                      <span className="font-medium text-slate-900 text-sm tracking-tight whitespace-nowrap">{agent.name}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-slate-800 text-[15px] tracking-tight whitespace-nowrap leading-tight">{agent.name}</span>
+                        <span className="text-sm text-slate-400 mt-0.5">{agent.email || '-'}</span>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4.5 whitespace-nowrap text-slate-600 text-sm">{agent.email || '-'}</td>
-                  <td className="px-4 py-4.5 whitespace-nowrap text-slate-600 text-sm font-mono">{agent.phone || '-'}</td>
-                  <td className="px-4 py-4.5 pr-6 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1.5">
+                  <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm">{agent.role || 'Service Agent'}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm font-mono">{agent.phone || '-'}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <StatusBadge status={agent.blocked ? 'Blocked' : (agent.active !== false ? 'Active' : 'Inactive')} />
+                  </td>
+                  <td className="px-4 py-4 pr-6 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end relative action-menu-container">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleAgentStatus(agent);
+                          setOpenActionMenuId(openActionMenuId === agent.id ? null : agent.id);
                         }}
-                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none mr-1.5 ${
-                          agent.active !== false ? 'bg-emerald-500' : 'bg-slate-300'
-                        }`}
+                        className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
                       >
-                        <span
-                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                            agent.active !== false ? 'translate-x-4' : 'translate-x-0'
-                          }`}
-                        />
+                        <MoreHorizontal className="w-5 h-5" />
                       </button>
-                      <button onClick={(e) => handleViewDrawer(e, agent)} className="text-blue-600 hover:text-blue-800 p-1 transition-transform hover:scale-110"><Eye className="w-4 h-4"/></button>
-                      <button onClick={(e) => handleEdit(e, agent)} className="text-emerald-600 hover:text-emerald-800 p-1 transition-transform hover:scale-110"><Edit2 className="w-4 h-4"/></button>
-                      <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'delete', agent }); }} className="text-red-600 hover:text-red-800 p-1 transition-transform hover:scale-110"><Trash2 className="w-4 h-4"/></button>
-                      {agent.blocked ? (
-                        <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'unblock', agent }); }} className="text-emerald-600 hover:text-emerald-900 p-1 transition-transform hover:scale-110"><UserCheck className="w-4 h-4"/></button>
-                      ) : (
-                        <button onClick={(e) => { e.stopPropagation(); setActionModal({ isOpen: true, actionType: 'block', agent }); }} className="text-slate-600 hover:text-slate-900 p-1 transition-transform hover:scale-110"><UserX className="w-4 h-4"/></button>
-                      )}
+
+                    {openActionMenuId === agent.id && (
+                      <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-[99] animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedAgents.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleViewDrawer(e, agent); }} 
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          <Eye className="w-4 h-4 text-slate-500" /> View Details
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleEdit(e, agent); }} 
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4 text-slate-500" /> Edit
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleToggleAgentStatus(agent); }} 
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          {agent.active !== false ? <UserX className="w-4 h-4 text-slate-500" /> : <UserCheck className="w-4 h-4 text-slate-500" />} 
+                          {agent.active !== false ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <div className="border-t border-slate-100 my-1"></div>
+                        {agent.blocked ? (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'unblock', agent }); }} 
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors"
+                          >
+                            <UserCheck className="w-4 h-4" /> Unblock
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'block', agent }); }} 
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 transition-colors"
+                          >
+                            <UserX className="w-4 h-4" /> Block
+                          </button>
+                        )}
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'delete', agent }); }} 
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" /> Delete
+                        </button>
+                      </div>
+                    )}
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          {totalPages > 0 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+              <div className="text-sm text-slate-500 font-medium">
+                Showing <span className="text-slate-900 font-semibold">{filteredAgents.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="text-slate-900 font-semibold">{Math.min(currentPage * ITEMS_PER_PAGE, filteredAgents.length)}</span> of <span className="text-slate-900 font-semibold">{filteredAgents.length}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === page ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
       </div>
 
       {isDrawerOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end transition-all duration-300">
-          <div className={getCompactDrawerClass()}>
-            {/* Drawer Header with Target Agent Name */}
-            <div className="px-5 py-3.5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
-                  <Car className="w-4 h-4" />
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-6 transition-opacity duration-200 ease-out">
+          <div className="bg-[#F8FAFC] w-full max-w-full md:max-w-2xl rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 ease-out">
+            {/* Header - White, minimal, top accent */}
+            <div className="px-6 py-4 bg-white flex items-center justify-between border-b border-slate-200 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 shadow-sm">
+                  <Car className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black tracking-tight text-white capitalize">
+                  <h3 className="text-lg font-semibold tracking-tight text-slate-900 capitalize leading-tight">
                     {(drawerMode === "view" || drawerMode === "edit")
-                      ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || "Agent Details")
-                      : "Create"}
+                      ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || "Edit Agent")
+                      : "Create Agent"}
                   </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {drawerMode === "view" ? 'View agent details.' : (drawerMode === "edit" ? 'Manage agent details and skills.' : 'Add a new agent to the system.')}
+                  </p>
                 </div>
               </div>
-              <button onClick={() => setIsDrawerOpen(false)} className="p-1.5 rounded-xl text-red-100 hover:text-white hover:bg-white/10 transition-all">
-                <X className="w-4 h-4" />
+              <button onClick={() => setIsDrawerOpen(false)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Close modal">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Form Content */}
-            <div className="flex-1 space-y-3.5 overflow-y-auto p-5 custom-scrollbar flex flex-col justify-between">
-              <div className="space-y-6">
-                {/* Image Section */}
-                <div className="space-y-2">
-                  <div 
-                    onClick={() => drawerMode !== "view" && fileInputRef.current?.click()} 
-                    className={`border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs ${drawerMode === "view" ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:shadow-red-500/5'}`}
-                  >
-                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
-                      {(photoPreview || (photo && !imgError)) ? (
-                        <img 
-                          src={photoPreview || (typeof photo === 'string' ? photo : undefined)} 
-                          className="w-full h-full object-cover" 
-                          alt="Agent Photo" 
-                          onError={() => setImgError(true)} 
-                        />
-                      ) : (
-                        <User className="w-8 h-8 text-red-500" />
-                      )}
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar relative pb-10">
+              
+              {/* Personal Information Section */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-600 shadow-sm">
+                      <User className="w-4 h-4" />
                     </div>
-                    {drawerMode !== "view" && (
-                      <>
-                        <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
-                          <Upload className="w-3.5 h-3.5" /> Upload Image
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
-                      </>
-                    )}
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-900">Personal Information</h4>
+                      <p className="text-xs text-slate-500 mt-0.5">Basic contact and profile details.</p>
+                    </div>
                   </div>
-                  <input 
-                    ref={fileInputRef} 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*" 
-                    disabled={drawerMode === "view"} 
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        setRawSelectedFile(file);
-                        setRawPreviewUrl(URL.createObjectURL(file));
-                        setCropModalOpen(true);
-                        setImgError(false);
-                      }
-                    }} 
-                  />
                 </div>
-                
-                {/* Form Fields */}
-                <div className="space-y-4">
-                  {/* Information Section with Active Toggle Opposite */}
-                  <div className="flex items-center justify-between pt-1 pb-1">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-4 bg-red-600 rounded-full" />
-                      <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Information</h4>
+                <div className="p-5 space-y-5">
+                  {/* Profile Photo Horizontal Row */}
+                  <div className="flex items-center gap-5 pb-2">
+                    <div 
+                      className="relative group shrink-0"
+                      onClick={() => {
+                        if (photoPreview || (photo && !imgError)) {
+                          setShowImageModal(true);
+                        } else if (drawerMode !== "view") {
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                    >
+                      <div className={`w-16 h-16 rounded-full border-2 border-slate-100 shadow-sm overflow-hidden bg-slate-50 flex items-center justify-center transition-all ${photoPreview || (photo && !imgError) ? 'cursor-pointer hover:scale-105' : (drawerMode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')} ${drawerMode === "view" ? '' : 'group-hover:border-red-100'}`}>
+                        {(photoPreview || (photo && !imgError)) ? (
+                          <img 
+                            src={photoPreview || (typeof photo === 'string' ? photo : undefined)} 
+                            className="w-full h-full object-cover" 
+                            alt="Profile" 
+                            onError={() => setImgError(true)}
+                          />
+                        ) : (
+                          <User className="w-7 h-7 text-slate-300" />
+                        )}
+                      </div>
                     </div>
-                    <SectionActiveToggle 
-                      checked={formData.active !== undefined ? formData.active : true} 
-                      onChange={v => setFormData({...formData, active: v})} 
-                      disabled={drawerMode === "view"} 
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="sub-admin-form-label">First Name</label>
-                      <input type="text" disabled={drawerMode === "view"} placeholder="First Name" value={formData.firstName || ''} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="sub-admin-form-input" />
-                    </div>
-                    <div>
-                      <label className="sub-admin-form-label">Last Name</label>
-                      <input type="text" disabled={drawerMode === "view"} placeholder="Last Name" value={formData.lastName || ''} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="sub-admin-form-input" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="sub-admin-form-label">Email Address</label>
-                      <input type="email" disabled={drawerMode === "view"} placeholder="agent@stylein.com" value={formData.email || ''} onChange={(e) => setFormData({...formData, email: e.target.value})} className="sub-admin-form-input" />
-                    </div>
-                    <div>
-                      <label className="sub-admin-form-label">Phone Number</label>
-                      <input type="tel" disabled={drawerMode === "view"} placeholder="+91 98765 43210" value={formData.phone || ''} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="sub-admin-form-input" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="sub-admin-form-label">Gender</label>
-                      <select disabled={drawerMode === "view"} value={formData.gender || ''} onChange={(e) => setFormData({...formData, gender: e.target.value})} className="sub-admin-form-input cursor-pointer">
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="sub-admin-form-label">City</label>
-                      <input type="text" disabled={drawerMode === "view"} placeholder="Delhi" value={formData.city || ''} onChange={(e) => setFormData({...formData, city: e.target.value})} className="sub-admin-form-input" />
-                    </div>
-                    <div>
-                      <label className="sub-admin-form-label">Country</label>
-                      <input type="text" disabled={drawerMode === "view"} placeholder="India" value={formData.country || ''} onChange={(e) => setFormData({...formData, country: e.target.value})} className="sub-admin-form-input" />
-                    </div>
-                  </div>
-
-                  {/* Password & Role Side-by-side (Re-enter password removed) */}
-                  <div className="grid grid-cols-2 gap-4 pt-1">
-                    <div className="relative">
-                      <label className="sub-admin-form-label">Password</label>
-                      {!drawerMode || drawerMode !== "view" ? (
-                        <div className="relative">
-                          <input type={showPassword ? "text" : "password"} disabled={drawerMode === "view"} placeholder="••••••••" value={formData.password || ''} onChange={(e) => setFormData({...formData, password: e.target.value})} className="sub-admin-form-input pr-10" />
-                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    
+                    <div className="flex-1 flex flex-col gap-2 justify-center">
+                      {drawerMode !== "view" && (
+                        <div className="flex items-center gap-3">
+                          <button 
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-md hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-1.5"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            Change Photo
                           </button>
                         </div>
-                      ) : (
-                        <input disabled type="password" value="••••••••" className="sub-admin-form-input opacity-80" />
                       )}
-                    </div>
-                    <div>
-                      <label className="sub-admin-form-label">Role</label>
-                      <select disabled={drawerMode === "view"} value={formData.role || ''} onChange={(e) => setFormData({...formData, role: e.target.value})} className="sub-admin-form-input cursor-pointer">
-                        <option value="service_agent">Service Agent</option>
-                        <option value="senior_agent">Senior Agent</option>
-                        <option value="lead_agent">Lead Agent</option>
-                      </select>
+                      <p className="text-[11px] text-slate-400 font-medium">PNG, JPG or WEBP · Maximum 5MB</p>
+                      <input 
+                        ref={fileInputRef}
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            const localUrl = URL.createObjectURL(file);
+                            setPhotoPreview(localUrl);
+                            setImgError(false);
+                            toast.loading('Uploading Image...', { id: 'imgUpload' });
+                            try {
+                              const uploadedUrl = await uploadImage(file);
+                              toast.dismiss('imgUpload');
+                              toast.success('Image uploaded successfully');
+                              setPhoto(uploadedUrl);
+                              setPhotoPreview(uploadedUrl);
+                              setSelectedImageFile(null);
+                            } catch (err: any) {
+                              toast.dismiss('imgUpload');
+                              toast.error(err.message || 'Image upload failed');
+                              setSelectedImageFile(file);
+                            }
+                          }
+                        }}
+                      />
                     </div>
                   </div>
-                  
-                  <div className="pt-1">
-                    <label className="sub-admin-form-label">Skills</label>
-                    <div className="relative">
-                      {(() => {
-                        const skillsArr = parseSkillsArray(selectedSkills);
-                        return (
-                          <>
-                            <button type="button" disabled={drawerMode === "view"} onClick={() => setIsSkillsOpen(!isSkillsOpen)} className="sub-admin-form-input text-left flex justify-between items-center cursor-pointer">
-                              <span className={skillsArr.length === 0 ? 'text-slate-400' : 'text-slate-900 font-bold'}>
-                                {skillsArr.length > 0 ? skillsArr.join(', ') : 'Select Skills'}
-                              </span>
-                              <ChevronDown className="w-4 h-4 text-slate-400" />
-                            </button>
-                            {isSkillsOpen && (
-                              <div className="absolute z-30 w-full bg-white border border-slate-200/90 rounded-2xl shadow-xl mt-1.5 max-h-48 overflow-y-auto custom-scrollbar p-1.5">
-                                {availableSkills.filter(s => !skillsArr.includes(s)).map(s => (
-                                  <button type="button" key={s} onClick={() => { setSelectedSkills([...skillsArr, s]); setIsSkillsOpen(false); }} className="w-full px-3.5 py-2.5 text-left hover:bg-red-50 text-xs font-bold text-slate-700 hover:text-red-600 rounded-xl transition-colors">
-                                    {s}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
+
+                  {/* Form Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">First Name <span className="text-red-500">*</span></label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. John"
+                        value={formData.firstName || ''}
+                        disabled={drawerMode === "view"}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Last Name <span className="text-red-500">*</span></label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Doe"
+                        value={formData.lastName || ''}
+                        disabled={drawerMode === "view"}
+                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Address <span className="text-red-500">*</span></label>
+                      <input 
+                        type="email" 
+                        placeholder="e.g. agent@example.com"
+                        value={formData.email || ''}
+                        disabled={drawerMode === "view"}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number <span className="text-red-500">*</span></label>
+                      <input 
+                        type="tel" 
+                        placeholder="e.g. +1 234 567 8900"
+                        value={formData.phone || ''}
+                        disabled={drawerMode === "view"}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                      />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Footer Actions */}
-              <div className="pt-4 border-t border-slate-200/80 flex items-center gap-3 mt-auto">
-                <button type="button" onClick={() => setIsDrawerOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all text-xs">
-                  {drawerMode === "view" ? "Close" : "Cancel"}
-                </button>
-                {drawerMode !== "view" && (
-                  <button 
-                    type="button" 
-                    onClick={handleSubmit} 
-                    disabled={loading || !(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim() && formData.phone?.trim() && formData.gender?.trim() && formData.city?.trim() && formData.country?.trim() && formData.role?.trim() && selectedSkills.length > 0 && (drawerMode === 'edit' || Boolean(formData.password?.trim())))}
-                    className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
-                  >
-                    <Save className="w-4 h-4" /> {loading ? (statusMessage || 'Saving Data...') : (drawerMode === "edit" ? "Update" : "Register")}
-                  </button>
-                )}
+              {/* Status Section */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-5 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-900">Account Status</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Enable or disable this agent account.</p>
+                  </div>
+                  <SectionActiveToggle 
+                    checked={formData.active !== undefined ? formData.active : true} 
+                    onChange={v => setFormData({...formData, active: v})} 
+                    disabled={drawerMode === "view"} 
+                  />
+                </div>
               </div>
+
+              {/* Agent Details Section */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-visible">
+                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-600 shadow-sm">
+                      <Briefcase className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-900">Agent Details</h4>
+                      <p className="text-xs text-slate-500 mt-0.5">Role, location, and skills.</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-5 space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="relative">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Gender <span className="text-red-500">*</span></label>
+                      <button 
+                        type="button" 
+                        disabled={drawerMode === "view"} 
+                        onClick={() => { setIsGenderOpen(!isGenderOpen); setIsEmirateOpen(false); setIsCityOpen(false); setIsSkillsOpen(false); }} 
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                      >
+                        <span className={!formData.gender ? 'text-slate-400' : 'text-slate-900 font-medium'}>
+                          {formData.gender || 'Select Gender'}
+                        </span>
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                      </button>
+                      {isGenderOpen && (
+                        <div className="absolute mt-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-y-auto custom-scrollbar p-1.5">
+                          {['Male', 'Female', 'Other'].map(s => (
+                            <button 
+                              type="button" 
+                              key={s} 
+                              onClick={() => { setFormData({...formData, gender: s}); setIsGenderOpen(false); }} 
+                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors"
+                            >
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password {drawerMode === "create" && <span className="text-red-500">*</span>}</label>
+                      <div className="relative">
+                        <input 
+                          type={showPassword ? "text" : "password"} 
+                          placeholder="••••••••" 
+                          value={formData.password || ''} 
+                          onChange={(e) => drawerMode !== "view" && setFormData({...formData, password: e.target.value})} 
+                          disabled={drawerMode === "view"}
+                          className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 transition-all pr-10 ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : 'focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500'}`} 
+                        />
+                        <button 
+                            type="button" 
+                            onClick={() => setShowPassword(!showPassword)} 
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Emirate <span className="text-red-500">*</span></label>
+                      <button 
+                        type="button" 
+                        disabled={drawerMode === "view"} 
+                        onClick={() => { setIsEmirateOpen(!isEmirateOpen); setIsGenderOpen(false); setIsCityOpen(false); setIsSkillsOpen(false); }} 
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                      >
+                        <span className={!formData.emirate ? 'text-slate-400' : 'text-slate-900 font-medium'}>
+                          {formData.emirate || 'Select Emirate'}
+                        </span>
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                      </button>
+                      {isEmirateOpen && (
+                        <div className="absolute bottom-full mb-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
+                          {availableEmirates.map(e => (
+                            <button 
+                              type="button" 
+                              key={e} 
+                              onClick={() => { handleEmirateChange(e); setIsEmirateOpen(false); }} 
+                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors"
+                            >
+                              {e}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">City <span className="text-red-500">*</span></label>
+                      <button 
+                        type="button" 
+                        disabled={drawerMode === "view"} 
+                        onClick={() => { setIsCityOpen(!isCityOpen); setIsGenderOpen(false); setIsEmirateOpen(false); setIsSkillsOpen(false); }} 
+                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                      >
+                        <span className={!formData.city ? 'text-slate-400' : 'text-slate-900 font-medium'}>
+                          {formData.city || 'Select City'}
+                        </span>
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                      </button>
+                      {isCityOpen && (
+                        <div className="absolute bottom-full mb-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
+                          {getCitiesForEmirate(formData.emirate || '').map(c => (
+                            <button 
+                              type="button" 
+                              key={c} 
+                              onClick={() => { setFormData({...formData, city: c}); setIsCityOpen(false); }} 
+                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors"
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Skills <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        {(() => {
+                          const skillsArr = parseSkillsArray(selectedSkills);
+                          return (
+                            <>
+                              <button 
+                                type="button" 
+                                disabled={drawerMode === "view"} 
+                                onClick={() => { setIsSkillsOpen(!isSkillsOpen); setIsGenderOpen(false); setIsEmirateOpen(false); setIsCityOpen(false); }} 
+                                className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                              >
+                                <span className={skillsArr.length === 0 ? 'text-slate-400' : 'text-slate-900 font-medium'}>
+                                  {skillsArr.length > 0 ? skillsArr.join(', ') : 'Select Skills'}
+                                </span>
+                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                              </button>
+                              {isSkillsOpen && (
+                                <div className="absolute bottom-full mb-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
+                                  {availableSkills.filter(s => !skillsArr.includes(s)).map(s => (
+                                    <button 
+                                      type="button" 
+                                      key={s} 
+                                      onClick={() => { setSelectedSkills([...skillsArr, s]); setIsSkillsOpen(false); }} 
+                                      className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors"
+                                    >
+                                      {s}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-end gap-3 shrink-0">
+              <button 
+                type="button" 
+                onClick={() => setIsDrawerOpen(false)} 
+                className="px-6 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-sm shadow-sm"
+              >
+                {drawerMode === "view" ? "Close" : "Cancel"}
+              </button>
+              {drawerMode === "view" && (
+                <button
+                  type="button"
+                  onClick={() => setDrawerMode("edit")}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm"
+                >
+                  <Edit2 className="w-4 h-4" /> Edit Agent
+                </button>
+              )}
+              {drawerMode !== "view" && (
+                <button 
+                  type="button" 
+                  onClick={handleSubmit} 
+                  disabled={loading || !(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim() && formData.phone?.trim() && formData.gender?.trim() && formData.emirate?.trim() && formData.city?.trim() && selectedSkills.length > 0 && (drawerMode === 'edit' || Boolean(formData.password?.trim())))}
+                  className="flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" /> 
+                      {drawerMode === "edit" ? "Update Agent" : "Register Agent"}
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -772,29 +1143,28 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
         onCancel={() => setActionModal({ isOpen: false, actionType: 'view', agent: null })}
         onConfirm={handleAgentActionConfirm}
       />
-
-      <ImageCropModal
-        isOpen={cropModalOpen}
-        imageSrc={rawPreviewUrl}
-        file={rawSelectedFile}
-        onClose={() => setCropModalOpen(false)}
-        onCropComplete={async (croppedFile, croppedUrl) => {
-          setPhotoPreview(croppedUrl);
-          toast.loading('Uploading Image...', { id: 'imgUpload' });
-          try {
-            const uploadedUrl = await uploadImage(croppedFile);
-            toast.dismiss('imgUpload');
-            toast.success('Image uploaded successfully');
-            setPhoto(uploadedUrl);
-            setPhotoPreview(uploadedUrl);
-            setSelectedImageFile(null);
-          } catch (err: any) {
-            toast.dismiss('imgUpload');
-            toast.error(err.message || 'Image upload failed');
-            setSelectedImageFile(croppedFile);
-          }
-        }}
-      />
+      {/* Full Screen Image Modal */}
+      {showImageModal && (photoPreview || photo) && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] mx-4">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowImageModal(false); }}
+              className="absolute -top-12 right-0 md:-right-12 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors border border-white/20 backdrop-blur-md"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img 
+              src={photoPreview || (typeof photo === 'string' ? photo : undefined)} 
+              alt="Agent Photo Preview" 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/20"
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

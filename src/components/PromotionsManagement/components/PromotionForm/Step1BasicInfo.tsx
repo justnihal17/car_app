@@ -30,25 +30,25 @@ export function Step1BasicInfo({ formData, onChange, errors }: Step1Props) {
 
   const PROMO_TYPES: { type: PromoType; title: string; desc: string; icon: any }[] = [
     {
-      type: 'coupon',
+      type: 'COUPON',
       title: 'Coupon',
       desc: 'Customers enter a promotional code during checkout.',
       icon: Tag,
     },
     {
-      type: 'automatic',
+      type: 'AUTOMATIC',
       title: 'Automatic Offer',
       desc: 'The offer is automatically applied when eligibility conditions are met.',
       icon: Zap,
     },
     {
-      type: 'referral',
+      type: 'REFERRAL',
       title: 'Referral',
       desc: 'Rewards are provided through customer referrals.',
       icon: Share2,
     },
     {
-      type: 'cashback',
+      type: 'CASHBACK',
       title: 'Cashback',
       desc: 'A cashback amount is credited after an eligible booking.',
       icon: Wallet,
@@ -113,7 +113,7 @@ export function Step1BasicInfo({ formData, onChange, errors }: Step1Props) {
                 key={item.type}
                 onClick={() => {
                   const updates: Partial<Promotion> = { promoType: item.type };
-                  if (item.type === 'automatic') {
+                  if (item.type === 'AUTOMATIC') {
                     updates.autoApply = true;
                     updates.code = '';
                   }
@@ -145,7 +145,7 @@ export function Step1BasicInfo({ formData, onChange, errors }: Step1Props) {
       </div>
 
       {/* Promo Code (Only for Coupon) */}
-      {formData.promoType === 'coupon' && (
+      {formData.promoType === 'COUPON' && (
         <div className="space-y-1.5 bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-2">
           <label className="text-xs font-bold text-slate-800">
             Promo Code <span className="text-red-500">*</span>
@@ -191,7 +191,7 @@ export function Step1BasicInfo({ formData, onChange, errors }: Step1Props) {
       <div className="space-y-1.5 max-w-xs">
         <label className="text-xs font-bold text-slate-700">Status</label>
         <select
-          value={formData.status || 'active'}
+          value={formData.status || 'ACTIVE'}
           onChange={(e) => onChange({ status: e.target.value as any })}
           className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
         >

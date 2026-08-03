@@ -1,21 +1,22 @@
 import React from 'react';
 import { Plus, Tag, CheckCircle2, XCircle, RefreshCw, BadgePercent } from 'lucide-react';
-import { Promotion } from '../types/promotion.types';
+import { Promotion, PromotionStats } from '../types/promotion.types';
 
 interface PromotionsHeaderProps {
   promotions: Promotion[];
   loading?: boolean;
+  stats?: PromotionStats | null;
   onCreateClick: () => void;
 }
 
-export function PromotionsHeader({ promotions, loading, onCreateClick }: PromotionsHeaderProps) {
-  const activePromos = promotions.filter(p => !p.isDeleted);
-  const totalPromotions = activePromos.length;
-  const activeCount = activePromos.filter(p => p.status === 'active' && (!p.endDate || new Date(p.endDate) >= new Date())).length;
-  const inactiveCount = totalPromotions - activeCount;
+export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: PromotionsHeaderProps) {
+  // Use stats from API if available, fallback to computing from current page
+  const totalPromotions = stats?.totalOffers ?? promotions.filter(p => !p.isDeleted).length;
+  const activeCount = stats?.activeOffers ?? promotions.filter(p => p.status === 'ACTIVE' && (!p.endDate || new Date(p.endDate) >= new Date())).length;
+  const inactiveCount = stats?.expiredOffers ?? (totalPromotions - activeCount);
   
-  const totalRedemptions = activePromos.reduce((acc, curr) => acc + (curr.usedCount || 0), 0);
-  const totalDiscountGiven = activePromos.reduce((acc, curr) => {
+  const totalRedemptions = stats?.totalUsage ?? promotions.filter(p => !p.isDeleted).reduce((acc, curr) => acc + (curr.usedCount || 0), 0);
+  const totalDiscountGiven = promotions.filter(p => !p.isDeleted).reduce((acc, curr) => {
     const val = curr.discountValue || curr.walletCashback || curr.referralReward || 150;
     return acc + (curr.usedCount || 0) * val;
   }, 0);

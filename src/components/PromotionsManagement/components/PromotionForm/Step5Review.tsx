@@ -69,7 +69,7 @@ export function Step5Review({ formData, onGoToStep }: Step5Props) {
             <div>
               <span className="text-slate-500">Value:</span>{' '}
               <strong className="text-slate-900">
-                {formData.discountType === 'flat' ? `₹${formData.discountValue}` : formData.discountType === 'percentage' ? `${formData.discountValue}%` : 'Free Service'}
+                {formData.discountType === 'FLAT' ? `₹${formData.discountValue}` : formData.discountType === 'PERCENTAGE' ? `${formData.discountValue}%` : 'Free Service'}
               </strong>
             </div>
             <div><span className="text-slate-500">Min Order:</span> <strong className="text-slate-900">₹{formData.minimumOrderAmount || 0}</strong></div>

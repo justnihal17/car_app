@@ -25,11 +25,11 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       title: '',
       description: '',
       code: '',
-      promoType: 'coupon',
-      discountType: 'percentage',
+      promoType: 'COUPON',
+      discountType: 'PERCENTAGE',
       discountValue: 20,
       minimumOrderAmount: 0,
-      status: 'active',
+      status: 'ACTIVE',
       usedCount: 0,
       perUserLimit: 1,
       stackable: false,
@@ -38,7 +38,7 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       applicableVehicleBrands: [],
       applicableVehicleTypes: [],
       applicableCities: [],
-      applicableUserType: 'all',
+      applicableUserType: 'ALL',
       firstBookingOnly: false,
       paymentMethods: [],
       validDays: [],
@@ -68,7 +68,7 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
     if (step === 1) {
       if (!formData.title?.trim()) errs.title = 'Promotion title is required.';
       if (!formData.description?.trim()) errs.description = 'Description is required.';
-      if (formData.promoType === 'coupon') {
+      if (formData.promoType === 'COUPON') {
         if (!formData.code?.trim()) {
           errs.code = 'Promo code is required for coupon type.';
         } else if (/\s/.test(formData.code)) {
@@ -78,10 +78,10 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
     }
 
     if (step === 2) {
-      if (formData.discountType !== 'free_service') {
+      if (formData.discountType !== 'FREE_SERVICE') {
         if (formData.discountValue === undefined || formData.discountValue === null || formData.discountValue <= 0) {
           errs.discountValue = 'Discount value must be greater than 0.';
-        } else if (formData.discountType === 'percentage' && formData.discountValue > 100) {
+        } else if (formData.discountType === 'PERCENTAGE' && formData.discountValue > 100) {
           errs.discountValue = 'Percentage discount cannot exceed 100%.';
         }
       } else if (!formData.freeServiceId) {
@@ -101,10 +101,10 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
           errs.validTimeTo = 'Valid time to must be later than valid time from.';
         }
       }
-      if (formData.promoType === 'cashback' && (!formData.walletCashback || formData.walletCashback <= 0)) {
+      if (formData.promoType === 'CASHBACK' && (!formData.walletCashback || formData.walletCashback <= 0)) {
         errs.walletCashback = 'Wallet cashback amount is required.';
       }
-      if (formData.promoType === 'referral' && (!formData.referralReward || formData.referralReward <= 0)) {
+      if (formData.promoType === 'REFERRAL' && (!formData.referralReward || formData.referralReward <= 0)) {
         errs.referralReward = 'Referral reward amount is required.';
       }
     }
@@ -130,46 +130,59 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
   };
 
   const handleFinalSubmit = () => {
-    const finalPromo: Promotion = {
-      id: formData.id || `prom-${Date.now()}`,
+    const formatISO = (dateStr?: string) => {
+      if (!dateStr) return new Date().toISOString();
+      try {
+        return new Date(dateStr).toISOString();
+      } catch (e) {
+        return dateStr;
+      }
+    };
+
+    const finalPromo: any = {
+      ...(formData.id ? { id: formData.id } : {}),
       title: formData.title || 'Untitled Promotion',
       description: formData.description || '',
-      code: formData.promoType === 'coupon' ? formData.code?.toUpperCase() : undefined,
-      promoType: formData.promoType || 'coupon',
-      discountType: formData.discountType || 'percentage',
-      discountValue: formData.discountValue,
-      minimumOrderAmount: formData.minimumOrderAmount,
-      maximumDiscountAmount: formData.maximumDiscountAmount,
-      startDate: formData.startDate || new Date().toISOString().split('T')[0],
-      endDate: formData.endDate,
-      status: formData.status || 'active',
-      usageLimit: formData.usageLimit,
-      usedCount: formData.usedCount || 0,
-      perUserLimit: formData.perUserLimit || 1,
+      code: formData.promoType === 'COUPON' ? (formData.code?.toUpperCase() || 'OFFER') : undefined,
+      promoType: formData.promoType || 'COUPON',
+      discountType: formData.discountType || 'PERCENTAGE',
+      discountValue: Math.max(0, Number(formData.discountValue || 0)),
+      minimumOrderAmount: Math.max(0, Number(formData.minimumOrderAmount || 0)),
+      maximumDiscountAmount: Math.max(0, Number(formData.maximumDiscountAmount || 0)),
+      startDate: formatISO(formData.startDate),
+      endDate: formatISO(formData.endDate),
+      status: formData.status || 'ACTIVE',
+      usageLimit: Math.max(0, Number(formData.usageLimit || 100)),
+      usedCount: Math.max(0, Number(formData.usedCount || 0)),
+      perUserLimit: Math.max(1, Number(formData.perUserLimit || 1)),
       stackable: !!formData.stackable,
-      priority: formData.priority || 1,
-      applicableServices: formData.applicableServices || [],
-      applicableVehicleBrands: formData.applicableVehicleBrands || [],
-      applicableVehicleTypes: formData.applicableVehicleTypes || [],
-      applicableCities: formData.applicableCities || [],
-      applicableUserType: formData.applicableUserType || 'all',
+      priority: Math.max(1, Math.abs(Number(formData.priority !== undefined ? formData.priority : 10))),
+      applicableServices: formData.applicableServices?.filter(id => id.length === 24) || [],
+      applicableVehicleBrands: formData.applicableVehicleBrands?.filter(id => id.length === 24) || [],
+      applicableVehicleTypes: formData.applicableVehicleTypes?.filter(id => id.length === 24) || [],
+      applicableCities: formData.applicableCities?.filter(id => id.length === 24) || [],
+      applicableUserType: formData.applicableUserType ? (formData.applicableUserType.toUpperCase() as any) : 'ALL',
       firstBookingOnly: !!formData.firstBookingOnly,
-      paymentMethods: formData.paymentMethods || [],
-      validDays: formData.validDays || [],
-      validTimeFrom: formData.validTimeFrom,
-      validTimeTo: formData.validTimeTo,
-      walletCashback: formData.walletCashback,
-      freeServiceId: formData.freeServiceId,
-      referralReward: formData.referralReward,
+      paymentMethods: formData.paymentMethods && formData.paymentMethods.length > 0 ? formData.paymentMethods : ['ONLINE', 'COD'],
+      validDays: formData.validDays ? formData.validDays.map(day => {
+        if (typeof day === 'number') return day;
+        const daysMap: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+        return daysMap[day.toString()] ?? -1;
+      }).filter(d => d !== -1) : [0, 1, 2, 3, 4, 5, 6],
+      validTimeFrom: formData.validTimeFrom || '00:00',
+      validTimeTo: formData.validTimeTo || '23:59',
+      walletCashback: Math.max(0, Number(formData.walletCashback || 0)),
+      freeServiceId: formData.freeServiceId || null,
+      referralReward: Math.max(0, Number(formData.referralReward || 0)),
       isDeleted: false,
-      applicableFuelType: formData.applicableFuelType || [],
-      applicableTransmission: formData.applicableTransmission || [],
-      applicableCarModels: formData.applicableCarModels || [],
-      applicableAmirates: formData.applicableAmirates || [],
+      applicableFuelType: formData.applicableFuelType?.filter(id => id.length === 24) || [],
+      applicableTransmission: formData.applicableTransmission?.filter(id => id.length === 24) || [],
+      applicableCarModels: formData.applicableCarModels?.filter(id => id.length === 24) || [],
+      applicableAmirates: formData.applicableAmirates?.filter(id => id.length === 24) || [],
       excludedServices: formData.excludedServices || [],
       excludedUsers: formData.excludedUsers || [],
       includeTaxes: formData.includeTaxes !== false,
-      autoApply: formData.promoType === 'automatic' ? true : !!formData.autoApply,
+      autoApply: formData.promoType === 'AUTOMATIC' ? true : !!formData.autoApply,
     };
 
     onSubmit(finalPromo);

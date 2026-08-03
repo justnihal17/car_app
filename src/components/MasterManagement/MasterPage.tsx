@@ -10,7 +10,6 @@ import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
 import { getCompactDrawerClass, SectionActiveToggle } from '../SubAdminManagement/utils/subAdminFormUtils';
 import { getLoggedInAdminName } from '../SubAdminManagement/subAdminDrawerUtils';
 import { uploadImage } from '../../services/uploadService';
-import { ImageCropModal } from '../common/ImageCropModal';
 import { StatsShimmer, TableShimmer } from '../shimmer/ShimmerLoader';
 
 interface FieldConfig {
@@ -269,9 +268,9 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const displayName = pluralNames[moduleName.toLowerCase()] || `${moduleName}s`;
 
   const stats = [
-    { label: displayName, value: data.length, icon: LayoutDashboard, color: 'text-red-600 bg-red-50 border-red-100', bgGrad: 'from-red-50/50 via-white to-white', sub: 'All' },
-    { label: 'Active', value: data.filter(d => d.status === 'Active').length, icon: Shield, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', bgGrad: 'from-emerald-50/50 via-white to-white', sub: 'Operational' },
-    { label: 'Inactive', value: data.filter(d => d.status === 'Inactive').length, icon: Wrench, color: 'text-amber-600 bg-amber-50 border-amber-100', bgGrad: 'from-amber-50/50 via-white to-white', sub: 'Disabled' },
+    { label: displayName.toUpperCase(), value: data.length, icon: LayoutDashboard, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Records' },
+    { label: 'ACTIVE', value: data.filter(d => d.status === 'Active').length, icon: Shield, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Operational' },
+    { label: 'INACTIVE', value: data.filter(d => d.status === 'Inactive').length, icon: Wrench, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
   ];
 
   const handleAdd = () => { 
@@ -777,19 +776,17 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
             return (
               <div 
                 key={i} 
-                className={`bg-gradient-to-br ${card.bgGrad} p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1`}
+                className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-slate-500 tracking-tight group-hover:text-slate-800 transition-colors uppercase">{card.label}</span>
+                  <span className="text-xs font-semibold tracking-tight transition-colors uppercase text-slate-500 group-hover:text-slate-800">{card.label}</span>
                   <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">{card.value}</h3>
-                  </div>
-                  <p className="text-xs font-medium text-slate-400 mt-1">{card.sub}</p>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
                 </div>
               </div>
             );
@@ -893,6 +890,16 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                     }
                     return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{serviceVal || '-'}</td>;
                   }
+                  if (col.toLowerCase() === 'emirate' || col.toLowerCase() === 'state') {
+                    let stateVal = row.stateId || row.emirateId || row.state || row.emirate;
+                    if (stateVal && typeof stateVal === 'object') {
+                      stateVal = stateVal.name || stateVal.title || '-';
+                    } else if (stateVal) {
+                      const found = stateOptions.find(s => s.value === stateVal);
+                      if (found) stateVal = found.label;
+                    }
+                    return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{stateVal || '-'}</td>;
+                  }
                   if (col.toLowerCase() === 'image') {
                     const hasError = imgErrors[row.id];
                     return (
@@ -902,7 +909,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                             <img 
                               src={row.image} 
                               alt={row.name} 
-                              className="w-full h-full object-cover" 
+                              className="w-full h-full object-contain" 
                               onError={() => setImgErrors(prev => ({ ...prev, [row.id]: true }))}
                             />
                           </div>
@@ -989,7 +996,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                 >
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
                     {photo ? (
-                      <img src={photo} className="w-full h-full object-cover" alt="Preview" />
+                      <img src={photo} className="w-full h-full object-contain" alt="Preview" />
                     ) : ['vehicletype', 'vehicle-type', 'make', 'model', 'brand'].includes(moduleName.toLowerCase()) ? (
                       <Car className="w-8 h-8 text-red-500" />
                     ) : ['service', 'subservice', 'sub-service'].includes(moduleName.toLowerCase()) ? (
@@ -1013,12 +1020,27 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                   disabled={mode === "view"} 
                   className="hidden" 
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     if (e.target.files && e.target.files[0]) {
                       const file = e.target.files[0];
-                      setRawSelectedFile(file);
-                      setRawPreviewUrl(URL.createObjectURL(file));
-                      setCropModalOpen(true);
+                      const fileUrl = URL.createObjectURL(file);
+                      
+                      setPhoto(fileUrl);
+                      setEditingItem(prev => ({ ...prev, image: fileUrl }));
+                      
+                      toast.loading('Uploading Image...', { id: 'imgUpload' });
+                      try {
+                        const uploadedUrl = await uploadImage(file);
+                        toast.dismiss('imgUpload');
+                        toast.success('Image uploaded successfully');
+                        setPhoto(uploadedUrl);
+                        setEditingItem(prev => ({ ...prev, image: uploadedUrl }));
+                        setSelectedFile(null);
+                      } catch (err: any) {
+                        toast.dismiss('imgUpload');
+                        toast.error(err.message || 'Image upload failed');
+                        setSelectedFile(file);
+                      }
                     }
                   }} 
                 />
@@ -1190,29 +1212,6 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         </form>
       </SlidePanel>
 
-      <ImageCropModal
-        isOpen={cropModalOpen}
-        imageSrc={rawPreviewUrl}
-        file={rawSelectedFile}
-        onClose={() => setCropModalOpen(false)}
-        onCropComplete={async (croppedFile, croppedUrl) => {
-          setPhoto(croppedUrl);
-          setEditingItem(prev => ({ ...prev, image: croppedUrl }));
-          toast.loading('Uploading Image...', { id: 'imgUpload' });
-          try {
-            const uploadedUrl = await uploadImage(croppedFile);
-            toast.dismiss('imgUpload');
-            toast.success('Image uploaded successfully');
-            setPhoto(uploadedUrl);
-            setEditingItem(prev => ({ ...prev, image: uploadedUrl }));
-            setSelectedFile(null);
-          } catch (err: any) {
-            toast.dismiss('imgUpload');
-            toast.error(err.message || 'Image upload failed');
-            setSelectedFile(croppedFile);
-          }
-        }}
-      />
 
       <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}

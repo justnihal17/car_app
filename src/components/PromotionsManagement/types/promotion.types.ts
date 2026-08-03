@@ -1,7 +1,7 @@
-export type PromoType = 'coupon' | 'automatic' | 'referral' | 'cashback';
-export type DiscountType = 'flat' | 'percentage' | 'free_service';
-export type ApplicableUserType = 'all' | 'new' | 'existing' | 'premium';
-export type PromotionStatus = 'active' | 'inactive';
+export type PromoType = 'COUPON' | 'AUTOMATIC' | 'REFERRAL' | 'CASHBACK';
+export type DiscountType = 'FLAT' | 'PERCENTAGE' | 'FREE_SERVICE';
+export type ApplicableUserType = 'ALL' | 'NEW' | 'EXISTING' | 'PREMIUM';
+export type PromotionStatus = 'ACTIVE' | 'INACTIVE';
 
 export interface Promotion {
   id: string;
@@ -74,4 +74,18 @@ export interface CustomerOption {
   id: string;
   name: string;
   email: string;
+}
+
+export interface PaginatedPromotions {
+  offers: Promotion[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+export interface PromotionStats {
+  totalOffers: number;
+  activeOffers: number;
+  expiredOffers: number;
+  totalUsage: number;
 }

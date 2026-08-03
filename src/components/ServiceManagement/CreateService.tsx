@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Check, ChevronRight, Upload, Info, MapPin, Tag, Plus } from 'lucide-react';
+import { Upload, ChevronRight, ArrowLeft, Fuel, Car, Info, MapPin, Tag, Percent, Check, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { uploadImage } from '../../services/uploadService';
-import { ImageCropModal } from '../common/ImageCropModal';
 
 const STEPS = [
   { id: 1, label: 'Basic Information' },
@@ -247,9 +246,7 @@ export function CreateService({
                       onChange={(e) => {
                         if (e.target.files?.[0]) {
                           const file = e.target.files[0];
-                          setRawSelectedFile(file);
-                          setRawPreviewUrl(URL.createObjectURL(file));
-                          setCropModalOpen(true);
+                          handleImageUpload(file);
                           e.target.value = '';
                         }
                       }}
@@ -627,19 +624,6 @@ export function CreateService({
                 </button>
               )}
             </div>
-          </div>
-        </div>
-      </div>
-
-      <ImageCropModal
-        isOpen={cropModalOpen}
-        imageSrc={rawPreviewUrl}
-        file={rawSelectedFile}
-        onClose={() => setCropModalOpen(false)}
-        onCropComplete={async (croppedFile) => {
-          await handleImageUpload(croppedFile);
-        }}
-      />
     </div>
   );
 }

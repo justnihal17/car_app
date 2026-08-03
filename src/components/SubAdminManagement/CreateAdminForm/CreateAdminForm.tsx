@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { X, Eye, EyeOff, Save, User, Shield, Upload, Check, ChevronDown } from 'lucide-react';
-import api from '../../api/axios';
+import { X, Eye, EyeOff, Save, User, Shield, Upload, Check, ChevronDown, Edit2 } from 'lucide-react';
+import api from '../../../api/axios';
 import toast from 'react-hot-toast';
-import { uploadImage } from '../../services/uploadService';
-import { ImageCropModal } from '../common/ImageCropModal';
-import { getLoggedInAdminName, ALL_ACCESS_MODULES } from './subAdminDrawerUtils';
-import { getCompactDrawerClass, SubAdminFormFields } from './utils/subAdminFormUtils';
+import { uploadImage } from '../../../services/uploadService';
+import { getLoggedInAdminName, ALL_ACCESS_MODULES } from '../subAdminDrawerUtils';
+import { getCompactDrawerClass, SubAdminFormFields } from '../utils/subAdminFormUtils';
 
 const formatRoleName = (roleName: string) => {
   if (!roleName) return '';
@@ -21,6 +20,7 @@ interface CreateSubAdminDrawerProps {
 }
 
 export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSubAdminDrawerProps) {
+  const [currentMode, setCurrentMode] = useState<'create' | 'edit' | 'view'>(mode);
   const loggedInAdminName = getLoggedInAdminName();
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -163,35 +163,30 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
   }, [admin, mode]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isView = false;
-  const isEdit = mode === 'edit' || mode === 'view' || Boolean(admin);
+  const isView = currentMode === 'view';
+  const isEdit = currentMode === 'edit' || (Boolean(admin) && currentMode !== 'view');
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setRawSelectedFile(file);
       const localUrl = URL.createObjectURL(file);
-      setRawPreviewUrl(localUrl);
-      setCropModalOpen(true);
+      setPreviewUrl(localUrl);
+      setFormData(prev => ({ ...prev, imageUrl: localUrl }));
       setImgError(false);
-    }
-  };
-
-  const handleCropComplete = async (croppedFile: File, croppedPreviewUrl: string) => {
-    setPreviewUrl(croppedPreviewUrl);
-    setFormData(prev => ({ ...prev, imageUrl: croppedPreviewUrl }));
-    toast.loading('Uploading Image...', { id: 'imgUpload' });
-    try {
-      const uploadedUrl = await uploadImage(croppedFile);
-      toast.dismiss('imgUpload');
-      toast.success('Image uploaded successfully');
-      setPreviewUrl(uploadedUrl);
-      setFormData(prev => ({ ...prev, imageUrl: uploadedUrl }));
-      setSelectedFile(null);
-    } catch (err: any) {
-      toast.dismiss('imgUpload');
-      toast.error(err.message || 'Image upload failed');
-      setSelectedFile(croppedFile);
+      
+      toast.loading('Uploading Image...', { id: 'imgUpload' });
+      try {
+        const uploadedUrl = await uploadImage(file);
+        toast.dismiss('imgUpload');
+        toast.success('Image uploaded successfully');
+        setPreviewUrl(uploadedUrl);
+        setFormData(prev => ({ ...prev, imageUrl: uploadedUrl }));
+        setSelectedFile(null);
+      } catch (err: any) {
+        toast.dismiss('imgUpload');
+        toast.error(err.message || 'Image upload failed');
+        setSelectedFile(file);
+      }
     }
   };
 
@@ -322,30 +317,35 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
   });
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end transition-all duration-300">
-      <div className={getCompactDrawerClass()}>
-        {/* Drawer Header with Clean Compact Design */}
-        <div className="px-5 py-3.5 bg-gradient-to-r from-red-600 via-red-700 to-red-700 text-white flex items-center justify-between border-b border-red-500/30 shadow-md">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-white/15 border border-white/20 rounded-xl text-white shadow-inner backdrop-blur-md">
-              <Shield className="w-4 h-4" />
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-6 transition-opacity duration-200 ease-out">
+      <div className="bg-[#F8FAFC] w-full max-w-full md:max-w-2xl rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 ease-out">
+        {/* Header - White, minimal, top accent */}
+        <div className="px-6 py-4 bg-white flex items-center justify-between border-b border-slate-200 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 shadow-sm">
+              <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black tracking-tight text-white capitalize">
-                {isEdit
-                  ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'Admin Details')
-                  : 'Create'}
+              <h3 className="text-lg font-semibold tracking-tight text-slate-900 capitalize leading-tight">
+                {currentMode === 'view'
+                  ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'View Admin')
+                  : currentMode === 'edit'
+                  ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'Edit Admin')
+                  : 'Create Admin'}
               </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {isView ? 'View admin details and permissions.' : (isEdit ? 'Manage admin details and permissions.' : 'Add a new sub-admin to the system.')}
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl text-red-100 hover:text-white hover:bg-white/10 transition-all">
-            <X className="w-4 h-4" />
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Close modal">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form Content with space-y-3.5 matching email & first name spacing */}
+        {/* Form Content */}
         <form className="flex-1 flex flex-col justify-between overflow-hidden" onSubmit={handleSubmit}>
-          <div className="flex-1 space-y-3.5 overflow-y-auto p-5 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar relative pb-10">
             {apiSuccess && (
               <div className="p-4 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
                 <Check className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -385,33 +385,49 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
             />
           </div>
 
-          {/* Form Actions Footer - Fixed at the bottom of the drawer */}
-          <div className="p-4 border-t border-slate-200/80 flex items-center gap-3 bg-white shrink-0 mt-auto">
+          {/* Form Actions Footer - Fixed at the bottom */}
+          <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-end gap-3 shrink-0">
             <button 
               type="button" 
               onClick={onClose} 
-              className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all text-xs"
+              className="px-6 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-sm shadow-sm"
             >
-              Cancel
+              {isView ? 'Close' : 'Cancel'}
             </button>
-            <button 
-              type="submit" 
-              disabled={loading || !isFormValid} 
-              className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
-            >
-              <Save className="w-4 h-4" /> {loading ? 'Saving...' : (isEdit ? 'Update' : 'Register')}
-            </button>
+            {isView && (
+              <button 
+                type="button"
+                onClick={() => setCurrentMode('edit')}
+                className="flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm"
+              >
+                <Edit2 className="w-4 h-4" /> Edit Admin
+              </button>
+            )}
+            {!isView && (
+              <button 
+                type="submit" 
+                disabled={loading || !isFormValid} 
+                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" /> 
+                    {currentMode === 'edit' ? 'Update Admin' : 'Register Admin'}
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </form>
       </div>
-
-      <ImageCropModal
-        isOpen={cropModalOpen}
-        imageSrc={rawPreviewUrl}
-        file={rawSelectedFile}
-        onClose={() => setCropModalOpen(false)}
-        onCropComplete={handleCropComplete}
-      />
     </div>
   );
 }

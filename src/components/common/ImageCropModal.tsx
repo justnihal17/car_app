@@ -71,15 +71,12 @@ export function ImageCropModal({
       const deltaX = e.clientX - resizeStart.x;
       const deltaY = e.clientY - resizeStart.y;
 
-      // Keep aspect ratio square 1:1
-      let maxDelta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+      const effectiveDeltaX = (isResizingBox === 'tl' || isResizingBox === 'bl') ? -deltaX : deltaX;
+      const effectiveDeltaY = (isResizingBox === 'tl' || isResizingBox === 'tr') ? -deltaY : deltaY;
 
-      if (isResizingBox === 'tl' || isResizingBox === 'bl') {
-        maxDelta = -deltaX;
-      }
-
-      const newSize = Math.max(100, Math.min(280, resizeStart.width + maxDelta));
-      setCropBox({ width: newSize, height: newSize });
+      const newWidth = Math.max(100, Math.min(280, resizeStart.width + effectiveDeltaX));
+      const newHeight = Math.max(100, Math.min(280, resizeStart.height + effectiveDeltaY));
+      setCropBox({ width: newWidth, height: newHeight });
     }
   };
 
@@ -123,21 +120,32 @@ export function ImageCropModal({
     if (!img) return;
 
     const canvas = document.createElement('canvas');
-    const outputResolution = 600; // 600x600 square output
-    canvas.width = outputResolution;
-    canvas.height = outputResolution;
+    const baseResolution = 800; // max dimension
+    const cropRatio = cropBox.width / cropBox.height;
+    
+    let canvasWidth = baseResolution;
+    let canvasHeight = baseResolution;
+    
+    if (cropRatio > 1) {
+      canvasHeight = baseResolution / cropRatio;
+    } else {
+      canvasWidth = baseResolution * cropRatio;
+    }
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, outputResolution, outputResolution);
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     ctx.save();
 
     // Center canvas
-    ctx.translate(outputResolution / 2, outputResolution / 2);
+    ctx.translate(canvasWidth / 2, canvasHeight / 2);
     ctx.rotate((rotation * Math.PI) / 180);
 
-    const scaleFactor = outputResolution / cropBox.width;
+    const scaleFactor = canvasWidth / cropBox.width;
 
     const renderWidth = img.naturalWidth * zoom * scaleFactor;
     const renderHeight = img.naturalHeight * zoom * scaleFactor;
@@ -177,7 +185,7 @@ export function ImageCropModal({
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
           <div className="flex items-center gap-2">
             <Crop className="w-4 h-4 text-red-600" />
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight uppercase">Crop Square Image</h3>
+            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight uppercase">Crop Image</h3>
           </div>
           <button
             onClick={onClose}

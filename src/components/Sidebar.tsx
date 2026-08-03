@@ -60,8 +60,8 @@ export function Sidebar({
 
   return (
     <aside 
-      className={`fixed left-0 top-0 h-screen bg-[#faf8f5] border-r border-slate-200/80 shadow-sm transition-all duration-300 z-50 flex flex-col text-slate-800
-        ${collapsed ? 'w-20' : 'w-64'}
+      className={`fixed left-0 top-0 h-screen bg-[#FFFFFF] border-r border-slate-200/80 shadow-sm transition-all duration-300 z-50 flex flex-col text-slate-800
+        ${collapsed ? 'w-20' : 'w-[285px]'}
       `}
     >
       {/* Brand Header */}
@@ -70,7 +70,7 @@ export function Sidebar({
           <img 
             src="/logo.png" 
             alt="Stylein Logo" 
-            className={`object-contain transition-all duration-300 ${collapsed ? 'h-10' : 'h-16'} w-full`}
+            className={`object-contain transition-all duration-300 mix-blend-multiply brightness-[1.05] contrast-[1.1] ${collapsed ? 'h-10' : 'h-16'} w-full`}
           />
         </div>
       </div>
@@ -88,7 +88,7 @@ export function Sidebar({
               <div key={item.id} className="space-y-1">
                 <button
                   onClick={() => toggleAccordion(item.id)}
-                  className={`w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 text-slate-800 font-bold hover:bg-slate-100/70 outline-none focus:outline-none focus:ring-0 ${collapsed ? 'justify-center' : ''}`}
+                  className={`w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 text-slate-800 font-normal hover:bg-slate-100/70 outline-none focus:outline-none focus:ring-0 ${collapsed ? 'justify-center' : ''}`}
                 >
                   <div className="flex items-center gap-3 whitespace-nowrap">
                     <Icon className="w-5 h-5 shrink-0 text-slate-700" />
@@ -110,10 +110,10 @@ export function Sidebar({
                             }
                             onViewChange(child.id);
                           }}
-                          className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm transition-all whitespace-nowrap relative outline-none focus:outline-none focus:ring-0 ${
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all whitespace-nowrap relative outline-none focus:outline-none focus:ring-0 ${
                             isSubActive 
-                              ? 'bg-gradient-to-r from-red-50 to-red-50/20 text-red-600 font-bold rounded-r-2xl rounded-l-none border-l-4 border-red-600 -ml-[26px] pl-6' 
-                              : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/60 rounded-xl font-semibold'
+                              ? 'bg-gradient-to-r from-red-50 via-red-50/80 to-red-50/30 text-red-600 font-bold rounded-r-2xl rounded-l-none border-l-[6px] border-red-600 -ml-[26px] pl-6 w-[calc(100%+26px)] shadow-2xs' 
+                              : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/60 rounded-xl font-normal'
                           }`}
                         >
                           <ChildIcon className={`w-4 h-4 ${isSubActive ? 'text-red-600' : 'text-slate-600'}`} />
@@ -131,10 +131,10 @@ export function Sidebar({
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 group relative whitespace-nowrap outline-none focus:outline-none focus:ring-0 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group relative whitespace-nowrap outline-none focus:outline-none focus:ring-0 ${
                 isDirectActive 
-                  ? 'bg-red-50/80 text-red-600 font-bold border border-red-100/80 shadow-2xs' 
-                  : 'text-slate-800 font-bold hover:bg-slate-100/70 hover:text-slate-900'
+                  ? 'bg-gradient-to-r from-red-50 via-red-50/90 to-red-50/40 text-red-600 font-bold border border-red-100/80 border-l-[6px] border-l-red-600 shadow-2xs' 
+                  : 'text-slate-800 font-normal hover:bg-slate-100/70 hover:text-slate-900'
               } ${collapsed ? 'justify-center' : ''}`}
             >
               <Icon className={`w-5 h-5 shrink-0 ${isDirectActive ? 'text-red-600' : 'text-slate-700'}`} />
@@ -152,9 +152,9 @@ export function Sidebar({
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 group relative whitespace-nowrap text-slate-800 font-bold outline-none focus:outline-none focus:ring-0 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group relative whitespace-nowrap text-slate-800 font-normal outline-none focus:outline-none focus:ring-0 ${
                 isActive 
-                  ? 'bg-red-50/80 text-red-600 font-bold border border-red-100/80' 
+                  ? 'bg-gradient-to-r from-red-50 via-red-50/90 to-red-50/40 text-red-600 font-bold border border-red-100/80 border-l-[6px] border-l-red-600 shadow-2xs' 
                   : 'hover:bg-slate-100/70 hover:text-slate-900'
               } ${collapsed ? 'justify-center' : ''} ${item.id === 'logout' ? 'hover:bg-red-50 text-red-600' : ''}`}
             >
@@ -169,7 +169,7 @@ export function Sidebar({
       <div className="p-4 border-t border-slate-100 flex justify-center">
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full py-3 rounded-2xl bg-slate-100/80 hover:bg-slate-200/80 text-slate-700 font-bold transition-all flex items-center justify-center shadow-2xs border border-slate-200/60 active:scale-95 outline-none focus:outline-none focus:ring-0"
+          className="w-full py-3 rounded-2xl bg-slate-100/80 hover:bg-slate-200/80 text-slate-700 font-normal transition-all flex items-center justify-center shadow-2xs border border-slate-200/60 active:scale-95 outline-none focus:outline-none focus:ring-0"
         >
           {collapsed ? <ChevronsRight className="w-5 h-5" /> : <ChevronsLeft className="w-5 h-5" />}
         </button>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Promotion, DiscountType } from '../../types/promotion.types';
-import { DUMMY_SERVICES } from '../../data/dummyPromotions';
 import { Percent, Banknote, Sparkles } from 'lucide-react';
 
 interface Step2Props {
@@ -15,19 +14,19 @@ export function Step2DiscountLimits({ formData, onChange, errors, isEditMode }: 
 
   const DISCOUNT_TYPES: { type: DiscountType; label: string; desc: string; icon: any }[] = [
     {
-      type: 'flat',
+      type: 'FLAT',
       label: 'Flat Discount',
       desc: 'Deduct a fixed currency amount from total bill.',
       icon: Banknote,
     },
     {
-      type: 'percentage',
+      type: 'PERCENTAGE',
       label: 'Percentage Discount',
       desc: 'Deduct a percentage value from eligible bill.',
       icon: Percent,
     },
     {
-      type: 'free_service',
+      type: 'FREE_SERVICE',
       label: 'Free Service',
       desc: 'Offer a complimentary service item.',
       icon: Sparkles,
@@ -81,22 +80,22 @@ export function Step2DiscountLimits({ formData, onChange, errors, isEditMode }: 
       </div>
 
       {/* Discount Value (for Flat & Percentage) */}
-      {formData.discountType !== 'free_service' && (
+      {formData.discountType !== 'FREE_SERVICE' && (
         <div className="space-y-1.5 max-w-sm">
           <label className="text-xs font-bold text-slate-700">
             Discount Value <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-              {formData.discountType === 'flat' ? '₹' : '%'}
+              {formData.discountType === 'FLAT' ? '₹' : '%'}
             </span>
             <input
               type="number"
               min={1}
-              max={formData.discountType === 'percentage' ? 100 : undefined}
+              max={formData.discountType === 'PERCENTAGE' ? 100 : undefined}
               value={formData.discountValue !== undefined ? formData.discountValue : ''}
               onChange={(e) => onChange({ discountValue: e.target.value ? Number(e.target.value) : undefined })}
-              placeholder={formData.discountType === 'flat' ? '200' : '20'}
+              placeholder={formData.discountType === 'FLAT' ? '200' : '20'}
               className="w-full pl-8 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
             />
           </div>
@@ -105,7 +104,7 @@ export function Step2DiscountLimits({ formData, onChange, errors, isEditMode }: 
       )}
 
       {/* Free Service Select (for Free Service) */}
-      {formData.discountType === 'free_service' && (
+      {formData.discountType === 'FREE_SERVICE' && (
         <div className="space-y-1.5 max-w-sm">
           <label className="text-xs font-bold text-slate-700">
             Select Free Service <span className="text-red-500">*</span>
@@ -116,11 +115,8 @@ export function Step2DiscountLimits({ formData, onChange, errors, isEditMode }: 
             className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
           >
             <option value="">-- Choose Free Service --</option>
-            {DUMMY_SERVICES.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} ({s.category})
-              </option>
-            ))}
+            {/* Real services will be mapped here once API is integrated */}
+            {[]}
           </select>
           {errors.freeServiceId && <p className="text-[11px] font-semibold text-red-500">{errors.freeServiceId}</p>}
         </div>

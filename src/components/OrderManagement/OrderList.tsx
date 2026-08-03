@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Download, Plus, ChevronLeft, ChevronRight, Clock, MapPin, RefreshCw, AlertCircle } from 'lucide-react';
+import { Search, Filter, Download, Plus, ChevronLeft, ChevronRight, Clock, MapPin, RefreshCw, AlertCircle, ShoppingBag, Truck, CheckCircle2, XCircle, Activity } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { fetchOrders, setFilters } from '../../store/orderSlice';
@@ -74,6 +74,59 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     return result;
   }, [orders, activeTab]);
 
+  const getOrderStatus = (o: any) => (o.status || o.order_status || '').toString().toLowerCase().trim();
+
+  const statCards = [
+    {
+      label: 'TOTAL',
+      value: pagination.total || orders.length,
+      icon: ShoppingBag,
+      color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
+      sub: 'All Orders',
+      tab: 'orders',
+    },
+    {
+      label: 'LIVE',
+      value: orders.filter(o => ['on the way', 'on_the_way', 'on route', 'onroute'].includes(getOrderStatus(o))).length,
+      icon: Truck,
+      color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
+      sub: 'On The Way',
+      tab: 'live-orders',
+    },
+    {
+      label: 'PENDING',
+      value: orders.filter(o => ['pending', 'accepted', 'assigned', 'created', 'new', 'unassigned'].includes(getOrderStatus(o))).length,
+      icon: Clock,
+      color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
+      sub: 'Awaiting',
+      tab: 'pending-orders',
+    },
+    {
+      label: 'IN PROGRESS',
+      value: orders.filter(o => ['started', 'in progress', 'in_progress', 'arrived'].includes(getOrderStatus(o))).length,
+      icon: Activity,
+      color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
+      sub: 'Active',
+      tab: 'in-progress',
+    },
+    {
+      label: 'COMPLETED',
+      value: orders.filter(o => ['completed', 'delivered', 'done'].includes(getOrderStatus(o))).length,
+      icon: CheckCircle2,
+      color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
+      sub: 'Delivered',
+      tab: 'completed-orders',
+    },
+    {
+      label: 'CANCELLED',
+      value: orders.filter(o => ['cancelled', 'canceled', 'refunded', 'rejected'].includes(getOrderStatus(o))).length,
+      icon: XCircle,
+      color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
+      sub: 'Refunded/Void',
+      tab: 'cancelled-orders',
+    },
+  ];
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Top Header */}
@@ -94,6 +147,38 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
             Create
           </button>
         </div>
+      </div>
+
+      {/* Summary Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {statCards.map((card, i) => {
+          const Icon = card.icon;
+          const isFocused = activeTab === card.tab;
+          return (
+            <div
+              key={i}
+              onClick={() => handleTabChange(card.tab)}
+              className={`bg-white p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
+                isFocused
+                  ? 'border border-slate-300 bg-white shadow-md'
+                  : 'border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs font-semibold tracking-tight transition-colors uppercase ${isFocused ? 'text-slate-800 font-bold' : 'text-slate-500 group-hover:text-slate-800'}`}>
+                  {card.label}
+                </span>
+                <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-3xl font-bold text-slate-900 tracking-tight">{loading ? '-' : card.value}</span>
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Tabs */}
@@ -127,7 +212,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                 type="text" 
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by Order ID, Customer, Agent or Phone..." 
+                placeholder="Search by Order ID..." 
                 className="bg-slate-50 border border-slate-200 text-sm text-slate-800 placeholder-slate-400 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 focus:bg-white w-full transition-all"
               />
             </div>

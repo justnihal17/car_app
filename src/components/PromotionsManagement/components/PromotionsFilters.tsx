@@ -10,31 +10,40 @@ interface PromotionsFiltersProps {
 }
 
 export function PromotionsFilters({ filters, onFilterChange, onRefresh }: PromotionsFiltersProps) {
-  const isFiltered = filters.search || filters.promoType !== 'all' || filters.status !== 'all' || filters.discountType !== 'all' || filters.dateFilter !== 'all';
+  const isFiltered = filters.search || filters.promoType !== 'ALL' || filters.status !== 'ALL' || filters.discountType !== 'ALL' || filters.dateFilter !== 'ALL';
 
   const clearFilters = () => {
     onFilterChange({
       search: '',
-      promoType: 'all',
-      status: 'all',
-      discountType: 'all',
-      dateFilter: 'all',
+      promoType: 'ALL',
+      status: 'ALL',
+      discountType: 'ALL',
+      dateFilter: 'ALL',
     });
   };
 
   return (
     <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs mb-6 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        {/* Search */}
-        <div className="relative sm:col-span-2 lg:col-span-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        {/* Search by Title */}
+        <div className="relative group flex items-center">
+          <Search className="w-4 h-4 absolute left-3.5 text-slate-400 group-focus-within:text-red-500 transition-colors pointer-events-none" />
           <input
             type="text"
             value={filters.search}
             onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
-            placeholder="Search by title or code..."
-            className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+            placeholder="Search by Title Name..."
+            className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 focus:bg-white transition-all shadow-2xs leading-normal"
           />
+          {filters.search && (
+            <button
+              type="button"
+              onClick={() => onFilterChange({ ...filters, search: '' })}
+              className="absolute right-3 text-slate-400 hover:text-slate-600 p-0.5 rounded-full hover:bg-slate-200/60 transition-all"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Promo Type Dropdown */}
@@ -42,11 +51,11 @@ export function PromotionsFilters({ filters, onFilterChange, onRefresh }: Promot
           value={filters.promoType}
           onChange={(val) => onFilterChange({ ...filters, promoType: val })}
           options={[
-            { label: 'All Types', value: 'all' },
-            { label: 'Coupon', value: 'coupon' },
-            { label: 'Automatic', value: 'automatic' },
-            { label: 'Referral', value: 'referral' },
-            { label: 'Cashback', value: 'cashback' },
+            { label: 'All Types', value: 'ALL' },
+            { label: 'Coupon', value: 'COUPON' },
+            { label: 'Automatic', value: 'AUTOMATIC' },
+            { label: 'Referral', value: 'REFERRAL' },
+            { label: 'Cashback', value: 'CASHBACK' },
           ]}
           placeholder="Promo Type"
           className="w-full bg-slate-50"
@@ -57,9 +66,9 @@ export function PromotionsFilters({ filters, onFilterChange, onRefresh }: Promot
           value={filters.status}
           onChange={(val) => onFilterChange({ ...filters, status: val })}
           options={[
-            { label: 'All Status', value: 'all' },
-            { label: 'Active', value: 'active' },
-            { label: 'Inactive', value: 'inactive' },
+            { label: 'All Status', value: 'ALL' },
+            { label: 'Active', value: 'ACTIVE' },
+            { label: 'Inactive', value: 'INACTIVE' },
           ]}
           placeholder="Status"
           className="w-full bg-slate-50"
@@ -70,10 +79,10 @@ export function PromotionsFilters({ filters, onFilterChange, onRefresh }: Promot
           value={filters.discountType}
           onChange={(val) => onFilterChange({ ...filters, discountType: val })}
           options={[
-            { label: 'All Discounts', value: 'all' },
-            { label: 'Flat', value: 'flat' },
-            { label: 'Percentage', value: 'percentage' },
-            { label: 'Free Service', value: 'free_service' },
+            { label: 'All Discounts', value: 'ALL' },
+            { label: 'Flat', value: 'FLAT' },
+            { label: 'Percentage', value: 'PERCENTAGE' },
+            { label: 'Free Service', value: 'FREE_SERVICE' },
           ]}
           placeholder="Discount Type"
           className="w-full bg-slate-50"
@@ -84,7 +93,7 @@ export function PromotionsFilters({ filters, onFilterChange, onRefresh }: Promot
           value={filters.dateFilter}
           onChange={(val) => onFilterChange({ ...filters, dateFilter: val })}
           options={[
-            { label: 'All Time', value: 'all' },
+            { label: 'All Time', value: 'ALL' },
             { label: 'Currently Running', value: 'running' },
             { label: 'Upcoming', value: 'upcoming' },
             { label: 'Expired', value: 'expired' },

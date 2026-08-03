@@ -301,7 +301,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           <div className="space-y-2 max-w-xs">
             <label className="text-xs font-bold text-slate-700">Applicable User Type</label>
             <select
-              value={formData.applicableUserType || 'all'}
+              value={formData.applicableUserType || 'ALL'}
               onChange={(e) => onChange({ applicableUserType: e.target.value as any })}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
             >
