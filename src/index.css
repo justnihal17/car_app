@@ -49,24 +49,24 @@ div:focus, div:focus-visible, div:active {
 /* Responsive Desktop Scaling to perfectly fit 14-inch screens */
 @media (max-width: 1536px) {
   html {
-    font-size: 14px; /* 87.5% scale */
+    zoom: 0.9; /* 90% scale */
   }
 }
 
 @media (max-width: 1440px) {
   html {
-    font-size: 13.5px; /* 84% scale */
+    zoom: 0.85; /* 85% scale */
   }
 }
 
 @media (max-width: 1366px) {
   html {
-    font-size: 12.8px; /* 80% scale */
+    zoom: 0.8; /* 80% scale */
   }
 }
 
 @media (max-width: 1280px) {
   html {
-    font-size: 12px; /* 75% scale */
+    zoom: 0.75; /* 75% scale */
   }
 }

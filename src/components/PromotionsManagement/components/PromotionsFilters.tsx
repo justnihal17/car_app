@@ -24,7 +24,7 @@ export function PromotionsFilters({ filters, onFilterChange, onRefresh }: Promot
 
   return (
     <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs mb-6 space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3">
         {/* Search by Title */}
         <div className="relative group flex items-center">
           <Search className="w-4 h-4 absolute left-3.5 text-slate-400 group-focus-within:text-red-500 transition-colors pointer-events-none" />
