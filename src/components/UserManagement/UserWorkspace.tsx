@@ -283,7 +283,6 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
             <thead className="bg-[#FFF] backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
               <tr className="bg-slate-50/50 border-b border-slate-200">
                 <th className="px-4 py-4 pl-6 text-left text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-xl w-[300px]">User Name</th>
-                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">City</th>
                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Phone</th>
                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Status</th>
                 <th className="px-4 py-4 pr-6 text-right text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tr-xl w-[120px]">Actions</th>
@@ -294,7 +293,6 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-4 py-4 pl-6"><div className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
-                    <td className="px-4 py-4"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
                     <td className="px-4 py-4 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
@@ -302,7 +300,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                 ))
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-400 font-semibold">No registered users found</td>
+                  <td colSpan={4} className="p-8 text-center text-slate-400 font-semibold">No registered users found</td>
                 </tr>
               ) : paginatedUsers.map((user, index) => (
                 <tr key={user.id} className="hover:bg-[#FEFEFE] transition-all duration-150 group cursor-pointer border-b border-slate-100 last:border-0" onClick={() => { setDrawerMode('edit'); setSelectedUserForDrawer(user); setIsDrawerOpen(true); }}>
@@ -327,7 +325,6 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm">{user.city || 'Dubai'}</td>
                   <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm font-mono">{user.phone}</td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <StatusBadge status={user.status || (user.active ? 'Active' : 'Inactive')} />
