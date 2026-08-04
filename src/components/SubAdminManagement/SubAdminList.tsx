@@ -259,25 +259,26 @@ export function SubAdminManagement() {
   };
 
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    if (!name) return 'A';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
   };
 
   const getAvatarColor = (name: string) => {
     const colors = [
-      'from-red-600 to-red-600 shadow-blue-200/50',
-      'from-red-600 to-purple-600 shadow-indigo-200/50',
-      'from-emerald-600 to-teal-600 shadow-emerald-200/50',
-      'from-amber-500 to-orange-600 shadow-amber-200/50',
-      'from-rose-600 to-pink-600 shadow-rose-200/50'
+      'from-amber-500 to-orange-600',
+      'from-emerald-500 to-teal-600',
+      'from-red-600 to-rose-600',
+      'from-blue-600 to-indigo-600',
+      'from-purple-600 to-pink-600'
     ];
     let sum = 0;
-    for (let i = 0; i < name.length; i++) {
-      sum += name.charCodeAt(i);
+    const str = name || 'Admin';
+    for (let i = 0; i < str.length; i++) {
+      sum += str.charCodeAt(i);
     }
     return colors[sum % colors.length];
   };

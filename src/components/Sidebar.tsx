@@ -71,17 +71,13 @@ export function Sidebar({
         onClick={() => setCollapsed(!collapsed)}
         title="Toggle Sidebar"
       >
-        <div className={`flex items-center gap-3 overflow-hidden w-full ${collapsed ? 'justify-center' : 'justify-start px-2'}`}>
+        <div className={`flex items-center gap-3 overflow-hidden w-full ${collapsed ? 'justify-center' : 'justify-center px-2'}`}>
           <SafeImage 
             src="/logo.png" 
             alt="Stylein Logo" 
-            className={`object-contain transition-all duration-300 mix-blend-multiply brightness-[1.05] contrast-[1.1] shrink-0 ${collapsed ? 'h-10' : 'h-14'}`}
+            className={`object-contain transition-all duration-300 mix-blend-multiply brightness-[1.05] contrast-[1.1] shrink-0 ${collapsed ? 'h-12' : 'h-[80px]'}`}
           />
-          {!collapsed && (
-            <span className="text-[19px] font-black text-slate-900 tracking-tight whitespace-nowrap mt-1">
-              Admin Panel
-            </span>
-          )}
+
         </div>
       </div>
 
