@@ -4,6 +4,7 @@ import { AnalyticsCard } from '../common/AnalyticsCard';
 import { SlidePanel } from '../common/SlidePanel';
 import { StatusBadge } from '../StatusBadge';
 import { motion } from 'motion/react';
+import { ImageCropModal } from '../common/ImageCropModal';
 
 const AGENTS = [
   { id: 'A001', name: 'John Captain', email: 'john@stylein.com', phone: '+1234567890', area: 'Downtown', vehicle: 'Van-01', jobs: 12, rating: 4.8, status: 'Available' },
@@ -109,6 +110,17 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const [photo, setPhoto] = useState<any>(null);
   const [imgError, setImgError] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isDrawerOpen]);
 
   const [availableSkills, setAvailableSkills] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -235,6 +247,25 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     }
 
     return [selectedEmirate];
+  };
+
+  const handleCropComplete = async (croppedFile: File, croppedPreviewUrl: string) => {
+    setPhotoPreview(croppedPreviewUrl);
+    setImgError(false);
+    
+    toast.loading('Uploading Image...', { id: 'imgUpload' });
+    try {
+      const uploadedUrl = await uploadImage(croppedFile);
+      toast.dismiss('imgUpload');
+      toast.success('Image uploaded successfully');
+      setPhoto(uploadedUrl);
+      setPhotoPreview(uploadedUrl);
+      setSelectedImageFile(null);
+    } catch (err: any) {
+      toast.dismiss('imgUpload');
+      toast.error(err.message || 'Image upload failed');
+      setSelectedImageFile(croppedFile);
+    }
   };
 
   const handleEmirateChange = (newEmirate: string) => {
@@ -830,24 +861,15 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         type="file" 
                         className="hidden" 
                         accept="image/*"
-                        onChange={async (e) => {
+                        onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
                             const localUrl = URL.createObjectURL(file);
-                            setPhotoPreview(localUrl);
-                            setImgError(false);
-                            toast.loading('Uploading Image...', { id: 'imgUpload' });
-                            try {
-                              const uploadedUrl = await uploadImage(file);
-                              toast.dismiss('imgUpload');
-                              toast.success('Image uploaded successfully');
-                              setPhoto(uploadedUrl);
-                              setPhotoPreview(uploadedUrl);
-                              setSelectedImageFile(null);
-                            } catch (err: any) {
-                              toast.dismiss('imgUpload');
-                              toast.error(err.message || 'Image upload failed');
-                              setSelectedImageFile(file);
+                            setRawSelectedFile(file);
+                            setRawPreviewUrl(localUrl);
+                            setCropModalOpen(true);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = '';
                             }
                           }
                         }}
@@ -1162,6 +1184,18 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           </div>
         </div>
       )}
+      
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        onClose={() => {
+          setCropModalOpen(false);
+          setRawSelectedFile(null);
+          setRawPreviewUrl(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

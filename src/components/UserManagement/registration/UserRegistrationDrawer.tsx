@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { uploadImage } from "../../../services/uploadService";
 import { getCompactDrawerClass, SectionActiveToggle } from "../../SubAdminManagement/utils/subAdminFormUtils";
 import { getLoggedInAdminName } from "../../SubAdminManagement/subAdminDrawerUtils";
+import { ImageCropModal } from "../../common/ImageCropModal";
 
 const getFullImageUrl = (url: string | null) => {
   if (!url) return undefined;
@@ -48,6 +49,17 @@ export function UserRegistrationDrawer({
   useEffect(() => {
     setCurrentMode(mode);
   }, [mode]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -150,9 +162,26 @@ export function UserRegistrationDrawer({
     } catch (err: any) {
       const errMsg = err.response?.data?.message || "Operation failed";
       toast.error(errMsg);
-    } finally {
       setLoading(false);
       setStatusMessage("");
+    }
+  };
+
+  const handleCropComplete = async (croppedFile: File, croppedPreviewUrl: string) => {
+    setPhotoPreview(croppedPreviewUrl);
+    setImgError(false);
+    
+    toast.loading('Uploading Image...', { id: 'imgUpload' });
+    try {
+      const uploadedUrl = await uploadImage(croppedFile);
+      toast.dismiss('imgUpload');
+      toast.success('Image uploaded successfully');
+      setPhoto(uploadedUrl);
+      setSelectedFile(null);
+    } catch (err: any) {
+      toast.dismiss('imgUpload');
+      toast.error(err.message || 'Image upload failed');
+      setSelectedFile(croppedFile);
     }
   };
 
@@ -294,23 +323,15 @@ export function UserRegistrationDrawer({
                         type="file" 
                         className="hidden" 
                         accept="image/*"
-                        onChange={async (e) => {
+                        onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
                             const localUrl = URL.createObjectURL(file);
-                            setPhotoPreview(localUrl);
-                            setImgError(false);
-                            toast.loading('Uploading Image...', { id: 'imgUpload' });
-                            try {
-                              const uploadedUrl = await uploadImage(file);
-                              toast.dismiss('imgUpload');
-                              toast.success('Image uploaded successfully');
-                              setPhoto(uploadedUrl);
-                              setSelectedFile(null);
-                            } catch (err: any) {
-                              toast.dismiss('imgUpload');
-                              toast.error(err.message || 'Image upload failed');
-                              setSelectedFile(file);
+                            setRawSelectedFile(file);
+                            setRawPreviewUrl(localUrl);
+                            setCropModalOpen(true);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = '';
                             }
                           }
                         }}
@@ -444,6 +465,18 @@ export function UserRegistrationDrawer({
           </div>
         </div>
       )}
+      
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        onClose={() => {
+          setCropModalOpen(false);
+          setRawSelectedFile(null);
+          setRawPreviewUrl(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

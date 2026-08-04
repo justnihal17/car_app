@@ -19,12 +19,12 @@ export function ImageCropModal({
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [cropBox, setCropBox] = useState({ width: 220, height: 220 }); // Square crop box size in px
+  const cropBoxSize = 250; // Fixed size for the perfect circle crop area
+  const [baseScale, setBaseScale] = useState(1);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
   const [isDraggingImage, setIsDraggingImage] = useState(false);
-  const [isResizingBox, setIsResizingBox] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 220, height: 220 });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -35,11 +35,22 @@ export function ImageCropModal({
       setZoom(1);
       setRotation(0);
       setPosition({ x: 0, y: 0 });
-      setCropBox({ width: 220, height: 220 });
+      setBaseScale(1);
     }
   }, [isOpen, imageSrc]);
 
   if (!isOpen || !imageSrc) return null;
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
+    // Calculate a base scale that guarantees the entire image fits inside the cropBox area by default.
+    const diagonal = Math.sqrt(img.naturalWidth ** 2 + img.naturalHeight ** 2);
+    // Use diagonal to fit entirely, or use max to fit the longest edge exactly inside the square bounds of the circle.
+    // Given the requirement "with the maximum possible portion of the image visible", using max fits it perfectly.
+    const initialScale = cropBoxSize / Math.max(img.naturalWidth, img.naturalHeight);
+    setBaseScale(initialScale);
+  };
 
   // Handle Drag Image
   const handleMouseDownImage = (e: React.MouseEvent) => {
@@ -48,41 +59,17 @@ export function ImageCropModal({
     setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
   };
 
-  // Handle Corner Handle Drag (Resize Square Crop Box)
-  const handleMouseDownResize = (e: React.MouseEvent, corner: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setIsResizingBox(corner);
-    setResizeStart({
-      x: e.clientX,
-      y: e.clientY,
-      width: cropBox.width,
-      height: cropBox.height,
-    });
-  };
-
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDraggingImage) {
       setPosition({
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y,
       });
-    } else if (isResizingBox) {
-      const deltaX = e.clientX - resizeStart.x;
-      const deltaY = e.clientY - resizeStart.y;
-
-      const effectiveDeltaX = (isResizingBox === 'tl' || isResizingBox === 'bl') ? -deltaX : deltaX;
-      const effectiveDeltaY = (isResizingBox === 'tl' || isResizingBox === 'tr') ? -deltaY : deltaY;
-
-      const newWidth = Math.max(100, Math.min(280, resizeStart.width + effectiveDeltaX));
-      const newHeight = Math.max(100, Math.min(280, resizeStart.height + effectiveDeltaY));
-      setCropBox({ width: newWidth, height: newHeight });
     }
   };
 
   const handleMouseUp = () => {
     setIsDraggingImage(false);
-    setIsResizingBox(null);
   };
 
   // Touch handlers for mobile
@@ -107,7 +94,6 @@ export function ImageCropModal({
 
   const handleTouchEnd = () => {
     setIsDraggingImage(false);
-    setIsResizingBox(null);
   };
 
   const handleRotate = () => {
@@ -120,35 +106,27 @@ export function ImageCropModal({
     if (!img) return;
 
     const canvas = document.createElement('canvas');
-    const baseResolution = 800; // max dimension
-    const cropRatio = cropBox.width / cropBox.height;
-    
-    let canvasWidth = baseResolution;
-    let canvasHeight = baseResolution;
-    
-    if (cropRatio > 1) {
-      canvasHeight = baseResolution / cropRatio;
-    } else {
-      canvasWidth = baseResolution * cropRatio;
-    }
+    const canvasSize = 800; // Output image resolution (Square)
 
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    // Fill with white or transparent based on requirement. We use transparent for profile pics.
+    ctx.clearRect(0, 0, canvasSize, canvasSize);
     ctx.save();
 
     // Center canvas
-    ctx.translate(canvasWidth / 2, canvasHeight / 2);
+    ctx.translate(canvasSize / 2, canvasSize / 2);
     ctx.rotate((rotation * Math.PI) / 180);
 
-    const scaleFactor = canvasWidth / cropBox.width;
+    const scaleFactor = canvasSize / cropBoxSize;
+    const currentScale = baseScale * zoom * scaleFactor;
 
-    const renderWidth = img.naturalWidth * zoom * scaleFactor;
-    const renderHeight = img.naturalHeight * zoom * scaleFactor;
+    const renderWidth = img.naturalWidth * currentScale;
+    const renderHeight = img.naturalHeight * currentScale;
 
     const posX = position.x * scaleFactor;
     const posY = position.y * scaleFactor;
@@ -185,7 +163,7 @@ export function ImageCropModal({
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
           <div className="flex items-center gap-2">
             <Crop className="w-4 h-4 text-red-600" />
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight uppercase">Crop Image</h3>
+            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight uppercase">Crop Profile Image</h3>
           </div>
           <button
             onClick={onClose}
@@ -222,67 +200,29 @@ export function ImageCropModal({
                 ref={imageRef}
                 src={imageSrc}
                 alt="Crop preview"
-                className="max-w-none pointer-events-none"
+                className="max-w-none pointer-events-none origin-center"
+                onLoad={handleImageLoad}
                 style={{
-                  maxHeight: '320px',
-                  objectFit: 'contain',
+                  width: imageSize.width > 0 ? `${imageSize.width * baseScale}px` : 'auto',
+                  height: imageSize.height > 0 ? `${imageSize.height * baseScale}px` : 'auto',
                 }}
                 crossOrigin="anonymous"
               />
             </div>
 
-            {/* Adjustable Phone Style Square Crop Box */}
+            {/* Perfect Circle Crop Box Overlay */}
             <div
-              className="absolute pointer-events-auto border-2 border-red-500 shadow-[0_0_0_9999px_rgba(15,23,42,0.75)] rounded-xl transition-all duration-75"
+              className="absolute pointer-events-none border-2 border-red-500 shadow-[0_0_0_9999px_rgba(15,23,42,0.75)] rounded-full transition-all duration-75"
               style={{
-                width: `${cropBox.width}px`,
-                height: `${cropBox.height}px`,
+                width: `${cropBoxSize}px`,
+                height: `${cropBoxSize}px`,
               }}
             >
-              {/* 3x3 Phone Crop Grid Lines */}
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none rounded-lg overflow-hidden">
-                <div className="border-r border-b border-white/25" />
-                <div className="border-r border-b border-white/25" />
-                <div className="border-b border-white/25" />
-                <div className="border-r border-b border-white/25" />
-                <div className="border-r border-b border-white/25" />
-                <div className="border-b border-white/25" />
-              </div>
-
-              {/* 4 Phone-Style Corner Crop Handles */}
-              {/* Top-Left */}
-              <div
-                onMouseDown={(e) => handleMouseDownResize(e, 'tl')}
-                className="absolute -top-2.5 -left-2.5 w-5 h-5 bg-white border-2 border-red-600 rounded-full cursor-nwse-resize shadow-md hover:scale-125 transition-transform z-30 flex items-center justify-center"
-              >
-                <div className="w-1.5 h-1.5 bg-red-600 rounded-full" />
-              </div>
-              {/* Top-Right */}
-              <div
-                onMouseDown={(e) => handleMouseDownResize(e, 'tr')}
-                className="absolute -top-2.5 -right-2.5 w-5 h-5 bg-white border-2 border-red-600 rounded-full cursor-nesw-resize shadow-md hover:scale-125 transition-transform z-30 flex items-center justify-center"
-              >
-                <div className="w-1.5 h-1.5 bg-red-600 rounded-full" />
-              </div>
-              {/* Bottom-Left */}
-              <div
-                onMouseDown={(e) => handleMouseDownResize(e, 'bl')}
-                className="absolute -bottom-2.5 -left-2.5 w-5 h-5 bg-white border-2 border-red-600 rounded-full cursor-nesw-resize shadow-md hover:scale-125 transition-transform z-30 flex items-center justify-center"
-              >
-                <div className="w-1.5 h-1.5 bg-red-600 rounded-full" />
-              </div>
-              {/* Bottom-Right */}
-              <div
-                onMouseDown={(e) => handleMouseDownResize(e, 'br')}
-                className="absolute -bottom-2.5 -right-2.5 w-5 h-5 bg-white border-2 border-red-600 rounded-full cursor-nwse-resize shadow-md hover:scale-125 transition-transform z-30 flex items-center justify-center"
-              >
-                <div className="w-1.5 h-1.5 bg-red-600 rounded-full" />
-              </div>
             </div>
           </div>
 
           <p className="text-[11px] font-semibold text-slate-400 mt-3 flex items-center gap-1.5">
-            <Move className="w-3 h-3 text-red-400" /> Drag image or corners to crop unwanted space
+            <Move className="w-3 h-3 text-red-400" /> Drag image or adjust zoom to fit
           </p>
         </div>
 
@@ -311,31 +251,6 @@ export function ImageCropModal({
             </button>
           </div>
 
-          {/* Preset Buttons for Quick Sizes */}
-          <div className="flex items-center justify-between text-xs gap-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Crop Box Size:</span>
-            <div className="flex items-center gap-1.5">
-              {[
-                { label: 'Small', size: 160 },
-                { label: 'Medium', size: 220 },
-                { label: 'Large', size: 270 },
-              ].map((preset) => (
-                <button
-                  key={preset.label}
-                  type="button"
-                  onClick={() => setCropBox({ width: preset.size, height: preset.size })}
-                  className={`px-3 py-1 rounded-lg font-bold border transition-all text-[11px] ${
-                    cropBox.width === preset.size
-                      ? 'bg-red-50 text-red-600 border-red-200 shadow-2xs'
-                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Footer Actions */}
           <div className="flex items-center gap-3 pt-2">
             <button
@@ -350,7 +265,7 @@ export function ImageCropModal({
               onClick={handleApplyCrop}
               className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs"
             >
-              <Check className="w-4 h-4" /> Crop & Apply
+              <Check className="w-4 h-4" /> Apply / Save Crop
             </button>
           </div>
         </div>

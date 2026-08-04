@@ -82,6 +82,17 @@ export function ConfirmationModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isExecuting, onCancel, onConfirm]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (

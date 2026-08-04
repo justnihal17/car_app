@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { uploadImage } from '../../../services/uploadService';
 import { getLoggedInAdminName, ALL_ACCESS_MODULES } from '../subAdminDrawerUtils';
 import { getCompactDrawerClass, SubAdminFormFields } from '../utils/subAdminFormUtils';
+import { ImageCropModal } from '../../common/ImageCropModal';
 
 const formatRoleName = (roleName: string) => {
   if (!roleName) return '';
@@ -63,6 +64,11 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
       }
     };
     fetchRoles();
+
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, []);
   const roleDropdownRef = useRef<HTMLDivElement>(null);
   const accessDropdownRef = useRef<HTMLDivElement>(null);
@@ -170,23 +176,32 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
     const file = e.target.files?.[0];
     if (file) {
       const localUrl = URL.createObjectURL(file);
-      setPreviewUrl(localUrl);
-      setFormData(prev => ({ ...prev, imageUrl: localUrl }));
-      setImgError(false);
-      
-      toast.loading('Uploading Image...', { id: 'imgUpload' });
-      try {
-        const uploadedUrl = await uploadImage(file);
-        toast.dismiss('imgUpload');
-        toast.success('Image uploaded successfully');
-        setPreviewUrl(uploadedUrl);
-        setFormData(prev => ({ ...prev, imageUrl: uploadedUrl }));
-        setSelectedFile(null);
-      } catch (err: any) {
-        toast.dismiss('imgUpload');
-        toast.error(err.message || 'Image upload failed');
-        setSelectedFile(file);
+      setRawSelectedFile(file);
+      setRawPreviewUrl(localUrl);
+      setCropModalOpen(true);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleCropComplete = async (croppedFile: File, croppedPreviewUrl: string) => {
+    setPreviewUrl(croppedPreviewUrl);
+    setFormData(prev => ({ ...prev, imageUrl: croppedPreviewUrl }));
+    setImgError(false);
+    
+    toast.loading('Uploading Image...', { id: 'imgUpload' });
+    try {
+      const uploadedUrl = await uploadImage(croppedFile);
+      toast.dismiss('imgUpload');
+      toast.success('Image uploaded successfully');
+      setPreviewUrl(uploadedUrl);
+      setFormData(prev => ({ ...prev, imageUrl: uploadedUrl }));
+      setSelectedFile(null);
+    } catch (err: any) {
+      toast.dismiss('imgUpload');
+      toast.error(err.message || 'Image upload failed');
+      setSelectedFile(croppedFile);
     }
   };
 
@@ -428,6 +443,18 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
           </div>
         </form>
       </div>
+      
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        onClose={() => {
+          setCropModalOpen(false);
+          setRawSelectedFile(null);
+          setRawPreviewUrl(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

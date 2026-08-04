@@ -11,6 +11,7 @@ import { getCompactDrawerClass, SectionActiveToggle } from '../SubAdminManagemen
 import { getLoggedInAdminName } from '../SubAdminManagement/subAdminDrawerUtils';
 import { uploadImage } from '../../services/uploadService';
 import { StatsShimmer, TableShimmer } from '../shimmer/ShimmerLoader';
+import { ImageCropModal } from '../common/ImageCropModal';
 
 interface FieldConfig {
     name: string;
@@ -139,6 +140,25 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       toast.error(`Failed to fetch ${moduleName} list`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCropComplete = async (croppedFile: File, croppedPreviewUrl: string) => {
+    setPhoto(croppedPreviewUrl);
+    setEditingItem(prev => ({ ...prev, image: croppedPreviewUrl }));
+    
+    toast.loading('Uploading Image...', { id: 'imgUpload' });
+    try {
+      const uploadedUrl = await uploadImage(croppedFile);
+      toast.dismiss('imgUpload');
+      toast.success('Image uploaded successfully');
+      setPhoto(uploadedUrl);
+      setEditingItem(prev => ({ ...prev, image: uploadedUrl }));
+      setSelectedFile(null);
+    } catch (err: any) {
+      toast.dismiss('imgUpload');
+      toast.error(err.message || 'Image upload failed');
+      setSelectedFile(croppedFile);
     }
   };
 
@@ -1182,24 +1202,15 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                       disabled={mode === "view"} 
                       className="hidden" 
                       accept="image/*"
-                      onChange={async (e) => {
+                      onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           const file = e.target.files[0];
                           const fileUrl = URL.createObjectURL(file);
-                          setPhoto(fileUrl);
-                          setEditingItem(prev => ({ ...prev, image: fileUrl }));
-                          toast.loading('Uploading Image...', { id: 'imgUpload' });
-                          try {
-                            const uploadedUrl = await uploadImage(file);
-                            toast.dismiss('imgUpload');
-                            toast.success('Image uploaded successfully');
-                            setPhoto(uploadedUrl);
-                            setEditingItem(prev => ({ ...prev, image: uploadedUrl }));
-                            setSelectedFile(null);
-                          } catch (err: any) {
-                            toast.dismiss('imgUpload');
-                            toast.error(err.message || 'Image upload failed');
-                            setSelectedFile(file);
+                          setRawSelectedFile(file);
+                          setRawPreviewUrl(fileUrl);
+                          setCropModalOpen(true);
+                          if (e.target) {
+                            e.target.value = '';
                           }
                         }
                       }} 
@@ -1401,6 +1412,18 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           </div>
         </div>
       )}
+
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        onClose={() => {
+          setCropModalOpen(false);
+          setRawSelectedFile(null);
+          setRawPreviewUrl(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }
