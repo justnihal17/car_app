@@ -1,5 +1,6 @@
 import { Search, Filter, Download, Plus, MoreHorizontal, ChevronLeft, ChevronRight, Star, MapPin } from 'lucide-react';
 import { DRIVERS } from '../../data/drivers';
+import { SafeImage } from '../common/SafeImage';
 
 export function DriverList({ onDriverSelect }: { onDriverSelect: (id: string) => void }) {
   return (
@@ -77,7 +78,7 @@ export function DriverList({ onDriverSelect }: { onDriverSelect: (id: string) =>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <img src={driver.avatar} alt={driver.name} className="w-10 h-10 rounded-full border border-slate-700 object-cover" />
+                        <SafeImage src={driver.avatar} alt={driver.name} className="w-10 h-10 rounded-full border border-slate-700 object-cover" />
                         <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-2 border-[#0f1218] rounded-full
                           ${driver.status === 'Online' ? 'bg-emerald-500' : 
                             driver.status === 'Busy' ? 'bg-yellow-500' : 'bg-slate-500'}

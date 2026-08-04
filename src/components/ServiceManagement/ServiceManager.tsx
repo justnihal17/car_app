@@ -3,6 +3,7 @@ import { Search, Filter, Download, Plus, MoreHorizontal, ChevronLeft, ChevronRig
 import api from '../../api/axios';
 import { CreateService } from './CreateService';
 import { ServiceDetails } from './ServiceDetails';
+import { SafeImage } from '../common/SafeImage';
 
 const TABS = [
   { id: 'list', label: 'Service List' },
@@ -196,7 +197,7 @@ export function ServiceManager() {
                   <tr key={service.id} className="hover:bg-slate-800/20 transition-colors group cursor-pointer" onClick={() => setSelectedService(service.id)}>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-4">
-                        <img src={service.image} alt={service.name} className="w-12 h-12 rounded-lg border border-slate-700 object-cover" />
+                        <SafeImage src={service.image} alt={service.name} className="w-12 h-12 rounded-lg border border-slate-700 object-cover" />
                         <div>
                           <div className="font-medium text-white">{service.name}</div>
                           <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">

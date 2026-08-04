@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, User } from 'lucide-react';
+import { SafeImage } from '../../common/SafeImage';
 
 export function FileUpload({ name, label }: { name: string; label: string }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export function FileUpload({ name, label }: { name: string; label: string }) {
       >
         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
           {previewUrl ? (
-            <img src={previewUrl} className="w-full h-full object-cover" alt="Preview" />
+            <SafeImage src={previewUrl} allowBlob={true} className="w-full h-full object-cover" alt="Preview" />
           ) : (
             <User className="w-8 h-8 text-red-500" />
           )}

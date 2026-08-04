@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { SafeImage } from './common/SafeImage';
 import { 
   Eye, Edit2, UserX, UserCheck, Trash2, RotateCcw, CheckCircle2, 
   XCircle, Key, ShieldCheck, ShieldAlert, LogOut, AlertTriangle, Loader2 
@@ -103,7 +104,7 @@ export function ConfirmationModal({
       <div className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-200 border border-slate-100" role="dialog" aria-modal="true">
         {actionType === 'logout' ? (
           <div className="mb-6 flex items-center justify-center w-full">
-            <img 
+            <SafeImage 
               src="/logo.png" 
               alt="Logo" 
               className="h-20 object-contain mix-blend-multiply [filter:contrast(130%)_brightness(110%)] mx-auto" 

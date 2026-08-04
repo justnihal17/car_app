@@ -1,5 +1,6 @@
 import { ArrowLeft, Clock, MapPin, User, Car, CheckCircle, Navigation, FileText, XCircle, RefreshCw, CreditCard, DollarSign, Activity, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { PAYMENTS } from '../../data/payments';
+import { SafeImage } from '../common/SafeImage';
 
 const STATUS_COLORS: Record<string, string> = {
   'Paid': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -161,7 +162,7 @@ export function TransactionDetails({ transactionId, onBack }: { transactionId: s
           <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg p-5">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Customer Info</h3>
             <div className="flex items-center gap-4 mb-4">
-              <img src={payment.customer.image} alt={payment.customer.name} className="w-12 h-12 rounded-full border border-slate-700 object-cover" />
+              <SafeImage src={payment.customer.image} alt={payment.customer.name} className="w-12 h-12 rounded-full border border-slate-700 object-cover" />
               <div>
                 <div className="font-medium text-white">{payment.customer.name}</div>
                 <div className="text-xs text-slate-500 mt-0.5">{payment.customer.email}</div>
@@ -178,7 +179,7 @@ export function TransactionDetails({ transactionId, onBack }: { transactionId: s
             {payment.driver ? (
               <>
                 <div className="flex items-center gap-4 mb-4">
-                  <img src={payment.driver.image} alt={payment.driver.name} className="w-12 h-12 rounded-full border border-slate-700 object-cover" />
+                  <SafeImage src={payment.driver.image} alt={payment.driver.name} className="w-12 h-12 rounded-full border border-slate-700 object-cover" />
                   <div>
                     <div className="font-medium text-white">{payment.driver.name}</div>
                     <div className="text-xs text-slate-500 font-mono mt-0.5">{payment.driver.id}</div>

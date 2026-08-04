@@ -12,6 +12,7 @@ import { getLoggedInAdminName } from '../SubAdminManagement/subAdminDrawerUtils'
 import { uploadImage } from '../../services/uploadService';
 import { StatsShimmer, TableShimmer } from '../shimmer/ShimmerLoader';
 import { ImageCropModal } from '../common/ImageCropModal';
+import { SafeImage } from '../common/SafeImage';
 
 interface FieldConfig {
     name: string;
@@ -982,7 +983,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                       <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
                         {row.image && !hasError ? (
                           <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 shadow-2xs mx-auto flex items-center justify-center bg-slate-50">
-                            <img 
+                            <SafeImage 
                               src={row.image} 
                               alt={row.name} 
                               className="w-full h-full object-contain" 
@@ -1175,7 +1176,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                       className={`w-16 h-16 shrink-0 bg-slate-50 rounded-full flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
                     >
                       {(photo || editingItem.image) ? (
-                        <img src={photo || editingItem.image} className="w-full h-full object-cover" alt="Preview" />
+                        <SafeImage src={photo || editingItem.image} className="w-full h-full object-cover" alt="Preview" />
                       ) : ['vehicletype', 'vehicle-type', 'make', 'model', 'brand'].includes(moduleName.toLowerCase()) ? (
                         <Car className="w-6 h-6 text-slate-400" />
                       ) : ['service', 'subservice', 'sub-service'].includes(moduleName.toLowerCase()) ? (
@@ -1403,7 +1404,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
             >
               <X className="w-5 h-5" />
             </button>
-            <img 
+            <SafeImage 
               src={photo || editingItem.image} 
               alt="Preview" 
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/20"

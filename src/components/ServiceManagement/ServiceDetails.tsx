@@ -3,6 +3,7 @@ import { ChevronLeft, Calendar, Tag, MapPin, BarChart2, DollarSign, Clock, Users
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { getAdminSubServicesByServiceId } from '../../services/subServiceService';
+import { SafeImage } from '../common/SafeImage';
 
 function normalizeService(item: any) {
   const rawPrice = item.price ?? item.amount ?? 0;
@@ -162,7 +163,7 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBac
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg flex items-start gap-6">
-            <img src={service.image} alt={service.name} className="w-32 h-32 rounded-xl border border-slate-700 object-cover" />
+            <SafeImage src={service.image} alt={service.name} className="w-32 h-32 rounded-xl border border-slate-700 object-cover" />
             <div className="flex-1">
               <h2 className="text-3xl font-bold text-white mb-2">{service.name}</h2>
               <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
@@ -216,7 +217,7 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBac
                   <div key={sub._id || sub.id} className="p-3.5 bg-slate-900/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3 hover:border-slate-700 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       {sub.image ? (
-                        <img src={sub.image} alt={sub.name} className="w-10 h-10 rounded-lg object-cover border border-slate-700 shrink-0" />
+                        <SafeImage src={sub.image} alt={sub.name} className="w-10 h-10 rounded-lg object-cover border border-slate-700 shrink-0" />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-xs shrink-0">
                           {(sub.name || sub.title || 'S')[0].toUpperCase()}

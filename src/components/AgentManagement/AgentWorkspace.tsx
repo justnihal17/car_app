@@ -18,6 +18,7 @@ import { ConfirmationModal, ActionType } from '../ConfirmationModal';
 import { uploadImage } from '../../services/uploadService';
 import { getCompactDrawerClass, SectionActiveToggle } from '../SubAdminManagement/utils/subAdminFormUtils';
 import { getLoggedInAdminName } from '../SubAdminManagement/subAdminDrawerUtils';
+import { SafeImage } from '../common/SafeImage';
 
 export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) => void }) {
   const loggedInAdminName = getLoggedInAdminName();
@@ -650,7 +651,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                     <div className="flex items-center gap-2.5">
                       <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(agent.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
                         {(agent.profileImage || agent.profileUrl || agent.imageUrl) ? (
-                          <img 
+                          <SafeImage 
                             src={agent.profileImage || agent.profileUrl || agent.imageUrl} 
                             alt={agent.name} 
                             className="w-full h-full object-cover absolute inset-0" 
@@ -830,7 +831,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                     >
                       <div className={`w-16 h-16 rounded-full border-2 border-slate-100 shadow-sm overflow-hidden bg-slate-50 flex items-center justify-center transition-all ${photoPreview || (photo && !imgError) ? 'cursor-pointer hover:scale-105' : (drawerMode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')} ${drawerMode === "view" ? '' : 'group-hover:border-red-100'}`}>
                         {(photoPreview || (photo && !imgError)) ? (
-                          <img 
+                          <SafeImage 
                             src={photoPreview || (typeof photo === 'string' ? photo : undefined)} 
                             className="w-full h-full object-cover" 
                             alt="Profile" 
@@ -1175,7 +1176,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
             >
               <X className="w-5 h-5" />
             </button>
-            <img 
+            <SafeImage 
               src={photoPreview || (typeof photo === 'string' ? photo : undefined)} 
               alt="Agent Photo Preview" 
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/20"

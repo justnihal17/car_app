@@ -1,5 +1,6 @@
 import React from 'react';
 import { Upload, User, ChevronDown, Check, Eye, EyeOff, X, Shield, Lock, Activity } from 'lucide-react';
+import { SafeImage } from '../../common/SafeImage';
 
 export const getCompactDrawerClass = (): string => {
   return "sub-admin-drawer-container animate-in slide-in-from-right duration-300";
@@ -105,7 +106,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
               className={`w-16 h-16 shrink-0 bg-slate-50 rounded-full flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${previewUrl || formData.imageUrl ? 'cursor-pointer hover:scale-105' : (!isView ? 'cursor-pointer hover:bg-slate-100' : '')}`}
             >
               {(previewUrl || (formData.imageUrl && !imgError)) ? (
-                <img 
+                <SafeImage 
                   src={previewUrl || formData.imageUrl} 
                   alt="Admin Photo" 
                   onError={() => setImgError(true)} 
@@ -355,7 +356,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
             >
               <X className="w-5 h-5" />
             </button>
-            <img 
+            <SafeImage 
               src={previewUrl || formData.imageUrl} 
               alt="Admin Photo Preview" 
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/20"

@@ -39,7 +39,7 @@ export function EditProfileModal() {
         email: formData.email,
         phone: formData.phone,
         role: profile.role || 'admin',
-        profileUrl: profile.profileUrl || 'https://example.com/profile.jpg',
+        profileUrl: profile.profileUrl || '',
         active: profile.active !== false,
         blocked: !!profile.blocked,
         permissions: profile.permissions || {}

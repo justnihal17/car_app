@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Search, Bell, MessageSquare, Moon, Globe, ChevronRight, LogOut, Settings as SettingsIcon, ChevronDown } from 'lucide-react';
 import { useUIStore } from '../store/uiStore';
 import { usePushNotifications } from '../context/NotificationContext';
+import { SafeImage } from './common/SafeImage';
 
 export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCollapsed: boolean, onViewChange: (view: string) => void, onLogout: () => void }) {
   const { toggleNotification } = useUIStore();
@@ -51,7 +52,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
           >
             <div className="w-10 h-10 rounded-full bg-[#1A1C20] flex items-center justify-center overflow-hidden border border-slate-200 text-white font-medium text-base">
               {profile?.profileUrl ? (
-                <img src={avatarUrl} alt="Admin" className="w-full h-full object-cover" />
+                <SafeImage src={avatarUrl} alt="Admin" className="w-full h-full object-cover" />
               ) : (
                 fullName.charAt(0).toUpperCase()
               )}

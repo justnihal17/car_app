@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Filter, Download, Plus, MoreHorizontal, ChevronLeft, ChevronRight, CheckCircle, XCircle, AlertCircle, RefreshCw, FileText, CreditCard, DollarSign } from 'lucide-react';
 import { PAYMENTS } from '../../data/payments';
+import { SafeImage } from '../common/SafeImage';
 
 const STATUS_COLORS: Record<string, string> = {
   'Paid': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -101,7 +102,7 @@ export function TransactionList({ onSelectTransaction }: { onSelectTransaction: 
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      <img src={payment.customer.image} alt={payment.customer.name} className="w-6 h-6 rounded-full border border-slate-700 object-cover" />
+                      <SafeImage src={payment.customer.image} alt={payment.customer.name} className="w-6 h-6 rounded-full border border-slate-700 object-cover" />
                       <div className="font-medium text-slate-200 text-xs">{payment.customer.name}</div>
                     </div>
                     {payment.driver ? (

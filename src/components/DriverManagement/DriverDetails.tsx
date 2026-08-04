@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { DRIVERS } from '../../data/drivers';
+import { SafeImage } from '../common/SafeImage';
 
 const TABS = [
   { id: 'profile', label: 'Profile Overview' },
@@ -44,7 +45,7 @@ export function DriverDetails({ driverId, onBack }: { driverId: string, onBack: 
         <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div className="flex items-center gap-6">
             <div className="relative">
-              <img src={driver.avatar} alt={driver.name} className="w-24 h-24 rounded-2xl border-2 border-slate-700 object-cover shadow-xl" />
+              <SafeImage src={driver.avatar} alt={driver.name} className="w-24 h-24 rounded-2xl border-2 border-slate-700 object-cover shadow-xl" />
               <div className={`absolute -bottom-2 -right-2 w-6 h-6 border-4 border-[#0f1218] rounded-full
                 ${driver.status === 'Online' ? 'bg-emerald-500' : 
                   driver.status === 'Busy' ? 'bg-yellow-500' : 'bg-slate-500'}

@@ -1,5 +1,6 @@
 import { Shield, Mail, User, Clock, MapPin } from 'lucide-react';
 import { useUIStore } from '../store/uiStore';
+import { SafeImage } from './common/SafeImage';
 
 export function ProfileView() {
   const { toggleEditProfile } = useUIStore();
@@ -32,7 +33,7 @@ export function ProfileView() {
         {/* Left: Avatar and Basic Info */}
         <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-200/70 shadow-sm flex flex-col items-center text-center">
           <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-red-600 to-red-400 p-1 mb-6">
-            <img src={avatarUrl} alt="Admin" className="w-full h-full rounded-full object-cover bg-white" />
+            <SafeImage src={avatarUrl} alt="Admin" className="w-full h-full rounded-full object-cover bg-white" />
           </div>
           <h3 className="text-2xl font-bold text-slate-900">{fullName}</h3>
           <p className="text-red-600 font-medium mb-4 capitalize">{roleLabel}</p>

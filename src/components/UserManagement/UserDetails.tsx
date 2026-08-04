@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { USERS } from '../../data/users';
+import { SafeImage } from '../common/SafeImage';
 
 const TABS = [
   { id: 'profile', label: 'Profile Overview' },
@@ -44,7 +45,7 @@ export function UserDetails({ userId, onBack }: { userId: string, onBack: () => 
         <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div className="flex items-center gap-6">
             <div className="relative">
-              <img src={user.avatar} alt={user.name} className="w-24 h-24 rounded-2xl border-2 border-slate-700 object-cover shadow-xl" />
+              <SafeImage src={user.avatar} alt={user.name} className="w-24 h-24 rounded-2xl border-2 border-slate-700 object-cover shadow-xl" />
               <div className="absolute -bottom-2 -right-2 bg-red-500 p-1.5 rounded-lg border-2 border-[#0f1218]" title="Verified User">
                 <CheckCircle2 className="w-4 h-4 text-white" />
               </div>

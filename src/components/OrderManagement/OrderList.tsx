@@ -3,6 +3,7 @@ import { Search, Filter, Download, Plus, ChevronLeft, ChevronRight, Clock, MapPi
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { fetchOrders, setFilters } from '../../store/orderSlice';
+import { SafeImage } from '../common/SafeImage';
 
 const STATUS_COLORS: Record<string, string> = {
   'Pending': 'bg-[#FEF3C7] text-[#B45309] border-[#FEF3C7]',
@@ -275,7 +276,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           {srv?.image ? (
-                            <img src={srv.image} alt={srv.name} className="w-10 h-10 rounded-lg border border-slate-200 object-cover" />
+                            <SafeImage src={srv.image} alt={srv.name} className="w-10 h-10 rounded-lg border border-slate-200 object-cover" />
                           ) : (
                             <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 text-xs">IMG</div>
                           )}

@@ -8,6 +8,7 @@ import { ProfilePreview } from './ProfilePreview';
 import { Save, X, Calendar as CalendarIcon, User, Mail, Phone, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { SafeImage } from '../../common/SafeImage';
 
 export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,7 +109,7 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
               >
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
                   {userPhoto ? (
-                    <img src={userPhoto} className="w-full h-full object-cover" alt="User Photo" />
+                    <SafeImage src={userPhoto} className="w-full h-full object-cover" alt="User Photo" />
                   ) : (
                     <User className="w-8 h-8 text-red-500" />
                   )}

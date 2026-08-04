@@ -3,6 +3,7 @@ import {
   CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight, Car
 } from 'lucide-react';
 import { useState } from 'react';
+import { SafeImage } from './common/SafeImage';
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -71,7 +72,7 @@ export function Sidebar({
         title="Toggle Sidebar"
       >
         <div className={`flex items-center gap-3 overflow-hidden w-full ${collapsed ? 'justify-center' : 'justify-start px-2'}`}>
-          <img 
+          <SafeImage 
             src="/logo.png" 
             alt="Stylein Logo" 
             className={`object-contain transition-all duration-300 mix-blend-multiply brightness-[1.05] contrast-[1.1] shrink-0 ${collapsed ? 'h-10' : 'h-14'}`}

@@ -5,6 +5,7 @@ import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Shield, Settings, Trash
 import { ConfirmationModal } from '../ConfirmationModal';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { SafeImage } from '../common/SafeImage';
 
 const getFullImageUrl = (url: string | null) => {
   if (!url) return undefined;
@@ -70,7 +71,7 @@ export function UserProfileWorkspace({ userId, onBack }: { userId: string, onBac
             <div className="w-32 h-32 rounded-2xl bg-white p-1 border-4 border-white shadow-lg">
                 <div className="w-full h-full bg-slate-200 rounded-xl flex items-center justify-center overflow-hidden">
                     {(user.image || user.profileUrl || user.imageUrl) ? (
-                        <img 
+                        <SafeImage 
                             src={getFullImageUrl(user.image || user.profileUrl || user.imageUrl)} 
                             alt={user.fullName || 'User'} 
                             className="w-full h-full object-cover" 

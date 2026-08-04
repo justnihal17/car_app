@@ -7,6 +7,7 @@ import { uploadImage } from "../../../services/uploadService";
 import { getCompactDrawerClass, SectionActiveToggle } from "../../SubAdminManagement/utils/subAdminFormUtils";
 import { getLoggedInAdminName } from "../../SubAdminManagement/subAdminDrawerUtils";
 import { ImageCropModal } from "../../common/ImageCropModal";
+import { SafeImage } from '../../common/SafeImage';
 
 const getFullImageUrl = (url: string | null) => {
   if (!url) return undefined;
@@ -292,8 +293,9 @@ export function UserRegistrationDrawer({
                     >
                       <div className={`w-16 h-16 rounded-full border-2 border-slate-100 shadow-sm overflow-hidden bg-slate-50 flex items-center justify-center transition-all ${photoPreview || (photo && !imgError) ? 'cursor-pointer hover:scale-105' : (!isView ? 'cursor-pointer hover:bg-slate-100' : '')} ${isView ? '' : 'group-hover:border-red-100'}`}>
                         {(photoPreview || (photo && !imgError)) ? (
-                          <img 
+                          <SafeImage 
                             src={getFullImageUrl(photoPreview || photo)} 
+                            allowBlob={true}
                             className="w-full h-full object-cover" 
                             alt="Profile" 
                             onError={() => setImgError(true)}
@@ -456,7 +458,7 @@ export function UserRegistrationDrawer({
             >
               <X className="w-5 h-5" />
             </button>
-            <img 
+            <SafeImage 
               src={getFullImageUrl(photoPreview || photo)} 
               alt="User Photo Preview" 
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/20"

@@ -7,6 +7,7 @@ import { EditOrderModal } from './Modals/EditOrderModal';
 import { CancelOrderModal } from './Modals/CancelOrderModal';
 import { UpdatePaymentModal } from './Modals/UpdatePaymentModal';
 import { AssignAgentModal } from './Modals/AssignAgentModal';
+import { SafeImage } from '../common/SafeImage';
 
 const STATUS_COLORS: Record<string, string> = {
   'pending': 'bg-[#FEF3C7] text-[#B45309] border-[#FEF3C7]',
@@ -130,7 +131,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
               </h3>
               <div className="flex items-start gap-4 mb-7">
                 {srv?.serviceId?.image ? (
-                  <img src={srv.serviceId.image} alt={srv.serviceId.name} className="w-16 h-16 rounded-2xl border border-slate-100 shadow-sm object-cover" />
+                  <SafeImage src={srv.serviceId.image} alt={srv.serviceId.name} className="w-16 h-16 rounded-2xl border border-slate-100 shadow-sm object-cover" />
                 ) : (
                   <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 text-xs font-medium shadow-inner">IMG</div>
                 )}

@@ -6,6 +6,7 @@ import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
 import { ConfirmationModal, ActionType } from '../ConfirmationModal';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { SafeImage } from '../common/SafeImage';
 
 const formatRole = (role: string) => {
   if (!role) return '-';
@@ -446,7 +447,7 @@ export function SubAdminManagement() {
                        <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(admin.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
                           {(admin.profileUrl || admin.imageUrl) ? (
-                            <img 
+                            <SafeImage 
                               src={admin.profileUrl || admin.imageUrl} 
                               alt={admin.name} 
                               className="w-full h-full object-cover absolute inset-0" 

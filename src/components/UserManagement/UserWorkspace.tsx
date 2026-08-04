@@ -7,6 +7,7 @@ import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
 import { ConfirmationModal, ActionType } from '../ConfirmationModal';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { SafeImage } from '../common/SafeImage';
 
 const getFullImageUrl = (url: string | null) => {
   if (!url) return undefined;
@@ -309,7 +310,7 @@ export function UserWorkspace({ onUserSelect }: { onUserSelect: (id: string) => 
                     <div className="flex items-center gap-2.5">
                       <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(user.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
                         {(user.image || user.profileUrl || user.imageUrl) ? (
-                          <img 
+                          <SafeImage 
                             src={getFullImageUrl(user.image || user.profileUrl || user.imageUrl)} 
                             alt={user.name} 
                             className="w-full h-full object-cover absolute inset-0" 

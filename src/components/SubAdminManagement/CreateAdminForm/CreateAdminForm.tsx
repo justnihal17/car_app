@@ -239,7 +239,7 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
     setApiError('');
     setApiSuccess('');
 
-    let finalProfileUrl = formData.imageUrl || 'https://example.com/profile.jpg';
+    let finalProfileUrl = formData.imageUrl || '';
 
     if (selectedFile) {
       setStatusMessage('Uploading Image...');
