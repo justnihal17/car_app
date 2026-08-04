@@ -34,11 +34,6 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
       `}
     >
       <div className="flex items-center gap-4 flex-1">
-        <div className="hidden md:flex items-center gap-2 text-sm text-slate-500">
-          <span className="hover:text-red-700 cursor-pointer transition-colors">Admin</span>
-          <ChevronRight className="w-4 h-4" />
-          <span className="text-slate-900 font-medium">Dashboard</span>
-        </div>
       </div>
 
       <div className="flex items-center gap-4 ml-4">

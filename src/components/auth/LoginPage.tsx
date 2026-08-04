@@ -90,35 +90,21 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white rounded-3xl shadow-2xl shadow-red-600/30 border border-red-100/50 flex w-full max-w-4xl overflow-hidden min-h-[500px] relative z-10"
+        className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col w-full max-w-md p-8 sm:p-10 relative z-10"
       >
-        {/* Left Side: HD Image */}
-        <div className="hidden md:block w-1/2 bg-slate-900 relative overflow-hidden group">
-          <motion.img 
-            initial={{ scale: 1.1, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-            src="/images/login-car.jpg" 
-            alt="HD Premium Red Sports Car" 
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-        </div>
-
-        {/* Right Side: Form */}
-        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white">
+        <div className="w-full flex flex-col justify-center bg-white">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col items-center mb-8"
           >
-            {/* Top Lock Icon */}
-            <div className="mx-auto bg-red-50 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-              <Lock className="w-6 h-6 text-red-600" />
-            </div>
+            {/* Logo */}
+            <img src="/logo.png" alt="Stylein Logo" className="h-16 md:h-20 object-contain mb-6 mix-blend-multiply [filter:contrast(130%)_brightness(110%)]" />
 
             {/* Header Content */}
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Admin Login</h1>
+            <div className="text-center">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Admin Login</h1>
               <p className="text-sm text-slate-500 mt-1">Please enter your credentials to continue</p>
             </div>
           </motion.div>
@@ -145,14 +131,14 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
             >
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Admin ID</label>
               <div className="relative group">
-                <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-400 group-focus-within:text-red-500 transition-colors" />
+                <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-400 group-focus-within:text-red-600 transition-colors" />
                 <input 
                   type="text" 
                   placeholder="e.g. admin00001" 
                   value={adminId}
                   onChange={(e) => setAdminId(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(e); }}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all text-sm font-semibold shadow-2xs"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#F8FAFC] rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all text-sm font-normal shadow-2xs"
                   required
                 />
               </div>
@@ -166,7 +152,7 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
             >
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Password</label>
               <div className="relative group">
-                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400 group-focus-within:text-red-500 transition-colors" />
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400 group-focus-within:text-red-600 transition-colors" />
                 <input 
                   type="text"
                   style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' } as React.CSSProperties}
@@ -174,7 +160,7 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(e); }}
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all text-sm font-semibold shadow-2xs"
+                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-[#F8FAFC] rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all text-sm font-normal shadow-2xs"
                   required
                 />
                 <button
@@ -197,7 +183,7 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
               type="button" 
               onClick={() => handleSubmit()}
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl transition-all mt-6 shadow-md shadow-red-500/20 flex items-center justify-center gap-2 text-sm"
+              className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors mt-6 shadow-md flex items-center justify-center gap-2 text-sm cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
               <span>{loading ? 'Authenticating...' : 'Secure Login'}</span>

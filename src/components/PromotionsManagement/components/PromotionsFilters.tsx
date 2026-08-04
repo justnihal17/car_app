@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, RotateCcw, X } from 'lucide-react';
+import { Search, RotateCcw, X, Trash2 } from 'lucide-react';
 import { PromotionFilterState } from '../types/promotion.types';
 import { CustomSelect } from '../../common/CustomSelect';
 
@@ -121,6 +121,17 @@ export function PromotionsFilters({ filters, onFilterChange, onRefresh }: Promot
               <X className="w-3.5 h-3.5" /> Clear Filters
             </button>
           )}
+          <button
+            onClick={() => onFilterChange({ ...filters, dateFilter: filters.dateFilter === 'deleted' ? 'ALL' : 'deleted' })}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer border shadow-sm ${
+              filters.dateFilter === 'deleted' 
+                ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' 
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            {filters.dateFilter === 'deleted' ? <RotateCcw className="w-3.5 h-3.5" /> : <Trash2 className="w-3.5 h-3.5 text-slate-400" />}
+            {filters.dateFilter === 'deleted' ? 'Back to Offers' : 'Trash'}
+          </button>
           <button
             onClick={onRefresh}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"

@@ -5,8 +5,8 @@ import { PromotionsFilters } from './components/PromotionsFilters';
 import { PromotionsTable } from './components/PromotionsTable';
 import { PromotionDetailsView } from './components/PromotionDetailsView';
 import { PromotionFormContainer } from './components/PromotionForm/PromotionFormContainer';
-import { ConfirmationModal } from './components/PromotionModals';
 import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
+import { ConfirmationModal } from '../ConfirmationModal';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 
@@ -30,6 +30,7 @@ export default function PromotionsModule() {
   // Modal states
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
   const [statusTarget, setStatusTarget] = useState<Promotion | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<Promotion | null>(null);
 
   const fetchStats = async () => {
     try {
@@ -101,12 +102,11 @@ export default function PromotionsModule() {
     try {
       setLoading(true);
       console.log('Submitting Promotion Payload:', newPromo);
-      const promoPriority = newPromo.priority || 10;
       if (viewMode === 'edit' && selectedPromo) {
-        await api.put(`/admin/offers/${selectedPromo.id || selectedPromo._id}?priority=${promoPriority}`, newPromo);
+        await api.put(`/admin/offers/${selectedPromo.id || (selectedPromo as any)._id}`, newPromo);
         toast.success('Promotion updated successfully!');
       } else {
-        await api.post(`/admin/offers?priority=${promoPriority}`, newPromo);
+        await api.post(`/admin/offers`, newPromo);
         toast.success('Promotion created successfully!');
       }
       setViewMode('list');
@@ -139,8 +139,8 @@ export default function PromotionsModule() {
     if (!statusTarget) return;
     try {
       const newStatus = statusTarget.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-      await api.put(`/admin/offers/${statusTarget.id || (statusTarget as any)._id}`, { status: newStatus });
-      toast.success(`Promotion ${newStatus === 'ACTIVE' ? 'activated' : 'deactivated'} successfully!`);
+      const res = await api.patch(`/admin/offers/${statusTarget.id || (statusTarget as any)._id}/status`, { status: newStatus });
+      toast.success(res.data?.message || `Promotion ${newStatus === 'ACTIVE' ? 'activated' : 'deactivated'} successfully!`);
       fetchPromotions();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update status');
@@ -152,13 +152,43 @@ export default function PromotionsModule() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await api.delete(`/admin/offers/${deleteTarget.id || (deleteTarget as any)._id}`);
-      toast.success('Promotion deleted successfully!');
+      const res = await api.delete(`/admin/offers/${deleteTarget.id || (deleteTarget as any)._id}`);
+      toast.success(res.data?.message || 'Promotion deleted successfully!');
       fetchPromotions();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to delete promotion');
     } finally {
       setDeleteTarget(null);
+    }
+  };
+
+  const confirmRestore = async () => {
+    if (!restoreTarget) return;
+    try {
+      const res = await api.patch(`/admin/offers/${restoreTarget.id || (restoreTarget as any)._id}/restore`);
+      toast.success(res.data?.message || 'Offer restored successfully');
+      fetchPromotions();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to restore promotion');
+    } finally {
+      setRestoreTarget(null);
+    }
+  };
+
+  const fetchAndSetPromo = async (p: Promotion, mode: 'details' | 'edit') => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/admin/offers/${p.id || (p as any)._id}`);
+      setSelectedPromo(res.data?.data || res.data || p);
+      setViewMode(mode);
+    } catch (err) {
+      console.error('Failed to fetch offer details:', err);
+      toast.error('Failed to fetch offer details');
+      // Fallback to local data if API fails
+      setSelectedPromo(p);
+      setViewMode(mode);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -190,17 +220,12 @@ export default function PromotionsModule() {
           <PromotionsTable
             promotions={promotions}
             loading={loading}
-            onView={(p) => {
-              setSelectedPromo(p);
-              setViewMode('details');
-            }}
-            onEdit={(p) => {
-              setSelectedPromo(p);
-              setViewMode('edit');
-            }}
+            onView={(p) => fetchAndSetPromo(p, 'details')}
+            onEdit={(p) => fetchAndSetPromo(p, 'edit')}
             onDuplicate={handleDuplicate}
             onToggleStatus={(p) => setStatusTarget(p)}
             onDelete={(p) => setDeleteTarget(p)}
+            onRestore={(p) => setRestoreTarget(p)}
           />
 
           {!loading && pagination.total > pagination.limit && (
@@ -269,7 +294,7 @@ export default function PromotionsModule() {
 
       <ConfirmationModal
         isOpen={!!statusTarget}
-        onClose={() => setStatusTarget(null)}
+        onCancel={() => setStatusTarget(null)}
         onConfirm={confirmToggleStatus}
         title={`${statusTarget?.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} Promotion`}
         message={`Are you sure you want to ${
@@ -278,7 +303,17 @@ export default function PromotionsModule() {
             : 'activate this promotion? Customers will be able to use it according to its eligibility rules.'
         }`}
         confirmText={statusTarget?.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-        type="warning"
+        actionType={statusTarget?.status === 'ACTIVE' ? 'deactivate' : 'activate'}
+      />
+
+      <ConfirmationModal
+        isOpen={!!restoreTarget}
+        onCancel={() => setRestoreTarget(null)}
+        onConfirm={confirmRestore}
+        title="Restore Promotion"
+        message="Are you sure you want to restore this deleted promotion? It will be moved back to inactive status."
+        confirmText="Restore"
+        actionType="restore"
       />
     </div>
   );

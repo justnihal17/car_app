@@ -944,7 +944,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                       const found = serviceOptions.find(s => s.value === serviceVal);
                       if (found) serviceVal = found.label;
                     }
-                    return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{serviceVal || '-'}</td>;
+                    return <td key={col} className={`px-6 py-5 text-slate-600 whitespace-nowrap ${widthClass} ${alignClass}`}>{serviceVal || '-'}</td>;
                   }
                   if (col.toLowerCase() === 'emirate' || col.toLowerCase() === 'state') {
                     let stateVal = row.stateId || row.emirateId || row.state || row.emirate;

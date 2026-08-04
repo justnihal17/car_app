@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Edit2, Copy, Power, Trash2, MoreHorizontal, Zap } from 'lucide-react';
+import { Eye, Edit2, Copy, Power, Trash2, MoreHorizontal, Zap, RotateCcw } from 'lucide-react';
 import { Promotion } from '../types/promotion.types';
 import { PromoTypeBadge, PromotionStatusBadge, DiscountBadge, PriorityBadge } from './PromotionBadges';
 
@@ -11,6 +11,7 @@ interface PromotionsTableProps {
   onDuplicate: (promo: Promotion) => void;
   onToggleStatus: (promo: Promotion) => void;
   onDelete: (promo: Promotion) => void;
+  onRestore?: (promo: Promotion) => void;
 }
 
 export function PromotionsTable({
@@ -21,6 +22,7 @@ export function PromotionsTable({
   onDuplicate,
   onToggleStatus,
   onDelete,
+  onRestore,
 }: PromotionsTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
@@ -74,6 +76,7 @@ export function PromotionsTable({
               <th className="px-5 py-4">Promotion</th>
               <th className="px-4 py-4">Promo Code</th>
               <th className="px-4 py-4">Discount</th>
+              <th className="px-4 py-4">Status</th>
               <th className="px-5 py-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -116,6 +119,17 @@ export function PromotionsTable({
                     />
                   </td>
 
+                  {/* Status */}
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {promo.isDeleted ? (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                        Deleted
+                      </span>
+                    ) : (
+                      <PromotionStatusBadge status={promo.status} endDate={promo.endDate} />
+                    )}
+                  </td>
+
                   {/* Actions */}
                   <td className="px-5 py-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end relative action-menu-container">
@@ -138,25 +152,37 @@ export function PromotionsTable({
                           >
                             <Eye className="w-4 h-4 text-slate-500" /> View Details
                           </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); onEdit(promo); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4 text-slate-500" /> Edit
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); onToggleStatus(promo); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                          >
-                            <Power className="w-4 h-4 text-slate-500" /> {promo.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-                          </button>
-                          <div className="border-t border-slate-100 my-1"></div>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); onDelete(promo); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" /> Delete
-                          </button>
+                          
+                          {promo.isDeleted ? (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); onRestore?.(promo); }} 
+                              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            >
+                              <RotateCcw className="w-4 h-4" /> Restore
+                            </button>
+                          ) : (
+                            <>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); onEdit(promo); }} 
+                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                              >
+                                <Edit2 className="w-4 h-4 text-slate-500" /> Edit
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); onToggleStatus(promo); }} 
+                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                              >
+                                <Power className="w-4 h-4 text-slate-500" /> {promo.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                              </button>
+                              <div className="border-t border-slate-100 my-1"></div>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); onDelete(promo); }} 
+                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" /> Delete
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
