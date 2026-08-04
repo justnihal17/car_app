@@ -13,20 +13,8 @@ export function NotificationPermissionGuard({ children }: { children?: React.Rea
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    if (permission === 'default') {
-      const dismissedUntilStr = localStorage.getItem(DISMISS_CACHE_KEY);
-      if (dismissedUntilStr) {
-        const dismissedUntil = parseInt(dismissedUntilStr, 10);
-        if (Date.now() < dismissedUntil) {
-          // Suppress modal for 24h if user clicked "Not Now"
-          setIsModalOpen(false);
-          return;
-        }
-      }
-      setIsModalOpen(true);
-    } else {
-      setIsModalOpen(false);
-    }
+    // Disabled auto-popup on load as requested by user
+    setIsModalOpen(false);
   }, [permission]);
 
   const handleEnable = async () => {
