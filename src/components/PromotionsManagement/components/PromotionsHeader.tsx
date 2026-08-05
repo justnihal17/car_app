@@ -26,7 +26,7 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
       {/* Breadcrumb & Header Title */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Promotions & Offers</h1>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Offer Management</h1>
         </div>
         <button
           onClick={onCreateClick}

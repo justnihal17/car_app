@@ -264,11 +264,8 @@ export function NotificationManager() {
                                 onClick={() => {
                                   dispatch(markAsRead(notif.id));
                                   if (notif.actionUrl === '/orders' || notif.actionUrl?.includes('orders')) {
-                                    const targetId = notif.entityId || notif.referenceId;
-                                    if (targetId) {
-                                      localStorage.setItem('pending_order_id', targetId);
-                                    }
                                     window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders' } }));
+                                    const targetId = notif.entityId || notif.referenceId;
                                     if (targetId) {
                                       setTimeout(() => {
                                         window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));

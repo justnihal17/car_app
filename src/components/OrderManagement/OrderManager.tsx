@@ -6,12 +6,6 @@ export function OrderManager() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
 
   useEffect(() => {
-    const pendingOrder = localStorage.getItem('pending_order_id');
-    if (pendingOrder) {
-      setSelectedOrder(pendingOrder);
-      localStorage.removeItem('pending_order_id');
-    }
-
     const handleSelectOrder = (e: CustomEvent<string>) => {
       setSelectedOrder(e.detail);
     };

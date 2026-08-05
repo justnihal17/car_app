@@ -66,11 +66,8 @@ export const triggerSystemNotification = (data: Omit<AppNotification, 'id' | 'cr
               onClick={() => {
                 toast.dismiss(t.id);
                 if (data.actionUrl === '/orders' || data.actionUrl?.includes('orders')) {
-                  const targetId = data.entityId || data.referenceId;
-                  if (targetId) {
-                    localStorage.setItem('pending_order_id', targetId);
-                  }
                   window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders' } }));
+                  const targetId = data.entityId || data.referenceId;
                   if (targetId) {
                     setTimeout(() => {
                       window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));

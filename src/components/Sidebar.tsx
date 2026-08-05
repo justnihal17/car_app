@@ -26,7 +26,7 @@ const MENU_ITEMS = [
     { id: 'master-fuel-type', label: 'Fuel Type', icon: Car },
     { id: 'master-banner', label: 'Banner', icon: FileText },
   ]},
-  { id: 'promotions', label: 'Promotion & Offer Management', icon: Tags },
+  { id: 'promotions', label: 'Offer Management', icon: Tags },
   { id: 'orders', label: 'Order Management', icon: FileText },
   { id: 'payments', label: 'Payment Management', icon: CreditCard },
   { id: 'notifications', label: 'Notification Management', icon: Bell },

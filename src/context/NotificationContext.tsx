@@ -325,7 +325,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (deepLink) {
       window.dispatchEvent(new CustomEvent('navigate_url', { detail: { url: deepLink } }));
     } else if (orderId) {
-      localStorage.setItem('pending_order_id', orderId);
       window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId } }));
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('select_order', { detail: orderId }));

@@ -38,11 +38,8 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
     
     if (actionUrl) {
       if (actionUrl === '/orders' || actionUrl.includes('orders')) {
-        const targetId = entityId || referenceId;
-        if (targetId) {
-          localStorage.setItem('pending_order_id', targetId);
-        }
         onViewChange('orders');
+        const targetId = entityId || referenceId;
         if (targetId) {
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));
