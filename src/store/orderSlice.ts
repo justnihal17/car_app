@@ -70,6 +70,17 @@ export const fetchOrderById = createAsyncThunk(
   'order/fetchOrderById',
   async (id: string, { rejectWithValue }) => {
     try {
+      const isMongoId = /^[0-9a-fA-F]{24}$/.test(id);
+      
+      if (!isMongoId) {
+        // If it's a display order number (like ORD000109), fetch via search
+        const searchResponse = await OrderService.getOrders({ search: id, limit: 1 });
+        if (searchResponse.success && searchResponse.data && searchResponse.data.length > 0) {
+          return searchResponse.data[0];
+        }
+        return rejectWithValue('Order not found');
+      }
+
       const response = await OrderService.getOrderById(id);
       if (response.success) {
         return response.data;

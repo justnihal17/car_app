@@ -40,12 +40,12 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-[105px] bg-slate-200/70 animate-pulse rounded-2xl p-5 border border-slate-200/50 flex flex-col justify-between">
+            <div key={i} className="h-[90px] bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
               <div className="flex justify-between items-center">
                 <div className="h-3 w-16 bg-slate-300 rounded" />
                 <div className="w-8 h-8 bg-slate-300 rounded-xl" />
               </div>
-              <div className="h-6 w-12 bg-slate-300 rounded mt-2" />
+              <div className="h-6 w-12 bg-slate-300 rounded mt-1" />
             </div>
           ))}
         </div>
@@ -62,15 +62,15 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
             return (
               <div 
                 key={i} 
-                className={`bg-white p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between group border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 hover:-translate-y-1`}
+                className={`bg-white p-4 rounded-2xl transition-all duration-300 flex flex-col justify-between group border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 hover:-translate-y-1`}
               >
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2">
                   <span className={`text-xs font-bold tracking-tight transition-colors uppercase text-slate-500 group-hover:text-slate-800`}>{card.label}</span>
                   <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
                     <Icon className="w-4 h-4 text-slate-600" />
                   </div>
                 </div>
-                <div className="flex flex-col mt-2">
+                <div className="flex flex-col mt-1">
                   <span className="text-3xl font-bold text-slate-900 tracking-tight leading-none">{card.value}</span>
                   <span className="text-[9px] 2xl:text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-1.5 whitespace-nowrap overflow-hidden text-ellipsis" title={card.sub}>{card.sub}</span>
                 </div>

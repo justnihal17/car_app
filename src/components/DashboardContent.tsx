@@ -64,7 +64,7 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
     switch (currentView) {
       case 'dashboard':
         return (
-          <div className="flex-1 p-6 space-y-6 max-w-[1600px] mx-auto">
+          <div className="flex-1 p-content space-y-6 max-w-[1600px] mx-auto">
             {permission === 'denied' && <NotificationDeniedBanner />}
             <WelcomeSection onViewChange={onViewChange} />
             <KpiCards onViewChange={onViewChange} />
@@ -155,7 +155,7 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return <ReportsManager />;
       default:
         return (
-          <div className="p-6">
+          <div className="p-content">
             <h2 className="text-2xl font-bold text-slate-900 capitalize">{currentView.replace('-', ' ')}</h2>
             <p className="text-slate-600 mt-4">Working on the {currentView} module...</p>
           </div>

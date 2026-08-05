@@ -844,15 +844,15 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
             return (
               <div 
                 key={i} 
-                className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1"
+                className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1"
               >
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold tracking-tight transition-colors uppercase text-slate-500 group-hover:text-slate-800">{card.label}</span>
                   <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="flex items-baseline justify-between mt-2">
+                <div className="flex items-baseline justify-between mt-1">
                   <span className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</span>
                   <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
                 </div>

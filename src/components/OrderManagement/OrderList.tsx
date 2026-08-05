@@ -159,13 +159,13 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
             <div
               key={i}
               onClick={() => handleTabChange(card.tab)}
-              className={`bg-white p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
+              className={`bg-white p-4 rounded-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
                 isFocused
                   ? 'border border-slate-300 bg-white shadow-md'
                   : 'border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300'
               }`}
             >
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2">
                 <span className={`text-xs font-semibold tracking-tight transition-colors uppercase ${isFocused ? 'text-slate-800 font-bold' : 'text-slate-500 group-hover:text-slate-800'}`}>
                   {card.label}
                 </span>
@@ -173,7 +173,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
-              <div className="flex items-baseline justify-between mt-2">
+              <div className="flex items-baseline justify-between mt-1">
                 <span className="text-3xl font-bold text-slate-900 tracking-tight">{loading ? '-' : card.value}</span>
                 <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
               </div>

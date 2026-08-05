@@ -5,6 +5,32 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --spacing-sidebar: var(--sidebar-width);
+  --spacing-header: var(--header-height);
+  --spacing-content: var(--content-padding);
+}
+
+:root {
+  --sidebar-width: 285px;
+  --header-height: 4rem;
+  --content-padding: 2rem;
+  --card-padding: 1.5rem;
+  --table-py: 1rem;
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  :root {
+    --sidebar-width: 250px;
+    --header-height: 3.5rem;
+    --content-padding: 1.5rem;
+    --card-padding: 1.25rem;
+    --table-py: 0.75rem;
+  }
+
+  table th, table td {
+    padding-top: var(--table-py) !important;
+    padding-bottom: var(--table-py) !important;
+  }
 }
 
 body {

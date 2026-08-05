@@ -325,8 +325,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (deepLink) {
       window.dispatchEvent(new CustomEvent('navigate_url', { detail: { url: deepLink } }));
     } else if (orderId) {
+      localStorage.setItem('pending_order_id', orderId);
       window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId } }));
-      window.dispatchEvent(new CustomEvent('select_order', { detail: orderId }));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('select_order', { detail: orderId }));
+      }, 100);
     }
   }, []);
 
@@ -396,6 +399,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
       // Re-sync with backend
       fetchBackendNotifications();
+
+      // Dispatch to Redux Store for real-time header bell update
+      import('../store/store').then(({ store }) => {
+        import('../store/notificationSlice').then(({ createNotification }) => {
+          store.dispatch(createNotification({
+            title,
+            message: body,
+            type: eventType.toLowerCase() as any || 'system_alert',
+            category: (title.toLowerCase().includes('order') || eventType.includes('ORDER')) ? 'Orders' 
+              : title.toLowerCase().includes('payment') ? 'Payments' 
+              : 'System',
+            priority: isHighPriority ? 'High' : 'Normal',
+            referenceId: orderNumber || orderId,
+            entityId: orderId,
+            actionUrl: deepLink || (orderId ? `/orders` : undefined)
+          }));
+        });
+      });
 
       // Show Custom Hot Toast (Matching Light Theme)
       toast.custom(

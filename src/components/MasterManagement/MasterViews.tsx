@@ -132,11 +132,10 @@ export const ModelPage = () => (
 export const VehicleTypePage = () => (
     <MasterPage 
         moduleName="VehicleType" 
-        columns={['Name', 'Code', 'Image', 'Status']} 
+        columns={['Name', 'Code', 'Status']} 
         fields={[
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'code', label: 'Code', type: 'text' },
-            { name: 'image', label: 'Image', type: 'text' },
             { name: 'status', label: 'Status', type: 'toggle' }
         ]} 
     />
@@ -168,11 +167,10 @@ export const BannerPage = () => (
 export const FuelTypePage = () => (
     <MasterPage 
         moduleName="FuelType" 
-        columns={['Name', 'Code', 'Image', 'Status']} 
+        columns={['Name', 'Code', 'Status']} 
         fields={[
             { name: 'name', label: 'Fuel Type Name', type: 'text' },
             { name: 'code', label: 'Code', type: 'text' },
-            { name: 'image', label: 'Image', type: 'text' },
             { name: 'status', label: 'Status', type: 'toggle' }
         ]} 
     />

@@ -62,7 +62,7 @@ export function Sidebar({
   return (
     <aside 
       className={`fixed left-0 top-0 h-screen bg-[#FFFFFF] border-r border-slate-200/80 shadow-sm transition-all duration-300 z-50 flex flex-col text-slate-800
-        ${collapsed ? 'w-20' : 'w-[285px]'}
+        ${collapsed ? 'w-20' : 'w-sidebar'}
       `}
     >
       {/* Brand Header */}
