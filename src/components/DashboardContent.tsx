@@ -64,12 +64,12 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
     switch (currentView) {
       case 'dashboard':
         return (
-          <div className="flex-1 p-content space-y-6 max-w-[1600px] mx-auto">
+          <div className="flex-1 p-4 lg:p-6 2xl:p-content space-y-4 lg:space-y-6 max-w-[1600px] mx-auto">
             {permission === 'denied' && <NotificationDeniedBanner />}
             <WelcomeSection onViewChange={onViewChange} />
             <KpiCards onViewChange={onViewChange} />
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              <div className="xl:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-4 2xl:grid-cols-3 gap-4 lg:gap-6">
+              <div className="xl:col-span-3 2xl:col-span-2 space-y-4 lg:space-y-6">
                 <LiveOrderOverview />
                 <LiveMap />
                 <AnalyticsCharts />
@@ -155,16 +155,16 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return <ReportsManager />;
       default:
         return (
-          <div className="p-content">
-            <h2 className="text-2xl font-bold text-slate-900 capitalize">{currentView.replace('-', ' ')}</h2>
-            <p className="text-slate-600 mt-4">Working on the {currentView} module...</p>
+          <div className="p-4 lg:p-6 2xl:p-content">
+            <h2 className="text-xl 2xl:text-2xl font-bold text-slate-900 capitalize">{currentView.replace('-', ' ')}</h2>
+            <p className="text-slate-600 mt-4 text-sm 2xl:text-base">Working on the {currentView} module...</p>
           </div>
         );
     }
   };
 
   return (
-    <div className="flex-1 w-full min-h-[calc(100vh-4rem)]">
+    <div className="flex-1 w-full min-h-[calc(100vh-3.5rem)] 2xl:min-h-[calc(100vh-4rem)]">
       {renderContent()}
     </div>
   );

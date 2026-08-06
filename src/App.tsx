@@ -147,11 +147,13 @@ export default function App() {
       />
       
       <div 
-        className={`transition-all duration-300 flex-1 w-full min-w-0 flex flex-col ${collapsed ? 'pl-20' : 'pl-sidebar'}`}
+        className={`transition-all duration-300 flex-1 w-full min-w-0 flex flex-col ${collapsed ? 'pl-20' : 'xl:pl-sidebar lg:pl-64 pl-sidebar'}`}
       >
         <Header sidebarCollapsed={collapsed} onViewChange={handleViewChange} onLogout={handleLogoutRequest} />
-        <main className="pt-header flex-1 w-full min-w-0">
-          <DashboardContent currentView={currentView} onViewChange={handleViewChange} />
+        <main className="pt-14 2xl:pt-header flex-1 w-full min-w-0">
+          <div className="max-w-[1600px] mx-auto w-full">
+            <DashboardContent currentView={currentView} onViewChange={handleViewChange} />
+          </div>
         </main>
       </div>
 

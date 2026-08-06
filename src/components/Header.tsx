@@ -61,8 +61,8 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
 
   return (
     <header 
-      className={`fixed top-0 right-0 h-header bg-[#F8FAFC] border-b border-slate-200 z-40 transition-all duration-300 flex items-center justify-between px-6
-        ${sidebarCollapsed ? 'left-20' : 'left-sidebar'}
+      className={`fixed top-0 right-0 h-14 2xl:h-header bg-[#F8FAFC] border-b border-slate-200 z-40 transition-all duration-300 flex items-center justify-between px-4 2xl:px-6
+        ${sidebarCollapsed ? 'left-20' : 'xl:left-sidebar lg:left-64 left-sidebar'}
       `}
     >
       <div className="flex items-center gap-4 flex-1">

@@ -257,15 +257,15 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
           ) : (
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
-                <tr className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-widest font-bold border-b border-slate-100">
-                  <th className="px-6 py-4">Order Details</th>
-                  <th className="px-6 py-4">Customer & Location</th>
-                  <th className="px-6 py-4">Agent</th>
-                  <th className="px-6 py-4">Amount & Payment</th>
-                  <th className="px-6 py-4">Status & Time</th>
+                <tr className="bg-slate-50/80 text-slate-500 text-[10px] 2xl:text-[11px] uppercase tracking-widest font-bold border-b border-slate-100">
+                  <th className="px-4 2xl:px-6 py-3 2xl:py-4">Order Details</th>
+                  <th className="px-4 2xl:px-6 py-3 2xl:py-4">Customer & Location</th>
+                  <th className="px-4 2xl:px-6 py-3 2xl:py-4">Agent</th>
+                  <th className="px-4 2xl:px-6 py-3 2xl:py-4">Amount & Payment</th>
+                  <th className="px-4 2xl:px-6 py-3 2xl:py-4">Status & Time</th>
                 </tr>
               </thead>
-              <tbody className="text-sm divide-y divide-slate-100">
+              <tbody className="text-xs 2xl:text-sm divide-y divide-slate-100">
                 {filteredOrders.map((order) => {
                   const srv = order.services?.[0]?.serviceId;
                   const paymentStatus = capitalize(order.payment?.status || 'Pending');
@@ -273,29 +273,29 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                   
                   return (
                     <tr key={order._id} className="hover:bg-slate-50/70 transition-colors group cursor-pointer" onClick={() => onSelectOrder(order._id)}>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-4 2xl:px-5 py-3 2xl:py-4">
+                        <div className="flex items-center gap-2.5 2xl:gap-3">
                           {srv?.image ? (
-                            <SafeImage src={srv.image} alt={srv.name} className="w-10 h-10 rounded-lg border border-slate-200 object-cover" />
+                            <SafeImage src={srv.image} alt={srv.name} className="w-8 h-8 2xl:w-10 2xl:h-10 rounded-lg border border-slate-200 object-cover" />
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 text-xs">IMG</div>
+                            <div className="w-8 h-8 2xl:w-10 2xl:h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 text-[10px] 2xl:text-xs">IMG</div>
                           )}
                           <div>
                             <div className="font-semibold text-slate-900 flex items-center gap-2">
                               {order.order_number}
                             </div>
-                            <div className="text-xs text-slate-500 mt-0.5">{capitalize(srv?.name || 'Service')}</div>
+                            <div className="text-[10px] 2xl:text-xs text-slate-500 mt-0.5">{capitalize(srv?.name || 'Service')}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-4 2xl:px-5 py-3 2xl:py-4">
                         <div className="font-semibold text-slate-800">{order.customer_id?.fullName || 'Unknown Customer'}</div>
-                        <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1 max-w-[180px] truncate">
-                          <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                        <div className="text-[10px] 2xl:text-xs text-slate-500 mt-0.5 flex items-center gap-1 max-w-[150px] 2xl:max-w-[180px] truncate">
+                          <MapPin className="w-3 2xl:w-3.5 h-3 2xl:h-3.5 shrink-0 text-slate-400" />
                           {order.pickup_location?.address || 'N/A'}
                         </div>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-4 2xl:px-5 py-3 2xl:py-4">
                         {order.agent_id ? (
                           <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/60 px-3 py-1.5 rounded-lg w-fit">
                             <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold shrink-0">
@@ -312,22 +312,22 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                           </div>
                         )}
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-4 2xl:px-5 py-3 2xl:py-4">
                         <div className="font-semibold text-slate-900">AED {order.final_amount}</div>
-                        <div className="text-xs font-medium mt-1 flex items-center gap-1.5">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${PAYMENT_BADGE_COLORS[paymentStatus] || 'bg-slate-100 text-slate-500'}`}>
+                        <div className="text-[10px] 2xl:text-xs font-medium mt-1 flex items-center gap-1.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] 2xl:text-[10px] font-bold uppercase ${PAYMENT_BADGE_COLORS[paymentStatus] || 'bg-slate-100 text-slate-500'}`}>
                             {paymentStatus}
                           </span>
                           <span className="text-slate-300">•</span>
                           <span className="text-slate-500">{capitalize(order.payment?.method) || 'Cash'}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider border ${STATUS_COLORS[orderStatus] || 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                      <td className="px-4 2xl:px-5 py-3 2xl:py-4">
+                        <span className={`inline-flex items-center px-2 2xl:px-2.5 py-0.5 2xl:py-1 rounded-md text-[10px] 2xl:text-[11px] font-bold uppercase tracking-wider border ${STATUS_COLORS[orderStatus] || 'bg-slate-100 text-slate-500 border-slate-200'}`}>
                           {orderStatus}
                         </span>
-                        <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <div className="text-[10px] 2xl:text-xs text-slate-500 mt-1 flex items-center gap-1">
+                          <Clock className="w-3 2xl:w-3.5 h-3 2xl:h-3.5 text-slate-400" />
                           {order.time_slot?.from ? `${order.time_slot.from} - ${order.time_slot.to}` : 'N/A'}
                         </div>
                       </td>

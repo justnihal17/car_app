@@ -40,21 +40,21 @@ export function KpiCards({ onViewChange }: { onViewChange: (view: string) => voi
             <button 
             key={idx} 
             onClick={() => onViewChange(kpi.targetView || 'dashboard')}
-            className="text-left bg-white/80 backdrop-blur-xl p-5 rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1"
+            className="text-left bg-white/80 backdrop-blur-xl p-4 2xl:p-5 rounded-2xl 2xl:rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1"
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3 2xl:mb-4">
               <div className={`p-2 rounded-xl ${kpi.bg}`}>
-                <Icon className={`w-5 h-5 ${kpi.color}`} />
+                <Icon className={`w-4 h-4 2xl:w-5 2xl:h-5 ${kpi.color}`} />
               </div>
-              <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${kpi.isUp ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'}`}>
+              <div className={`flex items-center gap-1 text-[10px] 2xl:text-xs font-medium px-2 py-1 rounded-full ${kpi.isUp ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'}`}>
                 {kpi.isUp ? '↑' : '↓'} {kpi.change}
               </div>
             </div>
             
             <div className="flex justify-between items-end">
               <div>
-                <h3 className="text-slate-500 text-sm font-medium mb-1">{kpi.label}</h3>
-                <p className="text-2xl font-bold text-slate-900 tracking-tight">{kpi.value}</p>
+                <h3 className="text-slate-500 text-xs 2xl:text-sm font-medium mb-1">{kpi.label}</h3>
+                <p className="text-xl 2xl:text-2xl font-bold text-slate-900 tracking-tight">{kpi.value}</p>
               </div>
               <div className="pb-1 opacity-70 group-hover:opacity-100 transition-opacity">
                 <Sparkline isUp={kpi.isUp} />

@@ -52,69 +52,59 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function AnalyticsCharts() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-white tracking-tight">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+      <div className="bg-[#0f1218] p-4 2xl:p-6 rounded-xl border border-slate-800/60 shadow-lg">
+        <div className="flex items-center justify-between mb-4 2xl:mb-6">
+          <h2 className="text-base 2xl:text-lg font-bold text-white tracking-tight">
             Revenue Overview
           </h2>
-          <select className="bg-slate-800/50 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1 outline-none">
+          <select className="bg-slate-800/50 border border-slate-700 text-slate-300 text-[10px] 2xl:text-xs rounded-lg px-2 py-1 outline-none">
             <option>This Week</option>
             <option>Last Week</option>
             <option>This Month</option>
           </select>
         </div>
-        <div className="h-62.5 w-full">
+        <div className="h-[250px] 2xl:h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={revenueData}
-              margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
-            >
+            <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#34d399" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#34d399" stopOpacity={0} />
+                <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#34d399" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#34d399" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#1f2937"
-                vertical={false}
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#64748b', fontSize: 12 }} 
+                dy={10}
               />
-              <XAxis
-                dataKey="name"
-                stroke="#6b7280"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                stroke="#6b7280"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `$${value / 1000}k`}
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#64748b', fontSize: 12 }}
+                tickFormatter={(value) => `$${value/1000}k`}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                stroke="#34d399"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorRevenue)"
-              />
+              <Area type="monotone" dataKey="revenue" stroke="#34d399" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+              <Area type="monotone" dataKey="expenses" stroke="#60a5fa" strokeWidth={3} fillOpacity={1} fill="url(#colorExp)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-white tracking-tight">
+      <div className="bg-[#0f1218] p-4 2xl:p-6 rounded-xl border border-slate-800/60 shadow-lg">
+        <div className="flex items-center justify-between mb-4 2xl:mb-6">
+          <h2 className="text-base 2xl:text-lg font-bold text-white tracking-tight">
             Service Distribution
           </h2>
-          <button className="text-xs text-emerald-400 hover:text-emerald-300 font-medium">
+          <button className="text-[10px] 2xl:text-xs text-emerald-400 hover:text-emerald-300 font-medium">
             View All
           </button>
         </div>

@@ -26,8 +26,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 export function RecentOrdersTable() {
   return (
     <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg overflow-hidden">
-      <div className="p-5 border-b border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-lg font-bold text-white tracking-tight">Recent Orders</h2>
+      <div className="p-4 2xl:p-5 border-b border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h2 className="text-base 2xl:text-lg font-bold text-white tracking-tight">Recent Orders</h2>
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -46,44 +46,44 @@ export function RecentOrdersTable() {
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-900/50 text-slate-500 text-xs uppercase tracking-wider font-bold">
-              <th className="px-5 py-3 font-medium">Order ID</th>
-              <th className="px-5 py-3 font-medium">Customer</th>
-              <th className="px-5 py-3 font-medium">Driver</th>
-              <th className="px-5 py-3 font-medium">Service</th>
-              <th className="px-5 py-3 font-medium">Amount</th>
-              <th className="px-5 py-3 font-medium">Status</th>
-              <th className="px-5 py-3 font-medium">Payment</th>
-              <th className="px-5 py-3 font-medium text-right">Actions</th>
+            <tr className="bg-slate-900/50 text-slate-500 text-[10px] 2xl:text-xs uppercase tracking-wider font-bold">
+              <th className="px-4 2xl:px-5 py-2 2xl:py-3 font-medium">Order ID</th>
+              <th className="px-4 2xl:px-5 py-2 2xl:py-3 font-medium">Customer</th>
+              <th className="px-4 2xl:px-5 py-2 2xl:py-3 font-medium">Driver</th>
+              <th className="px-4 2xl:px-5 py-2 2xl:py-3 font-medium">Service</th>
+              <th className="px-4 2xl:px-5 py-2 2xl:py-3 font-medium">Amount</th>
+              <th className="px-4 2xl:px-5 py-2 2xl:py-3 font-medium">Status</th>
+              <th className="px-4 2xl:px-5 py-2 2xl:py-3 font-medium">Payment</th>
+              <th className="px-4 2xl:px-5 py-2 2xl:py-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="text-sm divide-y divide-slate-800">
+          <tbody className="text-xs 2xl:text-sm divide-y divide-slate-800">
             {RECENT_ORDERS.map((order) => (
               <tr key={order.id} className="hover:bg-slate-800/20 transition-colors group">
-                <td className="px-5 py-4 font-medium text-slate-300">{order.id}</td>
-                <td className="px-5 py-4 text-white">
+                <td className="px-4 2xl:px-5 py-3 2xl:py-4 font-medium text-slate-300">{order.id}</td>
+                <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-white">
                   <div>{order.customer}</div>
-                  <div className="text-xs text-slate-500">{order.vehicle}</div>
+                  <div className="text-[10px] 2xl:text-xs text-slate-500">{order.vehicle}</div>
                 </td>
-                <td className="px-5 py-4">
-                  <span className={order.driver === 'Unassigned' ? 'text-yellow-400/80 text-xs font-medium' : 'text-slate-300'}>
+                <td className="px-4 2xl:px-5 py-3 2xl:py-4">
+                  <span className={order.driver === 'Unassigned' ? 'text-yellow-400/80 text-[10px] 2xl:text-xs font-medium' : 'text-slate-300'}>
                     {order.driver}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-slate-300">
+                <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-slate-300">
                   <div>{order.service}</div>
-                  <div className="text-xs text-slate-500">{order.time} • {order.location}</div>
+                  <div className="text-[10px] 2xl:text-xs text-slate-500">{order.time} • {order.location}</div>
                 </td>
-                <td className="px-5 py-4 font-medium text-slate-300">{order.amount}</td>
-                <td className="px-5 py-4">
+                <td className="px-4 2xl:px-5 py-3 2xl:py-4 font-medium text-slate-300">{order.amount}</td>
+                <td className="px-4 2xl:px-5 py-3 2xl:py-4">
                   <StatusBadge status={order.status} />
                 </td>
-                <td className="px-5 py-4">
-                  <span className={`text-xs font-medium ${order.payment === 'Paid' ? 'text-emerald-400' : order.payment === 'Refunded' ? 'text-gray-400' : 'text-orange-400'}`}>
+                <td className="px-4 2xl:px-5 py-3 2xl:py-4">
+                  <span className={`text-[10px] 2xl:text-xs font-medium ${order.payment === 'Paid' ? 'text-emerald-400' : order.payment === 'Refunded' ? 'text-gray-400' : 'text-orange-400'}`}>
                     {order.payment}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-right">
+                <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-right">
                   <button className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-700 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
                     <MoreHorizontal className="w-5 h-5" />
                   </button>

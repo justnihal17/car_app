@@ -146,7 +146,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
   const handleCropComplete = async (croppedFile: File, croppedPreviewUrl: string) => {
     setPhoto(croppedPreviewUrl);
-    setEditingItem(prev => ({ ...prev, image: croppedPreviewUrl }));
+    setEditingItem((prev: any) => ({ ...prev, image: croppedPreviewUrl }));
     
     toast.loading('Uploading Image...', { id: 'imgUpload' });
     try {
@@ -154,7 +154,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       toast.dismiss('imgUpload');
       toast.success('Image uploaded successfully');
       setPhoto(uploadedUrl);
-      setEditingItem(prev => ({ ...prev, image: uploadedUrl }));
+      setEditingItem((prev: any) => ({ ...prev, image: uploadedUrl }));
       setSelectedFile(null);
     } catch (err: any) {
       toast.dismiss('imgUpload');
@@ -829,7 +829,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={handleAdd} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm lg:text-base">
+          <button onClick={handleAdd} className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm lg:text-base">
             <Plus className="w-4 h-4 stroke-[2.5]" /> Create
           </button>
         </div>
@@ -1040,7 +1040,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                     </button>
 
                     {openActionMenuId === (row.id || row._id) && (
-                      <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-[99] animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedData.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
+                      <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-99 animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedData.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleView(row); }} 
                           className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
@@ -1248,7 +1248,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                                 />
                               );
                           })() : f.type === 'toggle' ? (
-                              <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg h-[38px]">
+                              <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg h-9.5">
                                 <span className="text-sm text-slate-700">
                                   {f.name === 'isInstant' ? (editingItem[f.name] ? 'Yes' : 'No') : (editingItem[f.name] || 'Inactive')}
                                 </span>
@@ -1315,7 +1315,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                                     <ul className="space-y-1.5 mt-2 max-h-40 overflow-y-auto custom-scrollbar">
                                       {list.map((val: string, idx: number) => (
                                         <li key={idx} className="flex items-start justify-between gap-2 bg-slate-50 border border-slate-100 p-2.5 rounded-lg group">
-                                          <span className="text-xs text-slate-700 leading-snug flex-1 break-words">{val}</span>
+                                          <span className="text-xs text-slate-700 leading-snug flex-1 wrap-break-words">{val}</span>
                                           {mode !== 'view' && (
                                             <button
                                               type="button"
@@ -1393,7 +1393,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       {/* Full Screen Image Modal */}
       {showImageModal && (photo || editingItem.image) && (
         <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setShowImageModal(false)}
         >
           <div className="relative max-w-4xl max-h-[90vh] mx-4">
