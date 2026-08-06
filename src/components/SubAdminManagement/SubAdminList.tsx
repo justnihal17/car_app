@@ -104,7 +104,7 @@ export function SubAdminManagement() {
       setLoading(true);
       const response = await api.get('/admin/admin');
       if (response.data.success) {
-        const currentProfileStr = localStorage.getItem('adminProfile');
+        const currentProfileStr = sessionStorage.getItem('adminProfile');
         const currentProfile = currentProfileStr ? JSON.parse(currentProfileStr) : null;
 
         const localHistoryStr = localStorage.getItem('adminLoginHistory');
@@ -171,7 +171,7 @@ export function SubAdminManagement() {
       const response = await api.get(`/admin/admin/${admin.id}`);
       if (response.data.success) {
         const raw = response.data.data;
-        const currentProfileStr = localStorage.getItem('adminProfile');
+        const currentProfileStr = sessionStorage.getItem('adminProfile');
         const currentProfile = currentProfileStr ? JSON.parse(currentProfileStr) : null;
 
         const localHistoryStr = localStorage.getItem('adminLoginHistory');

@@ -5,7 +5,7 @@ export interface SubAdminDrawerConfig {
 
 export const getLoggedInAdminName = (): string => {
   try {
-    const profile = JSON.parse(localStorage.getItem('adminProfile') || '{}');
+    const profile = JSON.parse(sessionStorage.getItem('adminProfile') || '{}');
     if (profile.name) return profile.name;
     if (profile.fullName) return profile.fullName;
     if (profile.firstName) {

@@ -13,7 +13,7 @@ export function EditProfileModal() {
   });
   const [loading, setLoading] = useState(false);
 
-  const profileString = localStorage.getItem('adminProfile');
+  const profileString = sessionStorage.getItem('adminProfile');
   const profile = profileString ? JSON.parse(profileString) : null;
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export function EditProfileModal() {
       if (response.data?.success) {
         toast.success(response.data?.message || 'Profile updated successfully');
         const updatedProfile = response.data.data;
-        localStorage.setItem('adminProfile', JSON.stringify(updatedProfile));
+        sessionStorage.setItem('adminProfile', JSON.stringify(updatedProfile));
         toggleEditProfile();
         
         window.dispatchEvent(new Event('storage'));

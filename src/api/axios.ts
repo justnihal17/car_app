@@ -10,7 +10,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -25,12 +25,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && !error.config.url?.includes('/login')) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('adminProfile');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userName');
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('adminProfile');
+      sessionStorage.removeItem('userRole');
+      sessionStorage.removeItem('userEmail');
+      sessionStorage.removeItem('userName');
       localStorage.removeItem('currentView');
       window.dispatchEvent(new Event('auth_unauthorized'));
     }

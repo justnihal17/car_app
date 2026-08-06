@@ -17,8 +17,8 @@ export function NotificationDebugPanel() {
     reRegisterToken,
   } = usePushNotifications();
 
-  const jwtToken = localStorage.getItem('accessToken');
-  const adminProfileStr = localStorage.getItem('adminProfile');
+  const jwtToken = sessionStorage.getItem('accessToken');
+  const adminProfileStr = sessionStorage.getItem('adminProfile');
   let adminProfile: any = null;
   try {
     adminProfile = adminProfileStr ? JSON.parse(adminProfileStr) : null;

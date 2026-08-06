@@ -4,7 +4,7 @@ import { SafeImage } from './common/SafeImage';
 
 export function ProfileView() {
   const { toggleEditProfile } = useUIStore();
-  const profileString = localStorage.getItem('adminProfile');
+  const profileString = sessionStorage.getItem('adminProfile');
   const profile = profileString ? JSON.parse(profileString) : null;
 
   const firstName = profile?.firstName || 'Admin';

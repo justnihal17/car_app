@@ -17,7 +17,7 @@ import { NotificationPermissionGuard } from "./components/NotificationPermission
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!localStorage.getItem('accessToken');
+    return !!sessionStorage.getItem('accessToken');
   });
   const [collapsed, setCollapsed] = useState(false);
   const [currentView, setCurrentView] = useState(() => {
@@ -37,12 +37,12 @@ export default function App() {
     } catch (e) {
       console.error(e);
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('adminProfile');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userName');
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('adminProfile');
+      sessionStorage.removeItem('userRole');
+      sessionStorage.removeItem('userEmail');
+      sessionStorage.removeItem('userName');
       localStorage.removeItem('currentView');
       setIsAuthenticated(false);
       setIsLogoutModalOpen(false);
@@ -63,12 +63,12 @@ export default function App() {
       }
     };
     const handleUnauthorized = () => {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('adminProfile');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userName');
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('adminProfile');
+      sessionStorage.removeItem('userRole');
+      sessionStorage.removeItem('userEmail');
+      sessionStorage.removeItem('userName');
       localStorage.removeItem('currentView');
       setIsAuthenticated(false);
     };

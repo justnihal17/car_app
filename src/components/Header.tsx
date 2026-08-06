@@ -51,7 +51,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
     }
   };
 
-  const profileString = localStorage.getItem('adminProfile');
+  const profileString = sessionStorage.getItem('adminProfile');
   const profile = profileString ? JSON.parse(profileString) : null;
   const fullName = profile ? `${profile.firstName} ${profile.lastName}` : 'Suaib';
   const email = profile ? profile.email : 'suaib@sellmybooks.com';
