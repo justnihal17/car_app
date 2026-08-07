@@ -65,17 +65,41 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     }
   };
 
+  const getOrderStatus = (o: any) => (o.status || o.order_status || '').toString().toLowerCase().trim();
+
   const filteredOrders = useMemo(() => {
     let result = [...orders];
-    if (activeTab === 'assigned-orders') {
-      result = result.filter(o => o.agent_id);
-    } else if (activeTab === 'pending-orders') {
-      result = result.filter(o => !o.agent_id);
-    }
-    return result;
-  }, [orders, activeTab]);
 
-  const getOrderStatus = (o: any) => (o.status || o.order_status || '').toString().toLowerCase().trim();
+    if (activeTab === 'live-orders') {
+      result = result.filter(o => ['on the way', 'on_the_way', 'on route', 'onroute'].includes(getOrderStatus(o)));
+    } else if (activeTab === 'pending-orders') {
+      result = result.filter(o => ['pending', 'accepted', 'assigned', 'created', 'new', 'unassigned'].includes(getOrderStatus(o)) && !o.agent_id);
+    } else if (activeTab === 'assigned-orders') {
+      result = result.filter(o => o.agent_id);
+    } else if (activeTab === 'in-progress') {
+      result = result.filter(o => ['started', 'in progress', 'in_progress', 'arrived'].includes(getOrderStatus(o)));
+    } else if (activeTab === 'completed-orders') {
+      result = result.filter(o => ['completed', 'delivered', 'done'].includes(getOrderStatus(o)));
+    } else if (activeTab === 'cancelled-orders') {
+      result = result.filter(o => ['cancelled', 'canceled', 'refunded', 'rejected'].includes(getOrderStatus(o)));
+    }
+
+    if (searchInput.trim()) {
+      const q = searchInput.trim().toLowerCase();
+      result = result.filter(o => 
+        (o.order_number || '').toLowerCase().includes(q) ||
+        (o.customer_id?.fullName || o.customer_id?.firstName || '').toLowerCase().includes(q) ||
+        (o.customer_id?.phone || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (filters.payment) {
+      const pStatus = (filters.payment || '').toLowerCase();
+      result = result.filter(o => (o.payment_status || '').toLowerCase() === pStatus);
+    }
+
+    return result;
+  }, [orders, activeTab, searchInput, filters.payment]);
 
   const statCards = [
     {

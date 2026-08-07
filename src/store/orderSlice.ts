@@ -32,7 +32,7 @@ const initialState: OrderState = {
     total: 0,
     page: 1,
     limit: 10,
-    totalPages: 0,
+    totalPages: 1,
   }
 };
 
@@ -42,7 +42,13 @@ export const fetchOrders = createAsyncThunk(
     try {
       const response = await OrderService.getOrders(filters);
       if (response.success) {
-        return { data: response.data, pagination: response.extra?.pagination };
+        const pagination = response.pagination || response.extra?.pagination;
+        const total = pagination?.total ?? response.total ?? response.count ?? (Array.isArray(response.data) ? response.data.length : 0);
+        return { 
+          data: response.data || [], 
+          pagination,
+          total
+        };
       }
       return rejectWithValue(response.message || 'Failed to fetch orders');
     } catch (error: any) {
@@ -111,10 +117,21 @@ const orderSlice = createSlice({
     });
     builder.addCase(fetchOrders.fulfilled, (state, action) => {
       state.loading = false;
-      state.orders = action.payload.data;
-      if (action.payload.pagination) {
-        state.pagination = action.payload.pagination;
-      }
+      const ordersList = action.payload.data || [];
+      state.orders = ordersList;
+
+      const paginationObj = action.payload.pagination;
+      const totalCount = action.payload.total ?? paginationObj?.total ?? ordersList.length;
+      const limitVal = paginationObj?.limit || state.filters.limit || 10;
+      const pageVal = paginationObj?.page || state.filters.page || 1;
+      const totalPagesVal = paginationObj?.totalPages || Math.ceil(totalCount / limitVal) || 1;
+
+      state.pagination = {
+        total: totalCount,
+        page: pageVal,
+        limit: limitVal,
+        totalPages: totalPagesVal
+      };
     });
     builder.addCase(fetchOrders.rejected, (state, action) => {
       state.loading = false;
