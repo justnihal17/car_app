@@ -93,7 +93,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       else if (baseEndpoint === 'fueltype') baseEndpoint = 'fueltype';
       else if (baseEndpoint === 'brand') baseEndpoint = 'make';
       
-      const endpoint = `/master/${baseEndpoint}/admin`;
+      let endpoint = `/master/${baseEndpoint}/admin`;
+      if (moduleName.toLowerCase() === 'banner') {
+        endpoint = '/master/banner/admin';
+      }
       let response;
       try {
         response = await api.get(endpoint);
@@ -373,7 +376,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
       const isFuelType = moduleName.toLowerCase() === 'fueltype';
       const cleanModuleName = isVehicleType ? 'vehicleType' : (isFuelType ? 'fuelType' : moduleName.toLowerCase());
-      const endpoint = isSubService ? `/master/subservice/${item.id}` : `/master/${cleanModuleName}/${item.id}`;
+      let endpoint = isSubService ? `/master/subservice/${item.id}` : `/master/${cleanModuleName}/${item.id}`;
+      if (moduleName.toLowerCase() === 'banner') {
+        endpoint = `/master/banner/${item.id}`;
+      }
       
       const payload: any = {
         status: newStatus,
@@ -413,7 +419,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
       const isFuelType = moduleName.toLowerCase() === 'fueltype';
       const cleanModuleName = isVehicleType ? 'vehicleType' : (isFuelType ? 'fuelType' : moduleName.toLowerCase());
-      const endpoint = isSubService ? `/master/subservice/${item.id || item._id}` : `/master/${cleanModuleName}/${item.id || item._id}`;
+      let endpoint = isSubService ? `/master/subservice/${item.id || item._id}` : `/master/${cleanModuleName}/${item.id || item._id}`;
+      if (moduleName.toLowerCase() === 'banner') {
+        endpoint = `/master/banner/${item.id || item._id}`;
+      }
       
       const payload: any = {
         active: item.status === 'Active' || item.active === true,
@@ -626,9 +635,12 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const isSubService = moduleName.toLowerCase() === 'subservice';
       const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
       const isFuelType = moduleName.toLowerCase() === 'fueltype';
-      const endpoint = isSubService 
+      let endpoint = isSubService 
         ? `/master/subservice/${deleteModal.id}` 
         : (isVehicleType ? `/master/vehicleType/${deleteModal.id}` : (isFuelType ? `/master/fuelType/${deleteModal.id}` : `/master/${moduleName.toLowerCase()}/${deleteModal.id}`));
+      if (moduleName.toLowerCase() === 'banner') {
+        endpoint = `/master/banner/${deleteModal.id}`;
+      }
       const response = await api.delete(endpoint);
       if (response.data?.success) {
         toast.success(response.data?.message || `${moduleName} deleted successfully`);
@@ -645,9 +657,9 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     if (mode === 'view') return false;
 
     if (moduleName.toLowerCase() === 'banner') {
-      if (!editingItem.title?.trim()) return false;
-      if (!editingItem.type?.trim()) return false;
-      if (!editingItem.position?.trim()) return false;
+      if (!String(editingItem.title || '').trim()) return false;
+      if (!String(editingItem.type || '').trim()) return false;
+      if (!String(editingItem.position || '').trim()) return false;
     } else {
       if (!editingItem.name?.trim()) return false;
     }
@@ -727,18 +739,24 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const isFuelType = moduleName.toLowerCase() === 'fueltype';
 
       if (mode === 'add') {
-        const endpoint = isSubService 
+        let endpoint = isSubService 
           ? '/master/subservice' 
           : (isVehicleType ? '/master/vehicleType' : (isFuelType ? '/master/fuelType' : `/master/${moduleName.toLowerCase()}`));
+        if (moduleName.toLowerCase() === 'banner') {
+          endpoint = '/master/banner/admin';
+        }
         const response = await api.post(endpoint, payload);
         if (response.data?.success) {
           toast.success(response.data?.message || `${moduleName} created successfully`);
           fetchData();
         }
       } else {
-        const endpoint = isSubService 
+        let endpoint = isSubService 
           ? `/master/subservice/${editingItem.id}` 
           : (isVehicleType ? `/master/vehicleType/${editingItem.id}` : (isFuelType ? `/master/fuelType/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`));
+        if (moduleName.toLowerCase() === 'banner') {
+          endpoint = `/master/banner/${editingItem.id}`;
+        }
         const response = await api.put(endpoint, payload);
         if (response.data?.success) {
           toast.success(response.data?.message || `${moduleName} updated successfully`);

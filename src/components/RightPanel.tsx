@@ -24,20 +24,6 @@ const TASKS = [
 export function RightPanel() {
   return (
     <div className="space-y-6">
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-br from-[#0f1218] to-emerald-900/10 p-5 rounded-xl border border-emerald-500/10 shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-          <Activity className="w-24 h-24" />
-        </div>
-        <h2 className="text-sm font-bold text-white tracking-tight uppercase mb-4 relative z-10">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3 relative z-10">
-          <button className="bg-[#0f1218]/80 hover:bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500/30 text-xs text-emerald-400 font-medium py-2 rounded-lg transition-colors shadow-sm">Add Driver</button>
-          <button className="bg-[#0f1218]/80 hover:bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500/30 text-xs text-emerald-400 font-medium py-2 rounded-lg transition-colors shadow-sm">Assign Job</button>
-          <button className="bg-[#0f1218]/80 hover:bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500/30 text-xs text-emerald-400 font-medium py-2 rounded-lg transition-colors shadow-sm">Generate Report</button>
-          <button className="bg-[#0f1218]/80 hover:bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500/30 text-xs text-emerald-400 font-medium py-2 rounded-lg transition-colors shadow-sm">Notify All</button>
-        </div>
-      </div>
-
       {/* Actionable Tasks */}
       <div className="bg-[#0f1218] p-5 rounded-xl border border-slate-800/60 shadow-lg">
         <div className="flex items-center justify-between mb-5">

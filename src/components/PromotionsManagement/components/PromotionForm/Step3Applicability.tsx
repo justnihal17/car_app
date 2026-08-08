@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../../../api/axios';
 import { Promotion } from '../../types/promotion.types';
 import {
   DUMMY_SERVICES,
@@ -12,7 +13,7 @@ import {
   EMIRATES,
   PAYMENT_METHODS,
 } from '../../data/dummyPromotions';
-import { Wrench, Car, MapPin, Users, CreditCard, X, Check } from 'lucide-react';
+import { Wrench, Car, MapPin, Users, CreditCard, X, Check, Loader2 } from 'lucide-react';
 
 interface Step3Props {
   formData: Partial<Promotion>;
@@ -21,6 +22,201 @@ interface Step3Props {
 
 export function Step3Applicability({ formData, onChange }: Step3Props) {
   const [activeTab, setActiveTab] = useState<'services' | 'vehicle' | 'location' | 'customer' | 'payment'>('services');
+
+  const [apiServices, setApiServices] = useState<{ id: string; name: string }[]>([]);
+  const [apiCities, setApiCities] = useState<{ id: string; name: string }[]>([]);
+  const [apiEmirates, setApiEmirates] = useState<{ id: string; name: string }[]>([]);
+  const [apiBrands, setApiBrands] = useState<{ id: string; name: string }[]>([]);
+  const [apiFuelTypes, setApiFuelTypes] = useState<{ id: string; name: string }[]>([]);
+  const [apiVehicleTypes, setApiVehicleTypes] = useState<{ id: string; name: string }[]>([]);
+  const [apiModels, setApiModels] = useState<{ id: string; name: string }[]>([]);
+  const [apiCustomers, setApiCustomers] = useState<{ id: string; name: string }[]>([]);
+  const [loadingMasterData, setLoadingMasterData] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMasterData = async () => {
+      setLoadingMasterData(true);
+      try {
+        // Fetch Services
+        try {
+          const res = await api.get('/master/service/admin');
+          const raw = res.data?.data || res.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.services || raw.list || []);
+          if (isMounted && list.length > 0) {
+            setApiServices(list.map((s: any) => ({ id: typeof s === 'string' ? s : String(s._id || s.id), name: typeof s === 'string' ? s : String(s.name || s.title) })));
+          }
+        } catch {
+          try {
+            const res = await api.get('/master/service');
+            const raw = res.data?.data || res.data || [];
+            const list = Array.isArray(raw) ? raw : (raw.services || raw.list || []);
+            if (isMounted && list.length > 0) {
+              setApiServices(list.map((s: any) => ({ id: typeof s === 'string' ? s : String(s._id || s.id), name: typeof s === 'string' ? s : String(s.name || s.title) })));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch services:', e);
+          }
+        }
+
+        // Fetch Cities
+        try {
+          const res = await api.get('/master/city/admin');
+          const raw = res.data?.data || res.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.cities || raw.list || []);
+          if (isMounted && list.length > 0) {
+            setApiCities(list.map((c: any) => ({ id: typeof c === 'string' ? c : String(c._id || c.id || c.name || c), name: typeof c === 'string' ? c : String(c.name || c) })));
+          }
+        } catch {
+          try {
+            const res = await api.get('/master/city');
+            const raw = res.data?.data || res.data || [];
+            const list = Array.isArray(raw) ? raw : (raw.cities || raw.list || []);
+            if (isMounted && list.length > 0) {
+              setApiCities(list.map((c: any) => ({ id: typeof c === 'string' ? c : String(c._id || c.id || c.name || c), name: typeof c === 'string' ? c : String(c.name || c) })));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch cities:', e);
+          }
+        }
+
+        // Fetch Emirates / States
+        try {
+          const res = await api.get('/master/state/admin');
+          const raw = res.data?.data || res.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.states || raw.emirates || raw.list || []);
+          if (isMounted && list.length > 0) {
+            setApiEmirates(list.map((e: any) => ({ id: typeof e === 'string' ? e : String(e._id || e.id || e.name || e), name: typeof e === 'string' ? e : String(e.name || e) })));
+          }
+        } catch {
+          try {
+            const res = await api.get('/master/state');
+            const raw = res.data?.data || res.data || [];
+            const list = Array.isArray(raw) ? raw : (raw.states || raw.emirates || raw.list || []);
+            if (isMounted && list.length > 0) {
+              setApiEmirates(list.map((e: any) => ({ id: typeof e === 'string' ? e : String(e._id || e.id || e.name || e), name: typeof e === 'string' ? e : String(e.name || e) })));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch emirates/states:', e);
+          }
+        }
+
+        // Fetch Vehicle Brands (Makes)
+        try {
+          const res = await api.get('/master/make/admin');
+          const raw = res.data?.data || res.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.makes || raw.brands || raw.list || []);
+          if (isMounted && list.length > 0) {
+            setApiBrands(list.map((b: any) => ({ id: typeof b === 'string' ? b : String(b._id || b.id || b.name || b), name: typeof b === 'string' ? b : String(b.name || b.title || b.make || b) })));
+          }
+        } catch {
+          try {
+            const res = await api.get('/master/make');
+            const raw = res.data?.data || res.data || [];
+            const list = Array.isArray(raw) ? raw : (raw.makes || raw.brands || raw.list || []);
+            if (isMounted && list.length > 0) {
+              setApiBrands(list.map((b: any) => ({ id: typeof b === 'string' ? b : String(b._id || b.id || b.name || b), name: typeof b === 'string' ? b : String(b.name || b.title || b.make || b) })));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch vehicle brands:', e);
+          }
+        }
+
+        // Fetch Fuel Types
+        try {
+          const res = await api.get('/master/fueltype/admin');
+          const raw = res.data?.data || res.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.fuelTypes || raw.list || []);
+          if (isMounted && list.length > 0) {
+            setApiFuelTypes(list.map((f: any) => ({ id: typeof f === 'string' ? f : String(f._id || f.id || f.name || f.type || f), name: typeof f === 'string' ? f : String(f.name || f.type || f) })));
+          }
+        } catch {
+          try {
+            const res = await api.get('/master/fueltype');
+            const raw = res.data?.data || res.data || [];
+            const list = Array.isArray(raw) ? raw : (raw.fuelTypes || raw.list || []);
+            if (isMounted && list.length > 0) {
+              setApiFuelTypes(list.map((f: any) => ({ id: typeof f === 'string' ? f : String(f._id || f.id || f.name || f.type || f), name: typeof f === 'string' ? f : String(f.name || f.type || f) })));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch fuel types:', e);
+          }
+        }
+
+        // Fetch Vehicle Types
+        try {
+          const res = await api.get('/master/vehicletype/admin');
+          const raw = res.data?.data || res.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.vehicleTypes || raw.list || []);
+          if (isMounted && list.length > 0) {
+            setApiVehicleTypes(list.map((v: any) => ({ id: typeof v === 'string' ? v : String(v._id || v.id || v.name || v.type || v), name: typeof v === 'string' ? v : String(v.name || v.type || v) })));
+          }
+        } catch {
+          try {
+            const res = await api.get('/master/vehicletype');
+            const raw = res.data?.data || res.data || [];
+            const list = Array.isArray(raw) ? raw : (raw.vehicleTypes || raw.list || []);
+            if (isMounted && list.length > 0) {
+              setApiVehicleTypes(list.map((v: any) => ({ id: typeof v === 'string' ? v : String(v._id || v.id || v.name || v.type || v), name: typeof v === 'string' ? v : String(v.name || v.type || v) })));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch vehicle types:', e);
+          }
+        }
+
+        // Fetch Car Models
+        try {
+          const res = await api.get('/master/model/admin');
+          const raw = res.data?.data || res.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.models || raw.list || []);
+          if (isMounted && list.length > 0) {
+            setApiModels(list.map((m: any) => ({ id: typeof m === 'string' ? m : String(m._id || m.id || m.name || m), name: typeof m === 'string' ? m : String(m.name || m.title || m) })));
+          }
+        } catch {
+          try {
+            const res = await api.get('/master/model');
+            const raw = res.data?.data || res.data || [];
+            const list = Array.isArray(raw) ? raw : (raw.models || raw.list || []);
+            if (isMounted && list.length > 0) {
+              setApiModels(list.map((m: any) => ({ id: typeof m === 'string' ? m : String(m._id || m.id || m.name || m), name: typeof m === 'string' ? m : String(m.name || m.title || m) })));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch car models:', e);
+          }
+        }
+
+        // Fetch Customers / Users
+        try {
+          const res = await api.get('/customer/customer');
+          const raw = res.data?.data || res.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.customers || raw.users || raw.list || []);
+          if (isMounted && list.length > 0) {
+            setApiCustomers(list.map((u: any) => ({ 
+              id: typeof u === 'string' ? u : String(u._id || u.id), 
+              name: typeof u === 'string' ? u : String(u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.name || u.email || u.phone) 
+            })));
+          }
+        } catch (e) {
+          console.warn('Failed to fetch customers:', e);
+        }
+
+      } finally {
+        if (isMounted) setLoadingMasterData(false);
+      }
+    };
+
+    fetchMasterData();
+    return () => { isMounted = false; };
+  }, []);
+
+  const servicesList = apiServices;
+  const citiesList = apiCities;
+  const emiratesList = apiEmirates;
+  const brandsList = apiBrands;
+  const fuelTypesList = apiFuelTypes;
+  const vehicleTypesList = apiVehicleTypes;
+  const carModelsList = apiModels;
+  const customersList = apiCustomers;
 
   const toggleArrayItem = (key: keyof Promotion, value: string) => {
     const current = (formData[key] as string[]) || [];
@@ -50,7 +246,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
       <div className="flex items-center gap-2 overflow-x-auto border-b border-slate-100 pb-2">
         {[
           { id: 'services', label: 'Services', icon: Wrench },
-          { id: 'vehicle', label: 'Vehicle Rules', icon: Car },
+          { id: 'vehicle', label: 'Vehicles', icon: Car },
           { id: 'location', label: 'Location', icon: MapPin },
           { id: 'customer', label: 'Customer Rules', icon: Users },
           { id: 'payment', label: 'Payment Rules', icon: CreditCard },
@@ -80,18 +276,21 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           {/* Applicable Services */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-slate-700">Applicable Services</label>
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                Applicable / Included Services
+                {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+              </label>
               <button
                 type="button"
-                onClick={() => selectAllArray('applicableServices', DUMMY_SERVICES.map(s => s.id))}
+                onClick={() => selectAllArray('applicableServices', servicesList.map(s => s.id))}
                 className="text-xs font-bold text-red-600 hover:underline"
               >
-                {(formData.applicableServices || []).length === DUMMY_SERVICES.length ? 'Deselect All' : 'Select All'}
+                {(formData.applicableServices || []).length === servicesList.length ? 'Deselect All' : 'Select All'}
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {DUMMY_SERVICES.map((s) => {
-                const isSelected = (formData.applicableServices || []).includes(s.id);
+              {servicesList.map((s) => {
+                const isSelected = (formData.applicableServices || []).includes(s.id) || (formData.applicableServices || []).includes(s.name);
                 return (
                   <div
                     key={s.id}
@@ -117,9 +316,9 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           <div className="space-y-2 pt-4 border-t border-slate-100">
             <label className="text-xs font-bold text-slate-700">Excluded Services</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {DUMMY_SERVICES.map((s) => {
-                const isSelected = (formData.excludedServices || []).includes(s.id);
-                const isDisabled = (formData.applicableServices || []).includes(s.id);
+              {servicesList.map((s) => {
+                const isSelected = (formData.excludedServices || []).includes(s.id) || (formData.excludedServices || []).includes(s.name);
+                const isDisabled = (formData.applicableServices || []).includes(s.id) || (formData.applicableServices || []).includes(s.name);
                 return (
                   <div
                     key={s.id}
@@ -142,15 +341,18 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
         </div>
       )}
 
-      {/* Tab 2: Vehicle Rules */}
+      {/* Tab 2: Vehicles */}
       {activeTab === 'vehicle' && (
         <div className="space-y-6">
           {/* Vehicle Brands */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700">Applicable Vehicle Brands</label>
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+              Applicable Vehicle Brands
+              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+            </label>
             <div className="flex flex-wrap gap-2">
-              {DUMMY_BRANDS.map((b) => {
-                const isSelected = (formData.applicableVehicleBrands || []).includes(b.id);
+              {brandsList.map((b) => {
+                const isSelected = (formData.applicableVehicleBrands || []).includes(b.id) || (formData.applicableVehicleBrands || []).includes(b.name);
                 return (
                   <button
                     key={b.id}
@@ -169,24 +371,54 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
             </div>
           </div>
 
-          {/* Vehicle Types */}
+          {/* Car Models */}
           <div className="space-y-2 pt-3 border-t border-slate-100">
-            <label className="text-xs font-bold text-slate-700">Applicable Vehicle Types</label>
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+              Applicable Car Models
+              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+            </label>
             <div className="flex flex-wrap gap-2">
-              {VEHICLE_TYPES.map((t) => {
-                const isSelected = (formData.applicableVehicleTypes || []).includes(t);
+              {carModelsList.map((m) => {
+                const isSelected = (formData.applicableCarModels || []).includes(m.id) || (formData.applicableCarModels || []).includes(m.name);
                 return (
                   <button
-                    key={t}
+                    key={m.id}
                     type="button"
-                    onClick={() => toggleArrayItem('applicableVehicleTypes', t)}
+                    onClick={() => toggleArrayItem('applicableCarModels', m.id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       isSelected
                         ? 'bg-red-600 text-white shadow-sm'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {t}
+                    {m.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Vehicle Types */}
+          <div className="space-y-2 pt-3 border-t border-slate-100">
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+              Applicable Vehicle Types
+              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {vehicleTypesList.map((t) => {
+                const isSelected = (formData.applicableVehicleTypes || []).includes(t.id) || (formData.applicableVehicleTypes || []).includes(t.name);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => toggleArrayItem('applicableVehicleTypes', t.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      isSelected
+                        ? 'bg-red-600 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {t.name}
                   </button>
                 );
               })}
@@ -196,22 +428,25 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           {/* Fuel Types & Transmission */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700">Applicable Fuel Types</label>
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                Applicable Fuel Types
+                {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+              </label>
               <div className="flex flex-wrap gap-1.5">
-                {FUEL_TYPES.map((f) => {
-                  const isSelected = (formData.applicableFuelType || []).includes(f);
+                {fuelTypesList.map((f) => {
+                  const isSelected = (formData.applicableFuelType || []).includes(f.id) || (formData.applicableFuelType || []).includes(f.name);
                   return (
                     <button
-                      key={f}
+                      key={f.id}
                       type="button"
-                      onClick={() => toggleArrayItem('applicableFuelType', f)}
+                      onClick={() => toggleArrayItem('applicableFuelType', f.id)}
                       className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
                         isSelected
                           ? 'bg-slate-900 text-white'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      {f}
+                      {f.name}
                     </button>
                   );
                 })}
@@ -248,22 +483,25 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
       {activeTab === 'location' && (
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700">Applicable Cities</label>
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+              Applicable Cities
+              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+            </label>
             <div className="flex flex-wrap gap-2">
-              {CITIES.map((c) => {
-                const isSelected = (formData.applicableCities || []).includes(c);
+              {citiesList.map((c) => {
+                const isSelected = (formData.applicableCities || []).includes(c.id) || (formData.applicableCities || []).includes(c.name);
                 return (
                   <button
-                    key={c}
+                    key={c.id}
                     type="button"
-                    onClick={() => toggleArrayItem('applicableCities', c)}
+                    onClick={() => toggleArrayItem('applicableCities', c.id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       isSelected
                         ? 'bg-red-600 text-white shadow-sm'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {c}
+                    {c.name}
                   </button>
                 );
               })}
@@ -271,22 +509,25 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           </div>
 
           <div className="space-y-2 pt-4 border-t border-slate-100">
-            <label className="text-xs font-bold text-slate-700">Applicable Emirates</label>
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+              Applicable Emirates
+              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+            </label>
             <div className="flex flex-wrap gap-2">
-              {EMIRATES.map((e) => {
-                const isSelected = (formData.applicableAmirates || []).includes(e);
+              {emiratesList.map((e) => {
+                const isSelected = (formData.applicableAmirates || []).includes(e.id) || (formData.applicableAmirates || []).includes(e.name);
                 return (
                   <button
-                    key={e}
+                    key={e.id}
                     type="button"
-                    onClick={() => toggleArrayItem('applicableAmirates', e)}
+                    onClick={() => toggleArrayItem('applicableAmirates', e.id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       isSelected
                         ? 'bg-slate-900 text-white shadow-sm'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {e}
+                    {e.name}
                   </button>
                 );
               })}
@@ -330,6 +571,60 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                 }`}
               />
             </button>
+          </div>
+
+          {/* Included / Target Users */}
+          <div className="space-y-2 pt-4 border-t border-slate-100">
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+              Included / Target Users
+              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {customersList.map((u) => {
+                const isSelected = ((formData as any).includedUsers || []).includes(u.id) || ((formData as any).includedUsers || []).includes(u.name);
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => toggleArrayItem('includedUsers' as any, u.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      isSelected
+                        ? 'bg-red-600 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {u.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Excluded Users */}
+          <div className="space-y-2 pt-4 border-t border-slate-100">
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+              Excluded Users
+              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {customersList.map((u) => {
+                const isSelected = (formData.excludedUsers || []).includes(u.id) || (formData.excludedUsers || []).includes(u.name);
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => toggleArrayItem('excludedUsers', u.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      isSelected
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {u.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

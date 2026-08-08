@@ -157,10 +157,10 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       perUserLimit: Math.max(1, Number(formData.perUserLimit || 1)),
       stackable: !!formData.stackable,
       priority: Math.max(1, Math.abs(Number(formData.priority !== undefined ? formData.priority : 10))),
-      applicableServices: formData.applicableServices?.filter(id => id.length === 24) || [],
-      applicableVehicleBrands: formData.applicableVehicleBrands?.filter(id => id.length === 24) || [],
-      applicableVehicleTypes: formData.applicableVehicleTypes?.filter(id => id.length === 24) || [],
-      applicableCities: formData.applicableCities?.filter(id => id.length === 24) || [],
+      applicableServices: formData.applicableServices?.filter(Boolean) || [],
+      applicableVehicleBrands: formData.applicableVehicleBrands?.filter(Boolean) || [],
+      applicableVehicleTypes: formData.applicableVehicleTypes?.filter(Boolean) || [],
+      applicableCities: formData.applicableCities?.filter(Boolean) || [],
       applicableUserType: formData.applicableUserType ? (formData.applicableUserType.toUpperCase() as any) : 'ALL',
       firstBookingOnly: !!formData.firstBookingOnly,
       paymentMethods: formData.paymentMethods && formData.paymentMethods.length > 0 ? formData.paymentMethods : ['ONLINE', 'COD'],
@@ -172,18 +172,25 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       validTimeFrom: formData.validTimeFrom || '00:00',
       validTimeTo: formData.validTimeTo || '23:59',
       walletCashback: Math.max(0, Number(formData.walletCashback || 0)),
-      freeServiceId: formData.freeServiceId || null,
       referralReward: Math.max(0, Number(formData.referralReward || 0)),
       isDeleted: false,
-      applicableFuelType: formData.applicableFuelType?.filter(id => id.length === 24) || [],
-      applicableTransmission: formData.applicableTransmission?.filter(id => id.length === 24) || [],
-      applicableCarModels: formData.applicableCarModels?.filter(id => id.length === 24) || [],
-      applicableAmirates: formData.applicableAmirates?.filter(id => id.length === 24) || [],
-      excludedServices: formData.excludedServices || [],
-      excludedUsers: formData.excludedUsers || [],
+      applicableFuelType: formData.applicableFuelType?.filter(Boolean) || [],
+      applicableTransmission: formData.applicableTransmission?.filter(Boolean) || [],
+      applicableCarModels: formData.applicableCarModels?.filter(Boolean) || [],
+      applicableAmirates: formData.applicableAmirates?.filter(Boolean) || [],
+      excludedServices: formData.excludedServices?.filter(Boolean) || [],
+      excludedUsers: formData.excludedUsers?.filter(Boolean) || [],
+      includedUsers: (formData as any).includedUsers?.filter(Boolean) || [],
       includeTaxes: formData.includeTaxes !== false,
       autoApply: formData.promoType === 'AUTOMATIC' ? true : !!formData.autoApply,
     };
+
+    if (formData.discountType === 'FREE_SERVICE' && formData.freeServiceId) {
+      const parsedId = Array.isArray(formData.freeServiceId) ? formData.freeServiceId[0] : formData.freeServiceId;
+      if (parsedId) {
+        finalPromo.freeServiceId = parsedId;
+      }
+    }
 
     onSubmit(finalPromo);
   };

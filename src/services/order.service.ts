@@ -52,5 +52,18 @@ export const OrderService = {
   updatePayment: async (id: string, data: { status: string; transaction_id?: string; method?: string }) => {
     const response = await api.patch(`/admin/order/${id}/payment`, data);
     return response.data;
+  },
+
+  getLiveOverview: async (params?: { startDate?: string; endDate?: string }) => {
+    try {
+      const response = await api.get('/admin/order/live-overview', { params });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        const response = await api.get('/admin/orders/live-overview', { params });
+        return response.data;
+      }
+      throw error;
+    }
   }
 };

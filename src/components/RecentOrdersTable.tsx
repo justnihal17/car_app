@@ -1,12 +1,8 @@
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { MoreHorizontal, Search, Filter } from 'lucide-react';
-
-const RECENT_ORDERS = [
-  { id: 'ORD-9921', customer: 'Alex Johnson', driver: 'Sam Smith', vehicle: 'Tesla Model 3', service: 'Super Wash', location: 'Downtown', time: '10:24 AM', amount: '$45.00', status: 'Completed', payment: 'Paid' },
-  { id: 'ORD-9922', customer: 'Maria Garcia', driver: 'Unassigned', vehicle: 'Honda Civic', service: 'Fuel Delivery', location: 'Westside', time: '10:30 AM', amount: '$60.00', status: 'Pending', payment: 'Unpaid' },
-  { id: 'ORD-9923', customer: 'James Wilson', driver: 'Michael Brown', vehicle: 'Ford F-150', service: 'Tire Change', location: 'North Park', time: '10:45 AM', amount: '$120.00', status: 'On The Way', payment: 'Paid' },
-  { id: 'ORD-9924', customer: 'Linda Davis', driver: 'Emma Davis', vehicle: 'Toyota Camry', service: 'Battery Jump', location: 'East End', time: '11:05 AM', amount: '$85.00', status: 'In Progress', payment: 'Paid' },
-  { id: 'ORD-9925', customer: 'Robert Miller', driver: 'David Wilson', vehicle: 'BMW X5', service: 'Detailing', location: 'South Hill', time: '11:15 AM', amount: '$150.00', status: 'Cancelled', payment: 'Refunded' },
-];
+import { RootState, AppDispatch } from '../store/store';
+import { fetchRecentOrders } from '../store/orderSlice';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
@@ -17,13 +13,19 @@ const StatusBadge = ({ status }: { status: string }) => {
     'Cancelled': 'bg-red-400/10 text-red-400 border-red-400/20',
   };
   return (
-    <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${styles[status]}`}>
-      {status}
+    <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${styles[status] || 'bg-slate-400/10 text-slate-400 border-slate-400/20'}`}>
+      {status || 'Pending'}
     </span>
   );
 };
 
 export function RecentOrdersTable() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { recentOrders, loading } = useSelector((state: RootState) => state.order);
+
+  useEffect(() => {
+    dispatch(fetchRecentOrders());
+  }, [dispatch]);
   return (
     <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg overflow-hidden">
       <div className="p-4 2xl:p-5 border-b border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -58,52 +60,60 @@ export function RecentOrdersTable() {
             </tr>
           </thead>
           <tbody className="text-xs 2xl:text-sm divide-y divide-slate-800">
-            {RECENT_ORDERS.map((order) => (
-              <tr key={order.id} className="hover:bg-slate-800/20 transition-colors group">
-                <td className="px-4 2xl:px-5 py-3 2xl:py-4 font-medium text-slate-300">{order.id}</td>
-                <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-white">
-                  <div>{order.customer}</div>
-                  <div className="text-[10px] 2xl:text-xs text-slate-500">{order.vehicle}</div>
-                </td>
-                <td className="px-4 2xl:px-5 py-3 2xl:py-4">
-                  <span className={order.driver === 'Unassigned' ? 'text-yellow-400/80 text-[10px] 2xl:text-xs font-medium' : 'text-slate-300'}>
-                    {order.driver}
-                  </span>
-                </td>
-                <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-slate-300">
-                  <div>{order.service}</div>
-                  <div className="text-[10px] 2xl:text-xs text-slate-500">{order.time} • {order.location}</div>
-                </td>
-                <td className="px-4 2xl:px-5 py-3 2xl:py-4 font-medium text-slate-300">{order.amount}</td>
-                <td className="px-4 2xl:px-5 py-3 2xl:py-4">
-                  <StatusBadge status={order.status} />
-                </td>
-                <td className="px-4 2xl:px-5 py-3 2xl:py-4">
-                  <span className={`text-[10px] 2xl:text-xs font-medium ${order.payment === 'Paid' ? 'text-emerald-400' : order.payment === 'Refunded' ? 'text-gray-400' : 'text-orange-400'}`}>
-                    {order.payment}
-                  </span>
-                </td>
-                <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-right">
-                  <button className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-700 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
-                    <MoreHorizontal className="w-5 h-5" />
-                  </button>
-                </td>
+            {loading ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-8 text-center text-slate-400">Loading recent orders...</td>
               </tr>
-            ))}
+            ) : recentOrders?.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-8 text-center text-slate-400">No recent orders found</td>
+              </tr>
+            ) : (
+              recentOrders?.map((order) => {
+                const srv = order.services?.[0]?.serviceId;
+                const status = order.status || 'Pending';
+                const paymentStatus = order.payment?.status || 'Pending';
+                
+                return (
+                  <tr key={order._id} className="hover:bg-slate-800/20 transition-colors group">
+                    <td className="px-4 2xl:px-5 py-3 2xl:py-4 font-medium text-slate-300">{order.order_number}</td>
+                    <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-white">
+                      <div>{order.customer_id?.fullName || 'Unknown'}</div>
+                      <div className="text-[10px] 2xl:text-xs text-slate-500">{order.vehicle_id?.make || ''} {order.vehicle_id?.model || ''}</div>
+                    </td>
+                    <td className="px-4 2xl:px-5 py-3 2xl:py-4">
+                      <span className={!order.agent_id ? 'text-yellow-400/80 text-[10px] 2xl:text-xs font-medium' : 'text-slate-300'}>
+                        {order.agent_id ? `${order.agent_id.firstName} ${order.agent_id.lastName}` : 'Unassigned'}
+                      </span>
+                    </td>
+                    <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-slate-300">
+                      <div>{srv?.name || 'Service'}</div>
+                      <div className="text-[10px] 2xl:text-xs text-slate-500">{order.time_slot?.from || ''} • {order.pickup_location?.address?.split(',')[0] || ''}</div>
+                    </td>
+                    <td className="px-4 2xl:px-5 py-3 2xl:py-4 font-medium text-slate-300">AED {order.final_amount}</td>
+                    <td className="px-4 2xl:px-5 py-3 2xl:py-4">
+                      <StatusBadge status={status.charAt(0).toUpperCase() + status.slice(1)} />
+                    </td>
+                    <td className="px-4 2xl:px-5 py-3 2xl:py-4">
+                      <span className={`text-[10px] 2xl:text-xs font-medium ${paymentStatus.toLowerCase() === 'paid' ? 'text-emerald-400' : paymentStatus.toLowerCase() === 'refunded' ? 'text-gray-400' : 'text-orange-400'}`}>
+                        {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 2xl:px-5 py-3 2xl:py-4 text-right">
+                      <button className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-700 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                        <MoreHorizontal className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
       
       <div className="p-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-        <span>Showing 1 to 5 of 3,219 entries</span>
-        <div className="flex gap-1">
-          <button className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 disabled:opacity-50 transition-colors" disabled>Previous</button>
-          <button className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-white">1</button>
-          <button className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors">2</button>
-          <button className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors">3</button>
-          <span className="px-2 py-1.5">...</span>
-          <button className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors">Next</button>
-        </div>
+        <span>Showing recent entries</span>
       </div>
     </div>
   );

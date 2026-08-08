@@ -113,7 +113,6 @@ export default function PromotionsModule() {
       setSelectedPromo(null);
       fetchPromotions();
     } catch (error: any) {
-      console.error('Save Promotion Error:', error.response?.data || error);
       const serverMsg = error.response?.data?.message || error.response?.data?.error || 'Failed to save promotion';
       toast.error(serverMsg);
     } finally {

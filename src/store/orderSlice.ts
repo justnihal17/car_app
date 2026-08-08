@@ -1,10 +1,27 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { OrderService, OrderFilters } from '../services/order.service';
 
+export interface LiveOverviewItem {
+  count: number;
+  percentage: number;
+}
+
+export interface LiveOverviewData {
+  totalOrders: number;
+  pending: LiveOverviewItem;
+  accepted: LiveOverviewItem;
+  agentAssigned: LiveOverviewItem;
+  onTheWay: LiveOverviewItem;
+  inProgress: LiveOverviewItem;
+  completed: LiveOverviewItem;
+  cancelled: LiveOverviewItem;
+}
+
 export interface OrderState {
   orders: any[];
   recentOrders: any[];
   selectedOrder: any | null;
+  liveOverview: LiveOverviewData | null;
   loading: boolean;
   actionLoading: boolean;
   error: string | null;
@@ -21,6 +38,7 @@ const initialState: OrderState = {
   orders: [],
   recentOrders: [],
   selectedOrder: null,
+  liveOverview: null,
   loading: false,
   actionLoading: false,
   error: null,
@@ -98,6 +116,21 @@ export const fetchOrderById = createAsyncThunk(
   }
 );
 
+export const fetchLiveOverview = createAsyncThunk(
+  'order/fetchLiveOverview',
+  async (params: { startDate?: string; endDate?: string } | undefined, { rejectWithValue }) => {
+    try {
+      const response = await OrderService.getLiveOverview(params);
+      if (response.success) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || 'Failed to fetch live order overview');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const orderSlice = createSlice({
   name: 'order',
   initialState,
@@ -155,6 +188,11 @@ const orderSlice = createSlice({
     builder.addCase(fetchOrderById.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;
+    });
+
+    // Fetch Live Overview
+    builder.addCase(fetchLiveOverview.fulfilled, (state, action) => {
+      state.liveOverview = action.payload;
     });
   }
 });

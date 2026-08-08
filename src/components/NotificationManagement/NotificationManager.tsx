@@ -25,11 +25,27 @@ export function NotificationManager() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   useEffect(() => {
-    dispatch(fetchNotifications());
-  }, [dispatch]);
+    const params: { is_read?: boolean } = {};
+    if (filters.status === 'Read') params.is_read = true;
+    if (filters.status === 'Unread') params.is_read = false;
+    dispatch(fetchNotifications(params));
+  }, [dispatch, filters.status]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (activeMenu && !(event.target as HTMLElement).closest('.notif-action-menu')) {
+        setActiveMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeMenu]);
 
   const handleRefresh = () => {
-    dispatch(fetchNotifications());
+    const params: { is_read?: boolean } = {};
+    if (filters.status === 'Read') params.is_read = true;
+    if (filters.status === 'Unread') params.is_read = false;
+    dispatch(fetchNotifications(params));
     toast.success('Notifications refreshed');
   };
 
@@ -91,13 +107,15 @@ export function NotificationManager() {
           
           <button 
             onClick={() => {
-              dispatch(clearReadNotifications());
-              toast.success('Read notifications cleared');
+              if(window.confirm('Are you sure you want to clear all notifications?')) {
+                dispatch(clearReadNotifications());
+                toast.success('All notifications cleared');
+              }
             }}
             className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold rounded-xl shadow-xs transition-all hover:border-slate-300 text-sm flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
-            Clear Read
+            Clear All
           </button>
           
           <button 
@@ -233,29 +251,29 @@ export function NotificationManager() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-right align-top pt-4">
-                      <div className="relative inline-block text-left">
+                      <div className="relative inline-block text-left notif-action-menu">
                         <button 
                           onClick={() => setActiveMenu(activeMenu === notif.id ? null : notif.id)}
-                          className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors bg-white border border-transparent hover:border-slate-200 shadow-sm opacity-0 group-hover:opacity-100"
+                          className={`p-2 rounded-xl transition-all border ${activeMenu === notif.id ? 'bg-slate-100 border-slate-200 text-slate-900 shadow-sm' : 'bg-white border-transparent text-slate-400 hover:text-slate-700 hover:bg-slate-50 hover:border-slate-200 hover:shadow-sm opacity-0 group-hover:opacity-100'}`}
                         >
                           <MoreHorizontal className="w-5 h-5" />
                         </button>
                         
                         {activeMenu === notif.id && (
-                          <div className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 border border-slate-100 py-1">
+                          <div className="absolute right-0 mt-2 w-48 rounded-xl shadow-xl shadow-slate-200/50 bg-white border border-slate-200 p-1.5 z-50 transform origin-top-right transition-all animate-in fade-in zoom-in-95 duration-200">
                             {notif.isRead ? (
                               <button 
                                 onClick={() => { dispatch(markAsUnread(notif.id)); setActiveMenu(null); }}
-                                className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                className="w-full text-left flex items-center px-3 py-2 text-sm text-slate-600 font-medium hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                               >
-                                <Circle className="mr-3 w-4 h-4 text-slate-400" /> Mark as unread
+                                <Circle className="mr-2.5 w-4 h-4 text-slate-400" /> Mark as unread
                               </button>
                             ) : (
                               <button 
                                 onClick={() => { dispatch(markAsRead(notif.id)); setActiveMenu(null); }}
-                                className="w-full text-left flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                className="w-full text-left flex items-center px-3 py-2 text-sm text-slate-600 font-medium hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                               >
-                                <CheckCircle2 className="mr-3 w-4 h-4 text-emerald-500" /> Mark as read
+                                <CheckCircle2 className="mr-2.5 w-4 h-4 text-emerald-500" /> Mark as read
                               </button>
                             )}
                             
@@ -276,13 +294,13 @@ export function NotificationManager() {
                                   }
                                   setActiveMenu(null);
                                 }}
-                                className="w-full text-left flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 font-medium"
+                                className="w-full text-left flex items-center px-3 py-2 text-sm text-slate-600 font-medium hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                               >
-                                <ArrowUpRight className="mr-3 w-4 h-4" /> View Record
+                                <ArrowUpRight className="mr-2.5 w-4 h-4 text-blue-500" /> View Record
                               </button>
                             )}
                             
-                            <div className="h-px bg-slate-100 my-1"></div>
+                            <div className="h-px bg-slate-200 my-1.5 mx-2"></div>
                             
                             <button 
                               onClick={() => {
@@ -291,9 +309,9 @@ export function NotificationManager() {
                                 }
                                 setActiveMenu(null);
                               }}
-                              className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                              className="w-full text-left flex items-center px-3 py-2 text-sm text-slate-600 font-medium hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors group"
                             >
-                              <Trash2 className="mr-3 w-4 h-4" /> Delete
+                              <Trash2 className="mr-2.5 w-4 h-4 text-red-500 group-hover:text-red-600" /> Delete
                             </button>
                           </div>
                         )}

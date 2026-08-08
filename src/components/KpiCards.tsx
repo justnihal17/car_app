@@ -1,64 +1,37 @@
-import { Users, Car, MapPin, DollarSign, Activity, TrendingUp, CheckCircle, Clock } from 'lucide-react';
-
-const KPIS = [
-  { label: 'Total Customers', value: '124,592', change: '+12.5%', isUp: true, icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10', targetView: 'users' },
-  { label: 'Active Drivers', value: '842', change: '+4.2%', isUp: true, icon: Car, color: 'text-emerald-400', bg: 'bg-emerald-400/10', targetView: 'drivers' },
-  { label: "Today's Orders", value: '3,219', change: '-2.1%', isUp: false, icon: MapPin, color: 'text-orange-400', bg: 'bg-orange-400/10', targetView: 'orders' },
-  { label: 'Revenue Today', value: '$84,291', change: '+18.4%', isUp: true, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10', targetView: 'reports' },
-  { label: 'Success Rate', value: '98.4%', change: '+0.2%', isUp: true, icon: CheckCircle, color: 'text-purple-400', bg: 'bg-purple-400/10', targetView: 'reports' },
-  { label: 'Pending Orders', value: '142', change: '+12', isUp: false, icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-400/10', targetView: 'orders' },
-  { label: 'Available Drivers', value: '315', change: '-5', isUp: false, icon: Activity, color: 'text-teal-400', bg: 'bg-teal-400/10', targetView: 'drivers' },
-  { label: 'Monthly Growth', value: '24%', change: '+4%', isUp: true, icon: TrendingUp, color: 'text-red-400', bg: 'bg-red-400/10', targetView: 'reports' },
-];
-
-function Sparkline({ isUp }: { isUp: boolean }) {
-  const points = isUp 
-    ? "0,20 10,15 20,18 30,10 40,12 50,2"
-    : "0,5 10,12 20,8 30,18 40,15 50,22";
-  const strokeColor = isUp ? "#34d399" : "#f87171";
-
-  return (
-    <svg width="60" height="24" viewBox="0 0 50 24" className="overflow-visible">
-      <polyline
-        fill="none"
-        stroke={strokeColor}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        points={points}
-      />
-    </svg>
-  );
-}
+import { Users, Car, MapPin, Shield, Building, Tag, Star, UserCheck } from 'lucide-react';
 
 export function KpiCards({ onViewChange }: { onViewChange: (view: string) => void }) {
+  const kpis = [
+    { label: 'Total Customers', value: '0', icon: Users, subtext: 'ACCOUNTS', targetView: 'users' },
+    { label: 'Total Agents', value: '0', icon: UserCheck, subtext: 'OPERATIONAL', targetView: 'agents' },
+    { label: 'Total Admins', value: '0', icon: Shield, subtext: 'MANAGERS', targetView: 'sub-admin' },
+    { label: 'Total Emirates', value: '0', icon: MapPin, subtext: 'STATES', targetView: 'master-state' },
+    { label: 'Total Cities', value: '0', icon: Building, subtext: 'LOCATIONS', targetView: 'master-city' },
+    { label: 'Total Offers', value: '0', icon: Tag, subtext: 'PROMOTIONS', targetView: 'promotions' },
+    { label: 'Total Brands', value: '0', icon: Star, subtext: 'MAKES', targetView: 'master-make' },
+    { label: 'Total Models', value: '0', icon: Car, subtext: 'VEHICLES', targetView: 'master-model' },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {KPIS.map((kpi, idx) => {
+      {kpis.map((kpi, idx) => {
         const Icon = kpi.icon;
         return (
-            <button 
+          <button 
             key={idx} 
             onClick={() => onViewChange(kpi.targetView || 'dashboard')}
-            className="text-left bg-white/80 backdrop-blur-xl p-4 2xl:p-5 rounded-2xl 2xl:rounded-3xl border border-slate-200/70 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 group relative overflow-hidden hover:-translate-y-1"
+            className="text-left bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between min-h-[120px]"
           >
-            <div className="flex justify-between items-start mb-3 2xl:mb-4">
-              <div className={`p-2 rounded-xl ${kpi.bg}`}>
-                <Icon className={`w-4 h-4 2xl:w-5 2xl:h-5 ${kpi.color}`} />
-              </div>
-              <div className={`flex items-center gap-1 text-[10px] 2xl:text-xs font-medium px-2 py-1 rounded-full ${kpi.isUp ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'}`}>
-                {kpi.isUp ? '↑' : '↓'} {kpi.change}
+            <div className="flex justify-between items-start w-full">
+              <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase mt-1 w-3/4 line-clamp-2 leading-tight">{kpi.label}</span>
+              <div className="p-2 border border-slate-100 rounded-xl bg-slate-50 group-hover:bg-slate-100 transition-colors shrink-0">
+                <Icon className="w-4 h-4 text-slate-600" />
               </div>
             </div>
             
-            <div className="flex justify-between items-end">
-              <div>
-                <h3 className="text-slate-500 text-xs 2xl:text-sm font-medium mb-1">{kpi.label}</h3>
-                <p className="text-xl 2xl:text-2xl font-bold text-slate-900 tracking-tight">{kpi.value}</p>
-              </div>
-              <div className="pb-1 opacity-70 group-hover:opacity-100 transition-opacity">
-                <Sparkline isUp={kpi.isUp} />
-              </div>
+            <div className="flex justify-between items-baseline w-full mt-4 gap-2">
+              <span className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">{kpi.value}</span>
+              {kpi.subtext && <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase truncate">{kpi.subtext}</span>}
             </div>
           </button>
         );

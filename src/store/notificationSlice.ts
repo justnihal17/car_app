@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AppNotification, NotificationState } from '../types/notification.types';
-import { mockNotificationService } from '../services/mockNotificationService';
+import { notificationService } from '../services/notification.service';
 
 const initialState: NotificationState = {
   notifications: [],
@@ -18,8 +18,8 @@ const initialState: NotificationState = {
 // Async Thunks
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetchAll',
-  async () => {
-    const response = await mockNotificationService.getNotifications();
+  async (params?: { is_read?: boolean; page?: number; limit?: number }) => {
+    const response = await notificationService.fetchNotifications(params);
     return response;
   }
 );
@@ -27,15 +27,20 @@ export const fetchNotifications = createAsyncThunk(
 export const createNotification = createAsyncThunk(
   'notifications/create',
   async (notification: Omit<AppNotification, 'id' | 'createdAt' | 'isRead'>) => {
-    const response = await mockNotificationService.createNotification(notification);
-    return response;
+    // Local mock since API doesn't support creating notifications from admin panel
+    return {
+      ...notification,
+      id: `notif_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      isRead: false
+    } as AppNotification;
   }
 );
 
 export const markAsRead = createAsyncThunk(
   'notifications/markAsRead',
   async (id: string) => {
-    await mockNotificationService.markAsRead(id);
+    await notificationService.markAsRead(id);
     return id;
   }
 );
@@ -43,7 +48,7 @@ export const markAsRead = createAsyncThunk(
 export const markAsUnread = createAsyncThunk(
   'notifications/markAsUnread',
   async (id: string) => {
-    await mockNotificationService.markAsUnread(id);
+    // API doesn't support mark as unread, handle locally
     return id;
   }
 );
@@ -51,22 +56,22 @@ export const markAsUnread = createAsyncThunk(
 export const markAllAsRead = createAsyncThunk(
   'notifications/markAllAsRead',
   async () => {
-    await mockNotificationService.markAllAsRead();
+    await notificationService.markAllAsRead();
   }
 );
 
 export const deleteNotification = createAsyncThunk(
   'notifications/delete',
   async (id: string) => {
-    await mockNotificationService.deleteNotification(id);
+    await notificationService.deleteNotification(id);
     return id;
   }
 );
 
 export const clearReadNotifications = createAsyncThunk(
-  'notifications/clearRead',
+  'notifications/clearAll',
   async () => {
-    await mockNotificationService.clearReadNotifications();
+    await notificationService.clearAllNotifications();
   }
 );
 
@@ -96,8 +101,8 @@ const notificationSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.loading = false;
-        state.notifications = action.payload;
-        state.unreadCount = action.payload.filter(n => !n.isRead).length;
+        state.notifications = action.payload.notifications;
+        state.unreadCount = action.payload.unreadCount;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading = false;
@@ -137,9 +142,10 @@ const notificationSlice = createSlice({
         }
         state.notifications = state.notifications.filter(n => n.id !== action.payload);
       })
-      // Clear Read
+      // Clear All
       .addCase(clearReadNotifications.fulfilled, (state) => {
-        state.notifications = state.notifications.filter(n => !n.isRead);
+        state.notifications = [];
+        state.unreadCount = 0;
       });
   }
 });

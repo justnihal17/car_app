@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../store/store';
+import { fetchOrders } from '../store/orderSlice';
 import { WelcomeSection } from './WelcomeSection';
 import { KpiCards } from './KpiCards';
 import { LiveOrderOverview } from './LiveOrderOverview';
-import { LiveMap } from './LiveMap';
-import { AnalyticsCharts } from './AnalyticsCharts';
-import { RecentOrdersTable } from './RecentOrdersTable';
-import { RightPanel } from './RightPanel';
 import { UserWorkspace } from './UserManagement/UserWorkspace';
 import { UserProfileWorkspace } from './UserManagement/UserProfileWorkspace';
 import { UserRegistrationPage } from './UserManagement/registration/UserRegistrationPage';
@@ -32,6 +31,7 @@ import { StatsShimmer } from './shimmer/ShimmerLoader';
 const PromotionsModule = React.lazy(() => import('./PromotionsManagement/PromotionsModule'));
 
 export function DashboardContent({ currentView, onViewChange }: { currentView: string; onViewChange: (view: string) => void }) {
+  const dispatch = useDispatch<AppDispatch>();
   const { permission } = usePushNotifications();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
@@ -45,7 +45,10 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
     if (currentView !== 'orders') {
       setSelectedOrderId(null);
     }
-  }, [currentView]);
+    if (currentView === 'dashboard') {
+      dispatch(fetchOrders({ page: 1, limit: 10 }));
+    }
+  }, [currentView, dispatch]);
 
   useEffect(() => {
     const handleSelectOrder = (e: any) => {
@@ -66,18 +69,9 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return (
           <div className="flex-1 p-4 lg:p-6 2xl:p-content space-y-4 lg:space-y-6 max-w-[1600px] mx-auto">
             {permission === 'denied' && <NotificationDeniedBanner />}
-            <WelcomeSection onViewChange={onViewChange} />
             <KpiCards onViewChange={onViewChange} />
-            <div className="grid grid-cols-1 xl:grid-cols-4 2xl:grid-cols-3 gap-4 lg:gap-6">
-              <div className="xl:col-span-3 2xl:col-span-2 space-y-4 lg:space-y-6">
-                <LiveOrderOverview />
-                <LiveMap />
-                <AnalyticsCharts />
-                <RecentOrdersTable />
-              </div>
-              <div className="xl:col-span-1">
-                <RightPanel />
-              </div>
+            <div className="space-y-4 lg:space-y-6">
+              <LiveOrderOverview />
             </div>
           </div>
         );

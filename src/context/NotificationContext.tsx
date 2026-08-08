@@ -371,9 +371,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         return;
       }
       seenNotificationIdsRef.current.add(notifId);
+      console.log("payload,",payload)
 
       const title = payload.notification?.title || payload.data?.title || 'New Order Received! 🚗';
       const body = payload.notification?.body || payload.data?.body || 'A new customer order has been created.';
+
 
       const orderNumber = payload.data?.orderNumber || payload.data?.order_number || payload.data?.orderId || payload.data?.id || 'New Order';
       const customerName = payload.data?.customerName || payload.data?.customer || 'Customer';
