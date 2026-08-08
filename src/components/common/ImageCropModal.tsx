@@ -5,6 +5,8 @@ interface ImageCropModalProps {
   isOpen: boolean;
   imageSrc: string | null;
   file: File | null;
+  aspectRatio?: number; // e.g. 2.6 for Banner
+  isCircular?: boolean; // defaults to true for backwards compatibility
   onClose: () => void;
   onCropComplete: (croppedFile: File, croppedPreviewUrl: string) => void;
 }
@@ -13,13 +15,20 @@ export function ImageCropModal({
   isOpen,
   imageSrc,
   file,
+  aspectRatio = 1,
+  isCircular = true,
   onClose,
   onCropComplete,
 }: ImageCropModalProps) {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const cropBoxSize = 250; // Fixed size for the perfect circle crop area
+  
+  // Base the maximum dimension of the crop box on 250px
+  const maxCropDim = 250;
+  const cropBoxWidth = aspectRatio >= 1 ? maxCropDim : maxCropDim * aspectRatio;
+  const cropBoxHeight = aspectRatio >= 1 ? maxCropDim / aspectRatio : maxCropDim;
+  
   const [baseScale, setBaseScale] = useState(1);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
@@ -44,11 +53,7 @@ export function ImageCropModal({
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
-    // Calculate a base scale that guarantees the entire image fits inside the cropBox area by default.
-    const diagonal = Math.sqrt(img.naturalWidth ** 2 + img.naturalHeight ** 2);
-    // Use diagonal to fit entirely, or use max to fit the longest edge exactly inside the square bounds of the circle.
-    // Given the requirement "with the maximum possible portion of the image visible", using max fits it perfectly.
-    const initialScale = cropBoxSize / Math.max(img.naturalWidth, img.naturalHeight);
+    const initialScale = Math.min(cropBoxWidth / img.naturalWidth, cropBoxHeight / img.naturalHeight) || (maxCropDim / Math.max(img.naturalWidth, img.naturalHeight));
     setBaseScale(initialScale);
   };
 
@@ -106,23 +111,26 @@ export function ImageCropModal({
     if (!img) return;
 
     const canvas = document.createElement('canvas');
-    const canvasSize = 800; // Output image resolution (Square)
-
-    canvas.width = canvasSize;
-    canvas.height = canvasSize;
+    const baseOutputDim = 800; // Output image base resolution
+    
+    canvas.width = aspectRatio >= 1 ? baseOutputDim : baseOutputDim * aspectRatio;
+    canvas.height = aspectRatio >= 1 ? baseOutputDim / aspectRatio : baseOutputDim;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Fill with white or transparent based on requirement. We use transparent for profile pics.
-    ctx.clearRect(0, 0, canvasSize, canvasSize);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
 
     // Center canvas
-    ctx.translate(canvasSize / 2, canvasSize / 2);
+    ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.rotate((rotation * Math.PI) / 180);
 
-    const scaleFactor = canvasSize / cropBoxSize;
+    const scaleFactorX = canvas.width / cropBoxWidth;
+    const scaleFactorY = canvas.height / cropBoxHeight;
+    const scaleFactor = Math.min(scaleFactorX, scaleFactorY);
+    
     const currentScale = baseScale * zoom * scaleFactor;
 
     const renderWidth = img.naturalWidth * currentScale;
@@ -144,7 +152,7 @@ export function ImageCropModal({
     canvas.toBlob((blob) => {
       if (!blob) return;
 
-      const fileName = file ? file.name : 'cropped-profile.png';
+      const fileName = file ? file.name : 'cropped-image.png';
       const croppedFile = new File([blob], fileName, {
         type: 'image/png',
         lastModified: Date.now(),
@@ -163,7 +171,7 @@ export function ImageCropModal({
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
           <div className="flex items-center gap-2">
             <Crop className="w-4 h-4 text-red-600" />
-            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight uppercase">Crop Profile Image</h3>
+            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight uppercase">Crop Image</h3>
           </div>
           <button
             onClick={onClose}
@@ -210,12 +218,12 @@ export function ImageCropModal({
               />
             </div>
 
-            {/* Perfect Circle Crop Box Overlay */}
+            {/* Perfect Crop Box Overlay */}
             <div
-              className="absolute pointer-events-none border-2 border-red-500 shadow-[0_0_0_9999px_rgba(15,23,42,0.75)] rounded-full transition-all duration-75"
+              className={`absolute pointer-events-none border-2 border-red-500 shadow-[0_0_0_9999px_rgba(15,23,42,0.75)] transition-all duration-75 ${isCircular ? 'rounded-full' : 'rounded-md'}`}
               style={{
-                width: `${cropBoxSize}px`,
-                height: `${cropBoxSize}px`,
+                width: `${cropBoxWidth}px`,
+                height: `${cropBoxHeight}px`,
               }}
             >
             </div>

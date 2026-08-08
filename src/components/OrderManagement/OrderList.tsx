@@ -111,14 +111,6 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
       tab: 'orders',
     },
     {
-      label: 'LIVE',
-      value: orders.filter(o => ['on the way', 'on_the_way', 'on route', 'onroute'].includes(getOrderStatus(o))).length,
-      icon: Truck,
-      color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
-      sub: 'On The Way',
-      tab: 'live-orders',
-    },
-    {
       label: 'PENDING',
       value: orders.filter(o => ['pending', 'accepted', 'assigned', 'created', 'new', 'unassigned'].includes(getOrderStatus(o))).length,
       icon: Clock,
@@ -175,7 +167,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
       </div>
 
       {/* Summary Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {statCards.map((card, i) => {
           const Icon = card.icon;
           const isFocused = activeTab === card.tab;

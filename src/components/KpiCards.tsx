@@ -1,15 +1,35 @@
+import { useState, useEffect } from 'react';
 import { Users, Car, MapPin, Shield, Building, Tag, Star, UserCheck } from 'lucide-react';
+import api from '../api/axios';
 
 export function KpiCards({ onViewChange }: { onViewChange: (view: string) => void }) {
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await api.get('/admin/dashboard/stats');
+        if (response.data && response.data.data) {
+          setStats(response.data.data);
+        } else {
+          setStats(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      }
+    };
+    fetchStats();
+  }, []);
+
   const kpis = [
-    { label: 'Total Customers', value: '0', icon: Users, subtext: 'ACCOUNTS', targetView: 'users' },
-    { label: 'Total Agents', value: '0', icon: UserCheck, subtext: 'OPERATIONAL', targetView: 'agents' },
-    { label: 'Total Admins', value: '0', icon: Shield, subtext: 'MANAGERS', targetView: 'sub-admin' },
-    { label: 'Total Emirates', value: '0', icon: MapPin, subtext: 'STATES', targetView: 'master-state' },
-    { label: 'Total Cities', value: '0', icon: Building, subtext: 'LOCATIONS', targetView: 'master-city' },
-    { label: 'Total Offers', value: '0', icon: Tag, subtext: 'PROMOTIONS', targetView: 'promotions' },
-    { label: 'Total Brands', value: '0', icon: Star, subtext: 'MAKES', targetView: 'master-make' },
-    { label: 'Total Models', value: '0', icon: Car, subtext: 'VEHICLES', targetView: 'master-model' },
+    { label: 'Customers', value: stats?.customerCount ?? '0', icon: Users, subtext: 'ACCOUNTS', targetView: 'users' },
+    { label: 'Agents', value: stats?.agentCount ?? '0', icon: UserCheck, subtext: 'OPERATIONAL', targetView: 'agents' },
+    { label: 'Admins', value: stats?.adminCount ?? '0', icon: Shield, subtext: 'MANAGERS', targetView: 'sub-admin' },
+    { label: 'Emirates', value: stats?.emirateCount ?? '0', icon: MapPin, subtext: 'STATES', targetView: 'master-state' },
+    { label: 'Cities', value: stats?.cityCount ?? '0', icon: Building, subtext: 'LOCATIONS', targetView: 'master-city' },
+    { label: 'Offers', value: stats?.activeOfferCount ?? '0', icon: Tag, subtext: 'PROMOTIONS', targetView: 'promotions' },
+    { label: 'Brands', value: stats?.brandCount ?? '0', icon: Star, subtext: 'MAKES', targetView: 'master-make' },
+    { label: 'Models', value: stats?.modelCount ?? '0', icon: Car, subtext: 'VEHICLES', targetView: 'master-model' },
   ];
 
   return (

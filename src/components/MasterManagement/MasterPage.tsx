@@ -1191,7 +1191,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                           fileInputRef.current?.click();
                         }
                       }}
-                      className={`w-16 h-16 shrink-0 bg-slate-50 rounded-full flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
+                      className={`w-16 shrink-0 bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${moduleName.toLowerCase() === 'banner' ? 'h-8 w-[83px] rounded-sm' : 'h-16 rounded-full'} ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
                     >
                       {(photo || editingItem.image) ? (
                         <SafeImage src={photo || editingItem.image} className="w-full h-full object-cover" alt="Preview" />
@@ -1436,6 +1436,8 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         isOpen={cropModalOpen}
         imageSrc={rawPreviewUrl}
         file={rawSelectedFile}
+        aspectRatio={moduleName.toLowerCase() === 'banner' ? 2.6 : 1}
+        isCircular={moduleName.toLowerCase() !== 'banner'}
         onClose={() => {
           setCropModalOpen(false);
           setRawSelectedFile(null);
