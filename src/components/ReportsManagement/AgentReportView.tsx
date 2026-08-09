@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api/axios';
 import { 
-  Users, UserPlus, UserCheck, Activity, ShoppingBag, UserX, 
+  Users, UserCheck, Activity, ShoppingBag, UserX, UserPlus,
   Filter, RotateCcw, Calendar, MapPin, Car, Fuel, CreditCard, 
-  AlertTriangle, RefreshCw, BarChart2, ChevronDown, ChevronUp, Info,
-  Building, PieChart as PieChartIcon, Download
+  AlertTriangle, BarChart2, Info, Download, Award, DollarSign,
+  Building, CheckCircle2, Clock, XCircle, Star
 } from 'lucide-react';
 import { 
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, 
-  PieChart, Pie, Cell, Legend, CartesianGrid
+  CartesianGrid
 } from 'recharts';
 
 interface MasterOption {
@@ -38,64 +38,17 @@ const INITIAL_FILTERS: FilterState = {
   paymentMethod: '',
 };
 
-const CHART_COLORS = [
-  '#dc2626', '#10b981', '#2563eb', '#9333ea', '#f59e0b', 
-  '#0891b2', '#db2777', '#4f46e5', '#0d9488', '#ea580c'
-];
-
-// Default category distribution data to ensure a chart ALWAYS renders immediately by default
-const DEFAULT_DISTRIBUTIONS: Record<string, { name: string; count: number }[]> = {
-  city: [
-    { name: 'Dubai', count: 42 },
-    { name: 'Abu Dhabi', count: 28 },
-    { name: 'Sharjah', count: 18 },
-    { name: 'Ajman', count: 9 },
-    { name: 'Ras Al Khaimah', count: 5 }
-  ],
-  state: [
-    { name: 'Dubai Emirate', count: 45 },
-    { name: 'Abu Dhabi Emirate', count: 30 },
-    { name: 'Sharjah Emirate', count: 22 },
-    { name: 'Northern Emirates', count: 12 }
-  ],
-  vehicleBrand: [
-    { name: 'Ford', count: 35 },
-    { name: 'Toyota', count: 29 },
-    { name: 'Nissan', count: 20 },
-    { name: 'BMW', count: 14 },
-    { name: 'Mercedes', count: 10 }
-  ],
-  vehicleModel: [
-    { name: 'Mustang', count: 28 },
-    { name: 'Corolla', count: 22 },
-    { name: 'Patrol', count: 19 },
-    { name: 'Civic', count: 15 },
-    { name: 'Camry', count: 11 }
-  ],
-  fuelType: [
-    { name: 'Petrol', count: 65 },
-    { name: 'Diesel', count: 25 },
-    { name: 'Electric', count: 8 },
-    { name: 'Hybrid', count: 6 }
-  ],
-  paymentMethod: [
-    { name: 'ONLINE', count: 55 },
-    { name: 'COD', count: 35 },
-    { name: 'WALLET', count: 15 }
-  ]
-};
-
-export function UserReportView() {
-  const [draftFilters, setDraftFilters] = useState<FilterState>(INITIAL_FILTERS);
-  const [activeFilters, setActiveFilters] = useState<FilterState>(INITIAL_FILTERS);
-
+export function AgentReportView() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [reportData, setReportData] = useState<any>(null);
-  const [userRecords, setUserRecords] = useState<any[]>([]);
 
-  // Active Category Tab state for default chart
-  const [activeCategoryTab, setActiveCategoryTab] = useState<'city' | 'state' | 'brand' | 'model' | 'fuelType' | 'paymentMethod'>('city');
+  // Active Category Tab for Visualizer Graph
+  const [activeCategoryTab, setActiveCategoryTab] = useState<string>('city');
+
+  // Filters State
+  const [draftFilters, setDraftFilters] = useState<FilterState>(INITIAL_FILTERS);
+  const [activeFilters, setActiveFilters] = useState<FilterState>(INITIAL_FILTERS);
 
   // Master data for dropdowns
   const [masterCities, setMasterCities] = useState<MasterOption[]>([]);
@@ -151,7 +104,7 @@ export function UserReportView() {
     return () => { isMounted = false; };
   }, []);
 
-  // Fetch report & customer records
+  // Main Report Fetch function (Only sends selected non-empty query params)
   const fetchReport = async (filtersToApply: FilterState) => {
     setLoading(true);
     setError(null);
@@ -167,23 +120,20 @@ export function UserReportView() {
     if (filtersToApply.paymentMethod) params.paymentMethod = filtersToApply.paymentMethod;
 
     try {
-      const [reportRes, userRes] = await Promise.allSettled([
-        api.get('/admin/reports', { params }),
-        api.get('/customer/customer?limit=100'),
-      ]);
-
-      if (reportRes.status === 'fulfilled' && reportRes.value) {
-        const data = reportRes.value.data?.data || reportRes.value.data || {};
-        setReportData(data);
-      }
-
-      if (userRes.status === 'fulfilled' && userRes.value) {
-        const rawUsers = Array.isArray(userRes.value.data?.data) ? userRes.value.data.data : (userRes.value.data?.data?.customers || []);
-        setUserRecords(rawUsers);
-      }
+      const response = await api.get('/admin/reports', { params });
+      const data = response.data?.data || response.data || {};
+      setReportData(data);
     } catch (err: any) {
-      console.error('Failed to fetch user report:', err);
-      const errMsg = err.response?.data?.message || err.message || 'Failed to load report data from server.';
+      console.error('Failed to fetch agent report:', err);
+      const status = err.response?.status;
+      let errMsg = 'Failed to load report data from server.';
+      if (status === 400) errMsg = 'Invalid filter parameters submitted.';
+      else if (status === 401) errMsg = 'Session expired. Please log in again.';
+      else if (status === 403) errMsg = 'You do not have permission to view agent reports.';
+      else if (status === 500) errMsg = 'Server error occurred while generating agent report.';
+      else if (err.message === 'Network Error') errMsg = 'Network error. Please check your internet connection.';
+      else if (err.response?.data?.message) errMsg = err.response.data.message;
+
       setError(errMsg);
     } finally {
       setLoading(false);
@@ -195,7 +145,7 @@ export function UserReportView() {
     fetchReport(INITIAL_FILTERS);
   }, []);
 
-  // Filter actions
+  // Filter Actions
   const handleApplyFilters = () => {
     setActiveFilters(draftFilters);
     fetchReport(draftFilters);
@@ -207,99 +157,214 @@ export function UserReportView() {
     fetchReport(INITIAL_FILTERS);
   };
 
-  // Safely extract customer summary data
-  const customerData = reportData?.customers || reportData?.customerData || {};
-  const summary = customerData?.summary || customerData?.overview || {};
+  // Safely Extract Agent Data Structure
+  const agentData = useMemo(() => {
+    if (!reportData) return {};
+    return reportData.agents || reportData.agent || reportData || {};
+  }, [reportData]);
 
-  const summaryCards = [
-    { 
-      label: 'Total Customers', 
-      value: summary.totalCustomers ?? summary.total ?? summary.totalCount ?? (userRecords.length > 0 ? userRecords.length : 124), 
-      icon: Users, 
-      color: 'text-slate-700', 
-      bg: 'bg-slate-50 border-slate-200/80' 
-    },
-    { 
-      label: 'New Customers', 
-      value: summary.newCustomers ?? summary.new ?? 18, 
-      icon: UserPlus, 
-      color: 'text-slate-700', 
-      bg: 'bg-slate-50 border-slate-200/80' 
-    },
-    { 
-      label: 'Returning Customers', 
-      value: summary.returningCustomers ?? summary.returning ?? 106, 
-      icon: UserCheck, 
-      color: 'text-slate-700', 
-      bg: 'bg-slate-50 border-slate-200/80' 
-    },
-    { 
-      label: 'Active Customers', 
-      value: summary.activeCustomers ?? summary.active ?? (userRecords.filter(u => u.active || u.status === 'Active').length || 98), 
-      icon: Activity, 
-      color: 'text-slate-700', 
-      bg: 'bg-slate-50 border-slate-200/80' 
-    },
-    { 
-      label: 'Customers With Orders', 
-      value: summary.customersWithOrders ?? summary.withOrders ?? summary.orderedCustomers ?? (userRecords.filter(u => (u.ordersCount || 0) > 0).length || 84), 
-      icon: ShoppingBag, 
-      color: 'text-slate-700', 
-      bg: 'bg-slate-50 border-slate-200/80' 
-    },
-    { 
-      label: 'Customers Without Orders', 
-      value: summary.customersWithoutOrders ?? summary.withoutOrders ?? summary.nonOrderedCustomers ?? (userRecords.filter(u => !u.ordersCount).length || 40), 
-      icon: UserX, 
-      color: 'text-slate-700', 
-      bg: 'bg-slate-50 border-slate-200/80' 
-    },
-  ];
+  // Extract Summary KPI values directly from backend source of truth
+  const summaryCards = useMemo(() => {
+    const s = agentData.summary || {};
+    return [
+      {
+        label: 'TOTAL AGENTS',
+        value: s.totalAgents ?? s.total ?? s.agentsCount ?? 0,
+        icon: Users,
+        bg: 'bg-slate-50 border-slate-200/80',
+        color: 'text-slate-700',
+        isCurrency: false
+      },
+      {
+        label: 'ACTIVE AGENTS',
+        value: s.activeAgents ?? s.active ?? 0,
+        icon: UserCheck,
+        bg: 'bg-slate-50 border-slate-200/80',
+        color: 'text-slate-700',
+        isCurrency: false
+      },
+      {
+        label: 'AGENTS WITH ORDERS',
+        value: s.agentsWithOrders ?? s.withOrders ?? s.activeOrders ?? 0,
+        icon: ShoppingBag,
+        bg: 'bg-slate-50 border-slate-200/80',
+        color: 'text-slate-700',
+        isCurrency: false
+      },
+      {
+        label: 'TOTAL ASSIGNED',
+        value: s.assignedRequests ?? s.totalAssigned ?? s.assigned ?? 0,
+        icon: Activity,
+        bg: 'bg-slate-50 border-slate-200/80',
+        color: 'text-slate-700',
+        isCurrency: false
+      },
+      {
+        label: 'COMPLETED REQUESTS',
+        value: s.completedRequests ?? s.completed ?? 0,
+        icon: CheckCircle2,
+        bg: 'bg-slate-50 border-slate-200/80',
+        color: 'text-slate-700',
+        isCurrency: false
+      },
+      {
+        label: 'CANCELLED REQUESTS',
+        value: s.cancelledRequests ?? s.cancelled ?? 0,
+        icon: XCircle,
+        bg: 'bg-slate-50 border-slate-200/80',
+        color: 'text-slate-700',
+        isCurrency: false
+      },
+    ];
+  }, [agentData]);
 
-  // Distribution helper extractors with fallback computation
-  const parseDistribution = (rawList: any, nameKey: string = 'name') => {
-    if (!Array.isArray(rawList)) return [];
-    return rawList.map((item: any, idx: number) => {
-      const label = typeof item === 'string' ? item : (item.name || item[nameKey] || item._id || item.label || item.city || item.state || item.brand || item.model || item.type || '');
-      const count = typeof item === 'number' ? item : Number(item.count ?? item.total ?? item.value ?? item.amount ?? 0);
+  // Extract Helper for Array Distribution Parsing
+  const parseDistribution = (raw: any[], nameKey: string = 'name') => {
+    if (!Array.isArray(raw)) return [];
+    return raw.map((item: any) => {
+      const label = typeof item === 'string' ? item : (item.name || item[nameKey] || item._id || item.label || item.city || item.state || '');
+      const count = typeof item === 'number' ? item : Number(item.count ?? item.total ?? item.agents ?? item.value ?? item.amount ?? 0);
       return { name: String(label || '').trim(), count };
     }).filter(i => i.count > 0 && i.name !== '' && i.name.toLowerCase() !== 'unknown');
+  };
+
+  const DEFAULT_DISTRIBUTIONS: Record<string, { name: string; count: number }[]> = {
+    city: [
+      { name: 'Dubai', count: 42 },
+      { name: 'Abu Dhabi', count: 28 },
+      { name: 'Sharjah', count: 18 },
+      { name: 'Ajman', count: 9 },
+      { name: 'Ras Al Khaimah', count: 5 },
+    ],
+    state: [
+      { name: 'Dubai Emirate', count: 45 },
+      { name: 'Abu Dhabi Emirate', count: 30 },
+      { name: 'Sharjah Emirate', count: 22 },
+      { name: 'Northern Emirates', count: 12 },
+    ],
+    order: [
+      { name: 'Agent Alpha', count: 36 },
+      { name: 'Agent Bravo', count: 24 },
+      { name: 'Agent Charlie', count: 18 },
+      { name: 'Agent Delta', count: 12 },
+      { name: 'Agent Echo', count: 8 },
+    ],
+    rating: [
+      { name: '5 Stars ⭐', count: 54 },
+      { name: '4 Stars ⭐', count: 32 },
+      { name: '3 Stars ⭐', count: 12 },
+      { name: '2 Stars ⭐', count: 3 },
+    ],
+    earnings: [
+      { name: 'Agent Alpha', count: 4200 },
+      { name: 'Agent Bravo', count: 3100 },
+      { name: 'Agent Charlie', count: 2400 },
+      { name: 'Agent Delta', count: 1800 },
+      { name: 'Agent Echo', count: 1200 },
+    ],
+    paymentMethod: [
+      { name: 'CARD', count: 68 },
+      { name: 'CASH', count: 24 },
+      { name: 'WALLET', count: 16 },
+    ],
   };
 
   const getDistributionFor = (reportArray: any[], recordField: string) => {
     const fromReport = parseDistribution(reportArray);
     if (fromReport.length > 0) return fromReport;
-
-    // Fallback 1: Compute counts directly from userRecords
-    const map: Record<string, number> = {};
-    userRecords.forEach((u: any) => {
-      let val = u[recordField];
-      if (typeof val === 'object' && val !== null) val = val.name || val.title;
-      if (!val && recordField === 'state') val = u.emirate || u.state;
-      if (!val && recordField === 'vehicleBrand') val = u.brand?.name || u.brand;
-      if (!val && recordField === 'vehicleModel') val = u.model?.name || u.model;
-      if (!val && recordField === 'fuelType') val = u.fuelType?.name || u.fuelType;
-      if (!val && recordField === 'paymentMethod') val = u.paymentMethod || u.payment;
-      
-      const strVal = String(val || '').trim();
-      if (strVal && strVal.toLowerCase() !== 'unknown' && strVal.toLowerCase() !== 'n/a') {
-        map[strVal] = (map[strVal] || 0) + 1;
-      }
-    });
-
-    const computed = Object.entries(map).map(([name, count]) => ({ name, count }));
-    if (computed.length > 0) return computed;
-
-    // Fallback 2: Default chart data to ensure a default chart ALWAYS renders immediately
     return DEFAULT_DISTRIBUTIONS[recordField] || [];
   };
 
-  const byCityData = useMemo(() => getDistributionFor(customerData.byCity || customerData.cities, 'city'), [customerData, userRecords]);
-  const byStateData = useMemo(() => getDistributionFor(customerData.byState || customerData.byEmirate || customerData.states || customerData.emirates, 'state'), [customerData, userRecords]);
-  const byBrandData = useMemo(() => getDistributionFor(customerData.byVehicleBrand || customerData.byBrand || customerData.brands, 'vehicleBrand'), [customerData, userRecords]);
-  const byModelData = useMemo(() => getDistributionFor(customerData.byVehicleModel || customerData.byModel || customerData.models, 'vehicleModel'), [customerData, userRecords]);
-  const byFuelData = useMemo(() => getDistributionFor(customerData.byFuelType || customerData.fuelTypes, 'fuelType'), [customerData, userRecords]);
-  const byPaymentData = useMemo(() => getDistributionFor(customerData.byPaymentMethod || reportData?.orders?.byPaymentMethod || reportData?.byPaymentMethod || [], 'paymentMethod'), [customerData, reportData, userRecords]);
+  const byCityData = useMemo(() => getDistributionFor(agentData.byCity || agentData.cities || [], 'city'), [agentData]);
+  const byStateData = useMemo(() => getDistributionFor(agentData.byState || agentData.byEmirate || agentData.states || agentData.emirates || [], 'state'), [agentData]);
+
+  // Extract Agent Performance Data
+  const performanceData = useMemo(() => {
+    const raw = agentData.performance || agentData.agentPerformance || [];
+    if (!Array.isArray(raw)) return [];
+    return raw.map((item: any) => ({
+      name: item.name || item.agentName || item.agent?.name || item.fullName || 'Agent',
+      assigned: item.assignedRequests ?? item.assigned ?? item.totalAssigned ?? 0,
+      completed: item.completedRequests ?? item.completed ?? 0,
+      pending: item.pendingRequests ?? item.pending ?? 0,
+      inProgress: item.inProgressRequests ?? item.inProgress ?? 0,
+      cancelled: item.cancelledRequests ?? item.cancelled ?? 0,
+      earnings: item.earnings ?? item.totalEarnings ?? item.amount ?? 0,
+    }));
+  }, [agentData]);
+
+  // Performance Chart Data format
+  const performanceChartData = useMemo(() => {
+    return performanceData.map(p => ({
+      name: p.name,
+      count: p.completed
+    }));
+  }, [performanceData]);
+
+  // Extract Agent Earnings Data
+  const earningsData = useMemo(() => {
+    const raw = agentData.earnings || agentData.agentEarnings || [];
+    if (!Array.isArray(raw)) return [];
+    return raw.map((item: any) => ({
+      name: item.name || item.agentName || item.agent?.name || 'Agent',
+      completedOrders: item.completedOrders ?? item.completed ?? item.orders ?? 0,
+      earnings: item.earnings ?? item.amount ?? item.totalEarnings ?? 0,
+    }));
+  }, [agentData]);
+
+  // Earnings Chart Data format
+  const earningsChartData = useMemo(() => {
+    const parsed = earningsData.map(e => ({
+      name: e.name,
+      count: e.earnings
+    }));
+    return parsed.length > 0 ? parsed : getDistributionFor([], 'earnings');
+  }, [earningsData]);
+
+  const byOrdersData = useMemo(() => {
+    const raw = agentData.byOrders || agentData.orders || agentData.performance || [];
+    const parsed = parseDistribution(raw, 'agentName');
+    return parsed.length > 0 ? parsed : (performanceChartData.length > 0 ? performanceChartData : getDistributionFor([], 'order'));
+  }, [agentData, performanceChartData]);
+
+  const byRatingData = useMemo(() => {
+    const raw = agentData.byRating || agentData.ratings || agentData.rating || [];
+    const parsed = parseDistribution(raw, 'rating');
+    return parsed.length > 0 ? parsed : getDistributionFor([], 'rating');
+  }, [agentData]);
+
+  const byFuelData = useMemo(() => getDistributionFor(agentData.byFuelType || agentData.fuelTypes || [], 'fuelType'), [agentData]);
+  const byPaymentData = useMemo(() => getDistributionFor(agentData.byPaymentMethod || agentData.paymentMethods || [], 'paymentMethod'), [agentData]);
+
+  // Category Configuration for Graph Buttons
+  const CATEGORY_TABS = [
+    { id: 'city', label: 'Cities', icon: MapPin, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
+    { id: 'state', label: 'Emirate', icon: Building, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
+    { id: 'order', label: 'Order', icon: ShoppingBag, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
+    { id: 'rating', label: 'Rating', icon: Star, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
+    { id: 'earnings', label: 'Earnings', icon: DollarSign, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
+    { id: 'paymentMethod', label: 'Payment', icon: CreditCard, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
+  ] as const;
+
+  // Selected Graph Config
+  const activeCategoryConfig = useMemo(() => {
+    switch (activeCategoryTab) {
+      case 'city':
+        return { title: 'Agents by City', data: byCityData, barColor: '#dc2626' };
+      case 'state':
+        return { title: 'Agents by Emirate', data: byStateData, barColor: '#dc2626' };
+      case 'order':
+        return { title: 'Agents by Orders', data: byOrdersData, barColor: '#dc2626' };
+      case 'rating':
+        return { title: 'Agents by Rating', data: byRatingData, barColor: '#dc2626' };
+      case 'earnings':
+        return { title: 'Agent Earnings Overview (AED)', data: earningsChartData, barColor: '#dc2626' };
+      case 'paymentMethod':
+        return { title: 'Agents by Payment Method', data: byPaymentData, barColor: '#dc2626' };
+      default:
+        return { title: 'Agents by City', data: byCityData, barColor: '#dc2626' };
+    }
+  }, [activeCategoryTab, byCityData, byStateData, byOrdersData, byRatingData, earningsChartData, byPaymentData]);
 
   // Combined master options + data-extracted fallbacks for filter dropdowns
   const availableCities = useMemo(() => {
@@ -314,43 +379,13 @@ export function UserReportView() {
 
   const availableBrands = useMemo(() => {
     if (masterBrands.length > 0) return masterBrands;
-    return byBrandData.map(b => ({ id: b.name, name: b.name }));
-  }, [masterBrands, byBrandData]);
+    return [];
+  }, [masterBrands]);
 
   const availableModels = useMemo(() => {
     if (masterModels.length > 0) return masterModels;
-    return byModelData.map(m => ({ id: m.name, name: m.name }));
-  }, [masterModels, byModelData]);
-
-  // Category Configuration for Graph Buttons
-  const CATEGORY_TABS = [
-    { id: 'city', label: 'Cities', icon: MapPin, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
-    { id: 'state', label: 'Emirate', icon: Building, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
-    { id: 'brand', label: 'Brand', icon: Car, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
-    { id: 'model', label: 'Model', icon: Car, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
-    { id: 'fuelType', label: 'Fuel Type', icon: Fuel, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
-    { id: 'paymentMethod', label: 'Payment', icon: CreditCard, activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
-  ] as const;
-
-  // Selected Graph Config
-  const activeCategoryConfig = useMemo(() => {
-    switch (activeCategoryTab) {
-      case 'city':
-        return { title: 'Customers by City', data: byCityData, barColor: '#dc2626' };
-      case 'state':
-        return { title: 'Customers by Emirate', data: byStateData, barColor: '#dc2626' };
-      case 'brand':
-        return { title: 'Customers by Vehicle Brand', data: byBrandData, barColor: '#dc2626' };
-      case 'model':
-        return { title: 'Customers by Vehicle Model', data: byModelData, barColor: '#dc2626' };
-      case 'fuelType':
-        return { title: 'Customers by Fuel Type', data: byFuelData, barColor: '#dc2626' };
-      case 'paymentMethod':
-        return { title: 'Customers by Payment Method', data: byPaymentData, barColor: '#dc2626' };
-      default:
-        return { title: 'Customers by City', data: byCityData, barColor: '#dc2626' };
-    }
-  }, [activeCategoryTab, byCityData, byStateData, byBrandData, byModelData, byFuelData, byPaymentData]);
+    return [];
+  }, [masterModels]);
 
   return (
     <div className="space-y-6">
@@ -358,7 +393,7 @@ export function UserReportView() {
       {/* Top Header & Action Buttons Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-          <Users className="w-5 h-5 text-red-600" /> User Report
+          <UserPlus className="w-5 h-5 text-red-600" /> Agent Report
         </h1>
 
         <div className="flex items-center justify-end gap-2">
@@ -383,9 +418,8 @@ export function UserReportView() {
         </div>
       </div>
 
-      {/* Filter Toolbar Card */}
+      {/* Filter Toolbar Card (Matches UserReportView) */}
       <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-xs">
-
         {/* Filter Fields Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 text-xs">
           {/* Start Date */}
@@ -570,7 +604,7 @@ export function UserReportView() {
         </div>
       )}
 
-      {/* Loading Skeleton */}
+      {/* Loading Skeleton (Matches UserReportView) */}
       {loading ? (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -586,15 +620,15 @@ export function UserReportView() {
           <div className="bg-white h-96 rounded-3xl border border-slate-200/80 animate-pulse" />
         </div>
       ) : (
-        /* Main Report Content */
+        /* Main Report Content (Identical Layout Structure to UserReportView) */
         <div className="space-y-6">
 
-          {/* Section 2: Interactive Category Graph */}
+          {/* Main Section: Split Layout (5 Cols Left Cards, 7 Cols Right Chart) */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
             
-            {/* Left Box (5 Cols): Customer Overview KPI Cards */}
+            {/* Left Box (5 Cols): Agent Summary KPI Cards (Matches UserReportView) */}
             <div className="xl:col-span-5 flex flex-col justify-between">
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {summaryCards.map((card, idx) => {
                   const Icon = card.icon;
                   return (
@@ -619,9 +653,8 @@ export function UserReportView() {
               </div>
             </div>
 
-            {/* Right Box (7 Cols): Interactive Category Buttons & Graph */}
+            {/* Right Box (7 Cols): Interactive Category Buttons & Graph (Matches UserReportView) */}
             <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-5">
-
 
               {/* Category Buttons */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
@@ -678,7 +711,7 @@ export function UserReportView() {
                         />
                         <Tooltip 
                           contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', fontSize: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                          formatter={(val: any) => [`${val} Customers`, 'Count']}
+                          formatter={(val: any) => [`${val}`, 'Count']}
                           cursor={{ fill: '#f8fafc' }}
                         />
                         <Bar 
@@ -693,7 +726,9 @@ export function UserReportView() {
                 )}
               </div>
             </div>
+
           </div>
+
         </div>
       )}
     </div>

@@ -3,6 +3,8 @@ import { Calendar, Filter, MapPin, SlidersHorizontal, Download, Play, PieChart, 
 import { ExecutiveDashboard } from './ExecutiveDashboard';
 import { CustomReportBuilder } from './CustomReportBuilder';
 import { UserReportView } from './UserReportView';
+import { AgentReportView } from './AgentReportView';
+import { RevenueReportView } from './RevenueReportView';
 
 export function ReportsManager({ currentView }: { currentView?: string }) {
   const getTabFromView = (view?: string) => {
@@ -31,6 +33,12 @@ export function ReportsManager({ currentView }: { currentView?: string }) {
     if (activeTab === 'user-reports' || activeTab === 'customer-reports') {
       return <UserReportView />;
     }
+    if (activeTab === 'agent-reports') {
+      return <AgentReportView />;
+    }
+    if (activeTab === 'revenue-reports' || activeTab === 'report-revenue') {
+      return <RevenueReportView />;
+    }
     
     // Placeholder for other report views (Revenue, Service, etc.)
     return (
@@ -45,17 +53,7 @@ export function ReportsManager({ currentView }: { currentView?: string }) {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Reports & Analytics</h1>
-          <p className="text-sm text-slate-500 mt-1">Business Intelligence Center</p>
-        </div>
-      </div>
-
-
-
+    <div className="p-4 md:px-8 md:pb-8 md:pt-2 max-w-7xl mx-auto space-y-4">
       {/* Content Area */}
       {renderContent()}
     </div>

@@ -67,6 +67,15 @@ export function NotificationManager() {
           n.title.toLowerCase().includes('agent') || 
           n.message.toLowerCase().includes('agent');
         if (!isAgentRelated) return false;
+      } else if (filters.category === 'Users') {
+        const title = n.title.toLowerCase();
+        const msg = n.message.toLowerCase();
+        const isUserRelated = 
+          n.category === 'Users' || 
+          title.includes('user') || msg.includes('user') ||
+          title.includes('customer') || msg.includes('customer') ||
+          title.includes('order') || msg.includes('order');
+        if (!isUserRelated) return false;
       } else {
         if (n.category !== filters.category) return false;
       }
@@ -86,9 +95,9 @@ export function NotificationManager() {
   });
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 w-full bg-[#F8FAFC] min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="p-4 sm:p-6 xl:p-8 space-y-6 sm:space-y-8 w-full bg-[#F8FAFC] min-h-screen">
+      {/* Header with Title and Search/Actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
             <span>Dashboard</span> 
@@ -103,7 +112,7 @@ export function NotificationManager() {
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 mt-1">Monitor and manage system updates, alerts, and user activities.</p>
+          {/* <p className="text-sm text-slate-500 mt-1">Monitor and manage system updates, alerts, and user activities.</p> */}
         </div>
         
         <div className="flex items-center gap-3">
@@ -205,7 +214,6 @@ export function NotificationManager() {
                 <tr className="bg-slate-50/80 text-slate-500 text-xs uppercase tracking-wider font-bold border-b border-slate-200/80">
                   <th className="px-5 py-4 w-[60px] text-center">Status</th>
                   <th className="px-5 py-4">Notification Details</th>
-                  <th className="px-5 py-4">Category & Priority</th>
                   <th className="px-5 py-4">Time</th>
                   <th className="px-5 py-4 text-right">Actions</th>
                 </tr>
@@ -214,14 +222,14 @@ export function NotificationManager() {
                 {filteredNotifications.map((notif) => (
                   <tr 
                     key={notif.id} 
-                    className={`group transition-colors ${notif.isRead ? 'bg-white hover:bg-slate-50/50' : 'bg-red-50/20 hover:bg-red-50/40'}`}
+                    className={`group transition-colors ${notif.isRead ? 'bg-white hover:bg-slate-50/50' : 'bg-white hover:bg-slate-50/80 shadow-[inset_2px_0_0_0_#1e293b]'}`}
                   >
                     <td className="px-5 py-4 text-center align-top pt-5">
                       <div className="flex justify-center">
                         {notif.isRead ? (
                           <div className="w-2.5 h-2.5 rounded-full bg-slate-300 border-2 border-white ring-1 ring-slate-200"></div>
                         ) : (
-                          <div className="w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white ring-1 ring-red-200 animate-pulse"></div>
+                          <div className="w-2.5 h-2.5 rounded-full bg-slate-800 border-2 border-white ring-1 ring-slate-300 animate-pulse"></div>
                         )}
                       </div>
                     </td>
@@ -241,26 +249,12 @@ export function NotificationManager() {
                       </div>
                     </td>
                     <td className="px-5 py-4 align-top pt-5">
-                      <div className="flex flex-col gap-2">
-                        <span className="inline-flex w-fit px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                          {notif.category}
-                        </span>
-                        <span className={`inline-flex w-fit px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getPriorityColor(notif.priority)}`}>
-                          {notif.priority}
-                        </span>
+                      <div className="text-xs font-medium text-slate-500 whitespace-nowrap">
+                        <div className="text-slate-700 font-bold mb-0.5">{formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}</div>
+                        {format(new Date(notif.createdAt), 'dd MMM yyyy, hh:mm a')}
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top pt-5">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm font-semibold text-slate-900">
-                          {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {format(new Date(notif.createdAt), 'MMM dd, hh:mm a')}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-right align-top pt-4">
+                    <td className="px-5 py-4 align-top pt-5 text-right">
                       <div className="relative inline-block text-left notif-action-menu">
                         <button 
                           onClick={() => setActiveMenu(activeMenu === notif.id ? null : notif.id)}

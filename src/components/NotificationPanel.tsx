@@ -14,14 +14,14 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
       {/* Header */}
       <div className="p-4 border-b border-slate-100 bg-slate-50/80 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-red-50 text-red-600 rounded-lg">
+          <div className="p-1.5 bg-slate-100 text-slate-700 rounded-lg">
             <Bell className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-slate-900 font-extrabold text-sm flex items-center gap-2">
               Notifications
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 text-[10px] font-extrabold bg-red-500 text-white rounded-full">
+                <span className="px-2 py-0.5 text-[10px] font-extrabold bg-slate-800 text-white rounded-full">
                   {unreadCount} new
                 </span>
               )}
@@ -34,7 +34,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
             <button
               onClick={() => markAllRead()}
               title="Mark all as read"
-              className="flex items-center gap-1 text-[11px] font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100/80 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200/80 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
             >
               <CheckCheck className="w-3.5 h-3.5" />
               <span>Mark All Seen</span>
@@ -68,7 +68,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                 key={notifId} 
                 onClick={() => isUnread && markRead(notifId)}
                 className={`pt-2.5 first:pt-0 pb-1.5 px-3 rounded-xl transition-all duration-200 cursor-pointer group ${
-                  isUnread ? 'bg-red-50/40 hover:bg-red-50/70 border-l-4 border-red-500' : 'hover:bg-slate-50'
+                  isUnread ? 'bg-slate-50/60 hover:bg-slate-100/70 border-l-4 border-slate-800' : 'hover:bg-slate-50'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -78,7 +78,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                         {n.title || n.message || 'Notification Alert'}
                       </p>
                       {isUnread && (
-                        <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-slate-800 shrink-0 animate-pulse" />
                       )}
                     </div>
                     {n.description && (
@@ -98,7 +98,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                         markRead(notifId);
                       }}
                       title="Mark as seen"
-                      className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-100/60 rounded-md transition-all shrink-0 mt-0.5"
+                      className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-all shrink-0 mt-0.5"
                     >
                       <Check className="w-3.5 h-3.5" />
                     </button>

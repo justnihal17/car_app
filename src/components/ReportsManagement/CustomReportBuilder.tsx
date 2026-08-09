@@ -4,7 +4,7 @@ import { Database, Filter, Columns, Download, Play, Save, FileText, Plus, Refres
 
 export function CustomReportBuilder() {
   const [selectedDataset, setSelectedDataset] = useState('Customers');
-  const [selectedColumns, setSelectedColumns] = useState(['Name', 'City', 'State', 'Vehicle Brand']);
+  const [selectedColumns, setSelectedColumns] = useState(['Name', 'City', 'Emirate', 'Vehicle Brand']);
   const [loading, setLoading] = useState<boolean>(false);
   const [reportData, setReportData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export function CustomReportBuilder() {
   const datasets: Record<string, { endpoint: string; columns: string[] }> = {
     'Customers': {
       endpoint: '/admin/reports',
-      columns: ['Name', 'City', 'State', 'Vehicle Brand', 'Vehicle Model', 'Fuel Type']
+      columns: ['Name', 'City', 'Emirate', 'Vehicle Brand', 'Vehicle Model', 'Fuel Type']
     },
     'Users': {
       endpoint: '/customer/customer?limit=50',

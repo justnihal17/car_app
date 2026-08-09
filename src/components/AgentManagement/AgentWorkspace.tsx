@@ -523,7 +523,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const paginatedAgents = filteredAgents.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
+    <div className="p-4 sm:p-6 xl:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
       {/* Breadcrumb & Top Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">

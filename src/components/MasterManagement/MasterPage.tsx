@@ -637,7 +637,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const isFuelType = moduleName.toLowerCase() === 'fueltype';
       let endpoint = isSubService 
         ? `/master/subservice/${deleteModal.id}` 
-        : (isVehicleType ? `/master/vehicletype/admin/admin${deleteModal.id}` : (isFuelType ? `/master/fuelType/${deleteModal.id}` : `/master/${moduleName.toLowerCase()}/${deleteModal.id}`));
+        : (isVehicleType ? `/master/vehicletype/${deleteModal.id}` : (isFuelType ? `/master/fuelType/${deleteModal.id}` : `/master/${moduleName.toLowerCase()}/${deleteModal.id}`));
       if (moduleName.toLowerCase() === 'banner') {
         endpoint = `/master/banner/${deleteModal.id}`;
       }
@@ -822,7 +822,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
+    <div className="p-4 sm:p-6 xl:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
       {/* Breadcrumb & Top Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
