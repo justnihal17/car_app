@@ -24,7 +24,7 @@ export function Step5Review({ formData, onGoToStep }: Step5Props) {
         const [servicesRes, brandsRes, vehicleTypesRes, citiesRes] = await Promise.allSettled([
           api.get('/master/service/admin').catch(() => api.get('/master/service')),
           api.get('/master/make/admin').catch(() => api.get('/master/make')),
-          api.get('/master/vehicletype').catch(() => api.get('/master/vehicletype')),
+          api.get('/master/vehicletype/admin').catch(() => api.get('/master/vehicletype/admin')),
           api.get('/master/city/admin').catch(() => api.get('/master/city'))
         ]);
 

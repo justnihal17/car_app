@@ -145,7 +145,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
 
         // Fetch Vehicle Types
         try {
-          const res = await api.get('/master/vehicletype/admin');
+          const res = await api.get('/master/vehicletype/admin/admin');
           const raw = res.data?.data || res.data || [];
           const list = Array.isArray(raw) ? raw : (raw.vehicleTypes || raw.list || []);
           if (isMounted && list.length > 0) {
@@ -153,7 +153,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           }
         } catch {
           try {
-            const res = await api.get('/master/vehicletype');
+            const res = await api.get('/master/vehicletype/admin');
             const raw = res.data?.data || res.data || [];
             const list = Array.isArray(raw) ? raw : (raw.vehicleTypes || raw.list || []);
             if (isMounted && list.length > 0) {

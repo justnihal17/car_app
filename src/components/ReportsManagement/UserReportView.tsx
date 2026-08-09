@@ -3,7 +3,8 @@ import api from '../../api/axios';
 import { 
   Users, UserPlus, UserCheck, Activity, ShoppingBag, UserX, 
   Filter, RotateCcw, Calendar, MapPin, Car, Fuel, CreditCard, 
-  AlertTriangle, RefreshCw, BarChart2, ChevronDown, ChevronUp, Info
+  AlertTriangle, RefreshCw, BarChart2, ChevronDown, ChevronUp, Info,
+  Building, PieChart as PieChartIcon, Table
 } from 'lucide-react';
 import { 
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, 
@@ -50,17 +51,17 @@ export function UserReportView() {
   const [error, setError] = useState<string | null>(null);
   const [reportData, setReportData] = useState<any>(null);
 
+  // Active Category Tab state
+  const [activeCategoryTab, setActiveCategoryTab] = useState<'city' | 'state' | 'brand' | 'model' | 'fuelType' | 'paymentMethod'>('city');
+
   // Master data for dropdowns
   const [masterCities, setMasterCities] = useState<MasterOption[]>([]);
   const [masterStates, setMasterStates] = useState<MasterOption[]>([]);
   const [masterBrands, setMasterBrands] = useState<MasterOption[]>([]);
   const [masterModels, setMasterModels] = useState<MasterOption[]>([]);
 
-  // Show all toggle states for tables
-  const [showAllCity, setShowAllCity] = useState<boolean>(false);
-  const [showAllState, setShowAllState] = useState<boolean>(false);
-  const [showAllBrand, setShowAllBrand] = useState<boolean>(false);
-  const [showAllModel, setShowAllModel] = useState<boolean>(false);
+  // Show all toggle state for side table
+  const [showAllRows, setShowAllRows] = useState<boolean>(false);
 
   // Fetch dropdown options for filters
   useEffect(() => {
@@ -112,7 +113,6 @@ export function UserReportView() {
     setLoading(true);
     setError(null);
 
-    // Build clean params (exclude empty strings/undefined)
     const params: Record<string, string> = {};
     if (filtersToApply.startDate) params.startDate = filtersToApply.startDate;
     if (filtersToApply.endDate) params.endDate = filtersToApply.endDate;
@@ -217,6 +217,7 @@ export function UserReportView() {
   const byBrandData = useMemo(() => parseDistribution(customerData.byVehicleBrand || customerData.byBrand || customerData.brands, 'brand'), [customerData]);
   const byModelData = useMemo(() => parseDistribution(customerData.byVehicleModel || customerData.byModel || customerData.models, 'model'), [customerData]);
   const byFuelData = useMemo(() => parseDistribution(customerData.byFuelType || customerData.fuelTypes, 'fuelType'), [customerData]);
+  const byPaymentData = useMemo(() => parseDistribution(customerData.byPaymentMethod || reportData?.orders?.byPaymentMethod || reportData?.byPaymentMethod || [], 'paymentMethod'), [customerData, reportData]);
 
   // Total counts for percentages calculation
   const totalCityCount = useMemo(() => byCityData.reduce((acc, curr) => acc + curr.count, 0) || 1, [byCityData]);
@@ -224,6 +225,37 @@ export function UserReportView() {
   const totalBrandCount = useMemo(() => byBrandData.reduce((acc, curr) => acc + curr.count, 0) || 1, [byBrandData]);
   const totalModelCount = useMemo(() => byModelData.reduce((acc, curr) => acc + curr.count, 0) || 1, [byModelData]);
   const totalFuelCount = useMemo(() => byFuelData.reduce((acc, curr) => acc + curr.count, 0) || 1, [byFuelData]);
+  const totalPaymentCount = useMemo(() => byPaymentData.reduce((acc, curr) => acc + curr.count, 0) || 1, [byPaymentData]);
+
+  // Category Configuration for Buttons
+  const CATEGORY_TABS = [
+    { id: 'city', label: 'Cities', icon: MapPin, color: 'text-emerald-600', activeBg: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20' },
+    { id: 'state', label: 'Emirate', icon: Building, color: 'text-blue-600', activeBg: 'bg-blue-600 text-white shadow-md shadow-blue-500/20' },
+    { id: 'brand', label: 'Brand', icon: Car, color: 'text-red-600', activeBg: 'bg-red-600 text-white shadow-md shadow-red-500/20' },
+    { id: 'model', label: 'Model', icon: Car, color: 'text-purple-600', activeBg: 'bg-purple-600 text-white shadow-md shadow-purple-500/20' },
+    { id: 'fuelType', label: 'Fuel Type', icon: Fuel, color: 'text-amber-600', activeBg: 'bg-amber-600 text-white shadow-md shadow-amber-500/20' },
+    { id: 'paymentMethod', label: 'Payment', icon: CreditCard, color: 'text-indigo-600', activeBg: 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' },
+  ] as const;
+
+  // Selected Active Data Config
+  const activeCategoryConfig = useMemo(() => {
+    switch (activeCategoryTab) {
+      case 'city':
+        return { labelName: 'City', title: 'Customers by City', data: byCityData, total: totalCityCount, barColor: '#10b981', barClass: 'bg-emerald-500' };
+      case 'state':
+        return { labelName: 'State / Emirate', title: 'Customers by State / Emirate', data: byStateData, total: totalStateCount, barColor: '#2563eb', barClass: 'bg-blue-600' };
+      case 'brand':
+        return { labelName: 'Vehicle Brand', title: 'Customers by Vehicle Brand', data: byBrandData, total: totalBrandCount, barColor: '#dc2626', barClass: 'bg-red-600' };
+      case 'model':
+        return { labelName: 'Vehicle Model', title: 'Customers by Vehicle Model', data: byModelData, total: totalModelCount, barColor: '#9333ea', barClass: 'bg-purple-600' };
+      case 'fuelType':
+        return { labelName: 'Fuel Type', title: 'Customers by Fuel Type', data: byFuelData, total: totalFuelCount, barColor: '#f59e0b', barClass: 'bg-amber-500' };
+      case 'paymentMethod':
+        return { labelName: 'Payment Method', title: 'Customers by Payment Method', data: byPaymentData, total: totalPaymentCount, barColor: '#4f46e5', barClass: 'bg-indigo-600' };
+      default:
+        return { labelName: 'City', title: 'Customers by City', data: byCityData, total: totalCityCount, barColor: '#10b981', barClass: 'bg-emerald-500' };
+    }
+  }, [activeCategoryTab, byCityData, totalCityCount, byStateData, totalStateCount, byBrandData, totalBrandCount, byModelData, totalModelCount, byFuelData, totalFuelCount, byPaymentData, totalPaymentCount]);
 
   const hasData = useMemo(() => {
     if (!reportData) return false;
@@ -248,29 +280,26 @@ export function UserReportView() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              type="button"
               onClick={handleResetFilters}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" /> Reset
             </button>
             <button
-              type="button"
               onClick={handleApplyFilters}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white shadow-md shadow-red-500/20 transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
             >
-              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Filter className="w-3.5 h-3.5" />} Apply Filters
+              <Filter className="w-3.5 h-3.5" /> Apply Filters
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
-          {/* Date From */}
+        {/* Filter Fields Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 text-xs">
+          {/* Start Date */}
           <div>
             <label className="block text-[11px] font-bold text-slate-600 mb-1 flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-slate-400" /> Date From
+              <Calendar className="w-3 h-3 text-slate-400" /> Start Date
             </label>
             <input
               type="date"
@@ -280,10 +309,10 @@ export function UserReportView() {
             />
           </div>
 
-          {/* Date To */}
+          {/* End Date */}
           <div>
             <label className="block text-[11px] font-bold text-slate-600 mb-1 flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-slate-400" /> Date To
+              <Calendar className="w-3 h-3 text-slate-400" /> End Date
             </label>
             <input
               type="date"
@@ -329,7 +358,7 @@ export function UserReportView() {
                 onChange={(e) => setDraftFilters({ ...draftFilters, state: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3 py-2 focus:bg-white focus:outline-none focus:border-red-500 transition-colors"
               >
-                <option value="">All States / Emirates</option>
+                <option value="">All States</option>
                 {masterStates.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
               </select>
             ) : (
@@ -462,10 +491,7 @@ export function UserReportView() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white h-80 rounded-3xl border border-slate-200/80 animate-pulse" />
-            <div className="bg-white h-80 rounded-3xl border border-slate-200/80 animate-pulse" />
-          </div>
+          <div className="bg-white h-96 rounded-3xl border border-slate-200/80 animate-pulse" />
         </div>
       ) : !hasData ? (
         /* Empty State */
@@ -519,336 +545,136 @@ export function UserReportView() {
             </div>
           </div>
 
-          {/* Section 2: Customer Distribution Charts & Tables */}
-          {(byCityData.length > 0 || byStateData.length > 0 || byBrandData.length > 0 || byModelData.length > 0 || byFuelData.length > 0) && (
-            <div className="space-y-6">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-red-600" /> Customer Distribution & Demographics
-              </h3>
+          {/* Section 2: Interactive Category Filter Buttons + Graph & Side Table Layout */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-6">
+            {/* Toggle Buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <BarChart2 className="w-5 h-5 text-red-600" /> Customer Analytics Visualizer
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                  Click a category button below to view its graph and details table
+                </p>
+              </div>
 
-              {/* Row 1: City & State */}
-              {(byCityData.length > 0 || byStateData.length > 0) && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* City Distribution */}
-                  {byCityData.length > 0 && (
-                    <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-emerald-600" /> Customers by City
-                        </h4>
-                        <span className="text-xs font-mono text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-md">{byCityData.length} Cities</span>
-                      </div>
+              {/* Category Filter Buttons */}
+              <div className="flex flex-wrap items-center gap-2">
+                {CATEGORY_TABS.map(tab => {
+                  const Icon = tab.icon;
+                  const isActive = activeCategoryTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveCategoryTab(tab.id);
+                        setShowAllRows(false);
+                      }}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isActive 
+                          ? tab.activeBg
+                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 font-semibold'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" /> {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-                      <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={byCityData.slice(0, 8)} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                            <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} angle={-25} textAnchor="end" />
-                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <Tooltip 
-                              contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', fontSize: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                              formatter={(val: any) => [`${val} Customers`, 'Count']}
-                            />
-                            <Bar dataKey="count" fill="#10b981" radius={[6, 6, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Table View */}
-                      <div className="border-t border-slate-100 pt-3">
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-xs">
-                            <thead>
-                              <tr className="text-slate-500 bg-slate-50 border-b border-slate-200">
-                                <th className="py-2 px-3 font-bold uppercase">City</th>
-                                <th className="py-2 px-3 text-right font-bold uppercase">Count</th>
-                                <th className="py-2 px-3 text-right font-bold uppercase">Share</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {(showAllCity ? byCityData : byCityData.slice(0, 5)).map((item, i) => {
-                                const pct = Math.round((item.count / totalCityCount) * 100);
-                                return (
-                                  <tr key={i} className="hover:bg-slate-50/70 transition-colors">
-                                    <td className="py-2.5 px-3 text-slate-800 font-medium">{item.name}</td>
-                                    <td className="py-2.5 px-3 text-right text-emerald-600 font-bold font-mono">{item.count.toLocaleString()}</td>
-                                    <td className="py-2.5 px-3 text-right text-slate-500 font-semibold">{pct}%</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                        {byCityData.length > 5 && (
-                          <button
-                            onClick={() => setShowAllCity(!showAllCity)}
-                            className="mt-2 text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            {showAllCity ? <>Show Top 5 <ChevronUp className="w-3.5 h-3.5" /></> : <>View All ({byCityData.length}) <ChevronDown className="w-3.5 h-3.5" /></>}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* State / Emirate Distribution */}
-                  {byStateData.length > 0 && (
-                    <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-blue-600" /> Customers by State / Emirate
-                        </h4>
-                        <span className="text-xs font-mono text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-md">{byStateData.length} Regions</span>
-                      </div>
-
-                      <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={byStateData.slice(0, 8)} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                            <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} angle={-25} textAnchor="end" />
-                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <Tooltip 
-                              contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', fontSize: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                              formatter={(val: any) => [`${val} Customers`, 'Count']}
-                            />
-                            <Bar dataKey="count" fill="#2563eb" radius={[6, 6, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Table View */}
-                      <div className="border-t border-slate-100 pt-3">
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-xs">
-                            <thead>
-                              <tr className="text-slate-500 bg-slate-50 border-b border-slate-200">
-                                <th className="py-2 px-3 font-bold uppercase">State / Emirate</th>
-                                <th className="py-2 px-3 text-right font-bold uppercase">Count</th>
-                                <th className="py-2 px-3 text-right font-bold uppercase">Share</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {(showAllState ? byStateData : byStateData.slice(0, 5)).map((item, i) => {
-                                const pct = Math.round((item.count / totalStateCount) * 100);
-                                return (
-                                  <tr key={i} className="hover:bg-slate-50/70 transition-colors">
-                                    <td className="py-2.5 px-3 text-slate-800 font-medium">{item.name}</td>
-                                    <td className="py-2.5 px-3 text-right text-blue-600 font-bold font-mono">{item.count.toLocaleString()}</td>
-                                    <td className="py-2.5 px-3 text-right text-slate-500 font-semibold">{pct}%</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                        {byStateData.length > 5 && (
-                          <button
-                            onClick={() => setShowAllState(!showAllState)}
-                            className="mt-2 text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            {showAllState ? <>Show Top 5 <ChevronUp className="w-3.5 h-3.5" /></> : <>View All ({byStateData.length}) <ChevronDown className="w-3.5 h-3.5" /></>}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
+            {/* Main Interactive Grid: Left (Graph) & Right (Details Table) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Side: Graph Box (7 Cols) */}
+              <div className="lg:col-span-7 bg-slate-50/50 rounded-2xl border border-slate-200/60 p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <PieChartIcon className="w-4 h-4 text-red-600" /> {activeCategoryConfig.title}
+                  </h4>
+                  <span className="text-xs font-mono font-bold text-slate-600 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-2xs">
+                    {activeCategoryConfig.data.length} Total Items
+                  </span>
                 </div>
-              )}
 
-              {/* Row 2: Vehicle Brand & Model */}
-              {(byBrandData.length > 0 || byModelData.length > 0) && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Vehicle Brand Distribution */}
-                  {byBrandData.length > 0 && (
-                    <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                          <Car className="w-4 h-4 text-red-600" /> Customers by Vehicle Brand
-                        </h4>
-                        <span className="text-xs font-mono text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-md">{byBrandData.length} Brands</span>
-                      </div>
-
-                      <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart layout="vertical" data={byBrandData.slice(0, 8)} margin={{ top: 10, right: 20, left: 20, bottom: 5 }}>
-                            <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <YAxis dataKey="name" type="category" tick={{ fill: '#64748b', fontSize: 11 }} width={80} />
-                            <Tooltip 
-                              contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', fontSize: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                              formatter={(val: any) => [`${val} Customers`, 'Count']}
-                            />
-                            <Bar dataKey="count" fill="#dc2626" radius={[0, 6, 6, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Table View */}
-                      <div className="border-t border-slate-100 pt-3">
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-xs">
-                            <thead>
-                              <tr className="text-slate-500 bg-slate-50 border-b border-slate-200">
-                                <th className="py-2 px-3 font-bold uppercase">Brand</th>
-                                <th className="py-2 px-3 text-right font-bold uppercase">Count</th>
-                                <th className="py-2 px-3 text-right font-bold uppercase">Share</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {(showAllBrand ? byBrandData : byBrandData.slice(0, 5)).map((item, i) => {
-                                const pct = Math.round((item.count / totalBrandCount) * 100);
-                                return (
-                                  <tr key={i} className="hover:bg-slate-50/70 transition-colors">
-                                    <td className="py-2.5 px-3 text-slate-800 font-medium">{item.name}</td>
-                                    <td className="py-2.5 px-3 text-right text-red-600 font-bold font-mono">{item.count.toLocaleString()}</td>
-                                    <td className="py-2.5 px-3 text-right text-slate-500 font-semibold">{pct}%</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                        {byBrandData.length > 5 && (
-                          <button
-                            onClick={() => setShowAllBrand(!showAllBrand)}
-                            className="mt-2 text-xs font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            {showAllBrand ? <>Show Top 5 <ChevronUp className="w-3.5 h-3.5" /></> : <>View All ({byBrandData.length}) <ChevronDown className="w-3.5 h-3.5" /></>}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Vehicle Model Distribution */}
-                  {byModelData.length > 0 && (
-                    <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                          <Car className="w-4 h-4 text-purple-600" /> Customers by Vehicle Model
-                        </h4>
-                        <span className="text-xs font-mono text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-md">{byModelData.length} Models</span>
-                      </div>
-
-                      <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart layout="vertical" data={byModelData.slice(0, 8)} margin={{ top: 10, right: 20, left: 20, bottom: 5 }}>
-                            <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <YAxis dataKey="name" type="category" tick={{ fill: '#64748b', fontSize: 11 }} width={80} />
-                            <Tooltip 
-                              contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', fontSize: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                              formatter={(val: any) => [`${val} Customers`, 'Count']}
-                            />
-                            <Bar dataKey="count" fill="#9333ea" radius={[0, 6, 6, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Table View */}
-                      <div className="border-t border-slate-100 pt-3">
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-xs">
-                            <thead>
-                              <tr className="text-slate-500 bg-slate-50 border-b border-slate-200">
-                                <th className="py-2 px-3 font-bold uppercase">Model</th>
-                                <th className="py-2 px-3 text-right font-bold uppercase">Count</th>
-                                <th className="py-2 px-3 text-right font-bold uppercase">Share</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {(showAllModel ? byModelData : byModelData.slice(0, 5)).map((item, i) => {
-                                const pct = Math.round((item.count / totalModelCount) * 100);
-                                return (
-                                  <tr key={i} className="hover:bg-slate-50/70 transition-colors">
-                                    <td className="py-2.5 px-3 text-slate-800 font-medium">{item.name}</td>
-                                    <td className="py-2.5 px-3 text-right text-purple-600 font-bold font-mono">{item.count.toLocaleString()}</td>
-                                    <td className="py-2.5 px-3 text-right text-slate-500 font-semibold">{pct}%</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                        {byModelData.length > 5 && (
-                          <button
-                            onClick={() => setShowAllModel(!showAllModel)}
-                            className="mt-2 text-xs font-bold text-purple-600 hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            {showAllModel ? <>Show Top 5 <ChevronUp className="w-3.5 h-3.5" /></> : <>View All ({byModelData.length}) <ChevronDown className="w-3.5 h-3.5" /></>}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Row 3: Fuel Type Distribution */}
-              {byFuelData.length > 0 && (
-                <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                      <Fuel className="w-4 h-4 text-amber-600" /> Customers by Fuel Type
-                    </h4>
-                    <span className="text-xs font-mono text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-md">{byFuelData.length} Fuel Types</span>
+                {activeCategoryConfig.data.length === 0 ? (
+                  <div className="py-20 text-center flex flex-col items-center justify-center space-y-2">
+                    <Info className="w-8 h-8 text-slate-300" />
+                    <p className="text-xs font-bold text-slate-500">No {activeCategoryConfig.labelName} data available for current filters</p>
                   </div>
+                ) : (
+                  <div className="h-72 w-full pt-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={activeCategoryConfig.data.slice(0, 10)} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
+                        <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} angle={-20} textAnchor="end" />
+                        <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', fontSize: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                          formatter={(val: any) => [`${val} Customers`, 'Count']}
+                        />
+                        <Bar dataKey="count" fill={activeCategoryConfig.barColor} radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-                    <div className="h-64 w-full flex justify-center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={byFuelData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={90}
-                            paddingAngle={4}
-                            dataKey="count"
-                          >
-                            {byFuelData.map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', fontSize: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                            formatter={(val: any) => [`${val} Customers`, 'Count']}
-                          />
-                          <Legend wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
+              {/* Right Side: Side Details Table Box (5 Cols) */}
+              <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 p-5 space-y-4 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <Table className="w-4 h-4 text-slate-600" /> {activeCategoryConfig.labelName} Breakdown Details
+                  </h4>
+                  <span className="text-[11px] font-bold text-slate-500">Total: {activeCategoryConfig.total.toLocaleString()}</span>
+                </div>
 
-                    {/* Detailed Table */}
+                {activeCategoryConfig.data.length === 0 ? (
+                  <div className="py-20 text-center text-xs text-slate-400 font-medium">No details to display</div>
+                ) : (
+                  <div className="space-y-3">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs">
                         <thead>
                           <tr className="text-slate-500 bg-slate-50 border-b border-slate-200">
-                            <th className="py-2 px-3 font-bold uppercase">Fuel Type</th>
-                            <th className="py-2 px-3 text-right font-bold uppercase">Count</th>
-                            <th className="py-2 px-3 text-right font-bold uppercase">Share</th>
+                            <th className="py-2.5 px-3 font-bold uppercase">{activeCategoryConfig.labelName}</th>
+                            <th className="py-2.5 px-3 text-right font-bold uppercase">Customers</th>
+                            <th className="py-2.5 px-3 text-right font-bold uppercase">Share</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {byFuelData.map((item, i) => {
-                            const pct = Math.round((item.count / totalFuelCount) * 100);
-                            const color = CHART_COLORS[i % CHART_COLORS.length];
+                          {(showAllRows ? activeCategoryConfig.data : activeCategoryConfig.data.slice(0, 6)).map((item, i) => {
+                            const pct = Math.round((item.count / activeCategoryConfig.total) * 100);
                             return (
                               <tr key={i} className="hover:bg-slate-50/70 transition-colors">
-                                <td className="py-2.5 px-3 text-slate-800 font-medium flex items-center gap-2">
-                                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
-                                  {item.name}
+                                <td className="py-2.5 px-3 text-slate-900 font-bold">
+                                  <div className="flex flex-col gap-1">
+                                    <span>{item.name}</span>
+                                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                      <div className={`h-full ${activeCategoryConfig.barClass}`} style={{ width: `${Math.max(pct, 4)}%` }} />
+                                    </div>
+                                  </div>
                                 </td>
-                                <td className="py-2.5 px-3 text-right text-slate-900 font-bold font-mono">{item.count.toLocaleString()}</td>
-                                <td className="py-2.5 px-3 text-right text-slate-500 font-semibold">{pct}%</td>
+                                <td className="py-2.5 px-3 text-right text-slate-900 font-bold font-mono align-top">{item.count.toLocaleString()}</td>
+                                <td className="py-2.5 px-3 text-right text-slate-600 font-bold align-top">{pct}%</td>
                               </tr>
                             );
                           })}
                         </tbody>
                       </table>
                     </div>
+
+                    {activeCategoryConfig.data.length > 6 && (
+                      <button
+                        onClick={() => setShowAllRows(!showAllRows)}
+                        className="w-full py-2 text-xs font-bold text-red-600 hover:text-red-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        {showAllRows ? <>Show Less <ChevronUp className="w-3.5 h-3.5" /></> : <>View All ({activeCategoryConfig.data.length}) <ChevronDown className="w-3.5 h-3.5" /></>}
+                      </button>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

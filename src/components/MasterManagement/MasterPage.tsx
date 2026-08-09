@@ -637,7 +637,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const isFuelType = moduleName.toLowerCase() === 'fueltype';
       let endpoint = isSubService 
         ? `/master/subservice/${deleteModal.id}` 
-        : (isVehicleType ? `/master/vehicleType/${deleteModal.id}` : (isFuelType ? `/master/fuelType/${deleteModal.id}` : `/master/${moduleName.toLowerCase()}/${deleteModal.id}`));
+        : (isVehicleType ? `/master/vehicletype/admin/admin${deleteModal.id}` : (isFuelType ? `/master/fuelType/${deleteModal.id}` : `/master/${moduleName.toLowerCase()}/${deleteModal.id}`));
       if (moduleName.toLowerCase() === 'banner') {
         endpoint = `/master/banner/${deleteModal.id}`;
       }
@@ -741,7 +741,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       if (mode === 'add') {
         let endpoint = isSubService 
           ? '/master/subservice' 
-          : (isVehicleType ? '/master/vehicleType' : (isFuelType ? '/master/fuelType' : `/master/${moduleName.toLowerCase()}`));
+          : (isVehicleType ? '/master/vehicletype/admin' : (isFuelType ? '/master/fuelType' : `/master/${moduleName.toLowerCase()}`));
         if (moduleName.toLowerCase() === 'banner') {
           endpoint = '/master/banner/admin';
         }
@@ -753,7 +753,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       } else {
         let endpoint = isSubService 
           ? `/master/subservice/${editingItem.id}` 
-          : (isVehicleType ? `/master/vehicleType/${editingItem.id}` : (isFuelType ? `/master/fuelType/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`));
+          : (isVehicleType ? `/master/vehicletype/admin/${editingItem.id}` : (isFuelType ? `/master/fuelType/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`));
         if (moduleName.toLowerCase() === 'banner') {
           endpoint = `/master/banner/${editingItem.id}`;
         }
