@@ -1,7 +1,8 @@
 import React from 'react';
 import { Promotion } from '../../types/promotion.types';
-import { Edit2, Tag, Calendar, Layers, ShieldCheck, CheckCircle2 } from 'lucide-react';
-import { DUMMY_SERVICES, DUMMY_BRANDS } from '../../data/dummyPromotions';
+import { Edit2, Tag, Calendar, Layers, ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import api from '../../../../api/axios';
 
 interface Step5Props {
   formData: Partial<Promotion>;
@@ -9,14 +10,89 @@ interface Step5Props {
 }
 
 export function Step5Review({ formData, onGoToStep }: Step5Props) {
-  const getServiceNames = (ids?: string[]) => {
+  const [apiServices, setApiServices] = useState<{ id: string; name: string }[]>([]);
+  const [apiBrands, setApiBrands] = useState<{ id: string; name: string }[]>([]);
+  const [apiVehicleTypes, setApiVehicleTypes] = useState<{ id: string; name: string }[]>([]);
+  const [apiCities, setApiCities] = useState<{ id: string; name: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMasterData = async () => {
+      setLoading(true);
+      try {
+        const [servicesRes, brandsRes, vehicleTypesRes, citiesRes] = await Promise.allSettled([
+          api.get('/master/service/admin').catch(() => api.get('/master/service')),
+          api.get('/master/make/admin').catch(() => api.get('/master/make')),
+          api.get('/master/vehicletype').catch(() => api.get('/master/vehicletype')),
+          api.get('/master/city/admin').catch(() => api.get('/master/city'))
+        ]);
+
+        if (!isMounted) return;
+
+        if (servicesRes.status === 'fulfilled' && servicesRes.value) {
+          const raw = servicesRes.value.data?.data || servicesRes.value.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.services || raw.list || []);
+          setApiServices(list.map((s: any) => ({ id: typeof s === 'string' ? s : String(s._id || s.id), name: typeof s === 'string' ? s : String(s.name || s.title) })));
+        }
+
+        if (brandsRes.status === 'fulfilled' && brandsRes.value) {
+          const raw = brandsRes.value.data?.data || brandsRes.value.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.brands || raw.list || []);
+          setApiBrands(list.map((b: any) => ({ id: typeof b === 'string' ? b : String(b._id || b.id), name: typeof b === 'string' ? b : String(b.name || b.title) })));
+        }
+
+        if (vehicleTypesRes.status === 'fulfilled' && vehicleTypesRes.value) {
+          const raw = vehicleTypesRes.value.data?.data || vehicleTypesRes.value.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.vehicleTypes || raw.list || []);
+          setApiVehicleTypes(list.map((v: any) => ({ id: typeof v === 'string' ? v : String(v._id || v.id), name: typeof v === 'string' ? v : String(v.name || v.type) })));
+        }
+
+        if (citiesRes.status === 'fulfilled' && citiesRes.value) {
+          const raw = citiesRes.value.data?.data || citiesRes.value.data || [];
+          const list = Array.isArray(raw) ? raw : (raw.cities || raw.list || []);
+          setApiCities(list.map((c: any) => ({ id: typeof c === 'string' ? c : String(c._id || c.id), name: typeof c === 'string' ? c : String(c.name) })));
+        }
+      } catch (error) {
+        console.warn('Failed to fetch master data for review:', error);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetchMasterData();
+    return () => { isMounted = false; };
+  }, []);
+
+  const getServiceNames = (ids?: any[]) => {
     if (!ids || ids.length === 0) return 'Applicable to all services';
-    return ids.map(id => DUMMY_SERVICES.find(s => s.id === id)?.name || id).join(', ');
+    return ids.map(id => {
+      if (typeof id === 'object' && id !== null) return id.name || id.title;
+      return apiServices.find(s => s.id === id)?.name || id;
+    }).filter(Boolean).join(', ');
   };
 
-  const getBrandNames = (ids?: string[]) => {
+  const getBrandNames = (ids?: any[]) => {
     if (!ids || ids.length === 0) return 'Applicable to all vehicle brands';
-    return ids.map(id => DUMMY_BRANDS.find(b => b.id === id)?.name || id).join(', ');
+    return ids.map(id => {
+      if (typeof id === 'object' && id !== null) return id.name || id.title;
+      return apiBrands.find(b => b.id === id)?.name || id;
+    }).filter(Boolean).join(', ');
+  };
+
+  const getVehicleTypeNames = (ids?: any[]) => {
+    if (!ids || ids.length === 0) return 'All Vehicle Types';
+    return ids.map(id => {
+      if (typeof id === 'object' && id !== null) return id.name || id.type;
+      return apiVehicleTypes.find(v => v.id === id)?.name || id;
+    }).filter(Boolean).join(', ');
+  };
+
+  const getCityNames = (ids?: any[]) => {
+    if (!ids || ids.length === 0) return 'All Cities';
+    return ids.map(id => {
+      if (typeof id === 'object' && id !== null) return id.name;
+      return apiCities.find(c => c.id === id)?.name || id;
+    }).filter(Boolean).join(', ');
   };
 
   return (
@@ -96,11 +172,11 @@ export function Step5Review({ formData, onGoToStep }: Step5Props) {
             </button>
           </div>
           <div className="space-y-1.5">
-            <div><span className="text-slate-500">Services:</span> <span className="font-semibold text-slate-800">{getServiceNames(formData.applicableServices)}</span></div>
+            <div><span className="text-slate-500 flex items-center gap-1">Services: {loading && <Loader2 className="w-3 h-3 animate-spin text-slate-400"/>}</span> <span className="font-semibold text-slate-800">{getServiceNames(formData.applicableServices)}</span></div>
             <div><span className="text-slate-500">Excluded Services:</span> <span className="font-semibold text-slate-800">{getServiceNames(formData.excludedServices)}</span></div>
-            <div><span className="text-slate-500">Vehicle Brands:</span> <span className="font-semibold text-slate-800">{getBrandNames(formData.applicableVehicleBrands)}</span></div>
-            <div><span className="text-slate-500">Vehicle Types:</span> <span className="font-semibold text-slate-800">{formData.applicableVehicleTypes?.length ? formData.applicableVehicleTypes.join(', ') : 'All Vehicle Types'}</span></div>
-            <div><span className="text-slate-500">Cities:</span> <span className="font-semibold text-slate-800">{formData.applicableCities?.length ? formData.applicableCities.join(', ') : 'All Cities'}</span></div>
+            <div><span className="text-slate-500 flex items-center gap-1">Vehicle Brands: {loading && <Loader2 className="w-3 h-3 animate-spin text-slate-400"/>}</span> <span className="font-semibold text-slate-800">{getBrandNames(formData.applicableVehicleBrands)}</span></div>
+            <div><span className="text-slate-500 flex items-center gap-1">Vehicle Types: {loading && <Loader2 className="w-3 h-3 animate-spin text-slate-400"/>}</span> <span className="font-semibold text-slate-800">{getVehicleTypeNames(formData.applicableVehicleTypes)}</span></div>
+            <div><span className="text-slate-500 flex items-center gap-1">Cities: {loading && <Loader2 className="w-3 h-3 animate-spin text-slate-400"/>}</span> <span className="font-semibold text-slate-800">{getCityNames(formData.applicableCities)}</span></div>
             <div><span className="text-slate-500">User Tier:</span> <span className="font-bold text-slate-900 capitalize">{formData.applicableUserType} Users</span></div>
             <div><span className="text-slate-500">Payment Methods:</span> <span className="font-semibold text-slate-800">{formData.paymentMethods?.length ? formData.paymentMethods.join(', ') : 'All Payment Methods'}</span></div>
           </div>

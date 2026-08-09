@@ -18,14 +18,14 @@ export function PromotionDetailsView({ promotion, onBack, onEdit }: PromotionDet
   const discountVal = promotion.discountValue || promotion.walletCashback || promotion.referralReward || 150;
   const totalDiscountGiven = promotion.usedCount * discountVal;
 
-  const getServiceNames = (ids: string[]) => {
-    if (ids.length === 0) return 'Applicable to all services';
-    return ids.map(id => DUMMY_SERVICES.find(s => s.id === id)?.name || id).join(', ');
+  const getServiceNames = (items: any[]) => {
+    if (!items || items.length === 0) return 'Applicable to all services';
+    return items.map(item => typeof item === 'object' && item !== null ? item.name || item.title : DUMMY_SERVICES.find(s => s.id === item)?.name || item).filter(Boolean).join(', ');
   };
 
-  const getBrandNames = (ids: string[]) => {
-    if (ids.length === 0) return 'Applicable to all vehicle brands';
-    return ids.map(id => DUMMY_BRANDS.find(b => b.id === id)?.name || id).join(', ');
+  const getBrandNames = (items: any[]) => {
+    if (!items || items.length === 0) return 'Applicable to all vehicle brands';
+    return items.map(item => typeof item === 'object' && item !== null ? item.name || item.title : DUMMY_BRANDS.find(b => b.id === item)?.name || item).filter(Boolean).join(', ');
   };
 
   return (
@@ -175,7 +175,7 @@ export function PromotionDetailsView({ promotion, onBack, onEdit }: PromotionDet
             </div>
             <div className="flex justify-between py-1 border-b border-slate-100">
               <span className="text-slate-500 font-medium">Vehicle Types:</span>
-              <span className="font-semibold text-slate-800 text-right">{promotion.applicableVehicleTypes.length ? promotion.applicableVehicleTypes.join(', ') : 'All Vehicle Types'}</span>
+              <span className="font-semibold text-slate-800 text-right">{promotion.applicableVehicleTypes && promotion.applicableVehicleTypes.length ? promotion.applicableVehicleTypes.map((v: any) => typeof v === 'object' && v !== null ? v.name : v).filter(Boolean).join(', ') : 'All Vehicle Types'}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-100">
               <span className="text-slate-500 font-medium">User Tier:</span>

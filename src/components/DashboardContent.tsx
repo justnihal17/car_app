@@ -139,14 +139,15 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
         return <PaymentManager />;
       case 'notifications':
         return <NotificationManager />;
-      case 'settings':
-        return <SettingsManager />;
       case 'help':
         return <HelpCentre />;
       case 'profile':
         return <ProfileView />;
       case 'reports':
-        return <ReportsManager />;
+      case 'report-users':
+      case 'report-agents':
+      case 'report-revenue':
+        return <ReportsManager currentView={currentView} />;
       default:
         return (
           <div className="p-4 lg:p-6 2xl:p-content">

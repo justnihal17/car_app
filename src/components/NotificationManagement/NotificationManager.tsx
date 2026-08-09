@@ -60,7 +60,17 @@ export function NotificationManager() {
   };
 
   const filteredNotifications = notifications.filter(n => {
-    if (filters.category !== 'All' && n.category !== filters.category) return false;
+    if (filters.category !== 'All') {
+      if (filters.category === 'Agents') {
+        const isAgentRelated = 
+          n.category === 'Agents' || 
+          n.title.toLowerCase().includes('agent') || 
+          n.message.toLowerCase().includes('agent');
+        if (!isAgentRelated) return false;
+      } else {
+        if (n.category !== filters.category) return false;
+      }
+    }
     if (filters.status === 'Unread' && n.isRead) return false;
     if (filters.status === 'Read' && !n.isRead) return false;
     if (filters.priority !== 'All' && n.priority !== filters.priority) return false;

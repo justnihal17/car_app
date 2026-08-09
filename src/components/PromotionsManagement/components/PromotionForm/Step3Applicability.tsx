@@ -187,7 +187,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
 
         // Fetch Customers / Users
         try {
-          const res = await api.get('/customer/customer');
+          const res = await api.get('/customer/customer?limit=10000');
           const raw = res.data?.data || res.data || [];
           const list = Array.isArray(raw) ? raw : (raw.customers || raw.users || raw.list || []);
           if (isMounted && list.length > 0) {
@@ -346,10 +346,19 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
         <div className="space-y-6">
           {/* Vehicle Brands */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
-              Applicable Vehicle Brands
-              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                Applicable Vehicle Brands
+                {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+              </label>
+              <button
+                type="button"
+                onClick={() => selectAllArray('applicableVehicleBrands', brandsList.map(b => b.id))}
+                className="text-xs font-bold text-red-600 hover:underline"
+              >
+                {(formData.applicableVehicleBrands || []).length === brandsList.length && brandsList.length > 0 ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {brandsList.map((b) => {
                 const isSelected = (formData.applicableVehicleBrands || []).includes(b.id) || (formData.applicableVehicleBrands || []).includes(b.name);
@@ -373,10 +382,19 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
 
           {/* Car Models */}
           <div className="space-y-2 pt-3 border-t border-slate-100">
-            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
-              Applicable Car Models
-              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                Applicable Car Models
+                {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+              </label>
+              <button
+                type="button"
+                onClick={() => selectAllArray('applicableCarModels', carModelsList.map(m => m.id))}
+                className="text-xs font-bold text-red-600 hover:underline"
+              >
+                {(formData.applicableCarModels || []).length === carModelsList.length && carModelsList.length > 0 ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {carModelsList.map((m) => {
                 const isSelected = (formData.applicableCarModels || []).includes(m.id) || (formData.applicableCarModels || []).includes(m.name);
@@ -400,10 +418,19 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
 
           {/* Vehicle Types */}
           <div className="space-y-2 pt-3 border-t border-slate-100">
-            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
-              Applicable Vehicle Types
-              {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                Applicable Vehicle Types
+                {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+              </label>
+              <button
+                type="button"
+                onClick={() => selectAllArray('applicableVehicleTypes', vehicleTypesList.map(t => t.id))}
+                className="text-xs font-bold text-red-600 hover:underline"
+              >
+                {(formData.applicableVehicleTypes || []).length === vehicleTypesList.length && vehicleTypesList.length > 0 ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {vehicleTypesList.map((t) => {
                 const isSelected = (formData.applicableVehicleTypes || []).includes(t.id) || (formData.applicableVehicleTypes || []).includes(t.name);
@@ -428,10 +455,19 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           {/* Fuel Types & Transmission */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
-                Applicable Fuel Types
-                {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
-              </label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                  Applicable Fuel Types
+                  {loadingMasterData && <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => selectAllArray('applicableFuelType', fuelTypesList.map(f => f.id))}
+                  className="text-xs font-bold text-red-600 hover:underline"
+                >
+                  {(formData.applicableFuelType || []).length === fuelTypesList.length && fuelTypesList.length > 0 ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {fuelTypesList.map((f) => {
                   const isSelected = (formData.applicableFuelType || []).includes(f.id) || (formData.applicableFuelType || []).includes(f.name);
@@ -454,7 +490,16 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700">Applicable Transmissions</label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-bold text-slate-700">Applicable Transmissions</label>
+                <button
+                  type="button"
+                  onClick={() => selectAllArray('applicableTransmission', TRANSMISSIONS)}
+                  className="text-xs font-bold text-red-600 hover:underline"
+                >
+                  {(formData.applicableTransmission || []).length === TRANSMISSIONS.length && TRANSMISSIONS.length > 0 ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {TRANSMISSIONS.map((t) => {
                   const isSelected = (formData.applicableTransmission || []).includes(t);

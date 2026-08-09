@@ -1,23 +1,111 @@
-import { useState } from 'react';
-import { Database, Filter, Columns, Download, Play, Save, FileText, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import api from '../../api/axios';
+import { Database, Filter, Columns, Download, Play, Save, FileText, Plus, RefreshCw, AlertTriangle, Info } from 'lucide-react';
 
 export function CustomReportBuilder() {
-  const [selectedDataset, setSelectedDataset] = useState('Orders');
-  const [selectedColumns, setSelectedColumns] = useState(['Order ID', 'Customer Name', 'Amount', 'Date']);
+  const [selectedDataset, setSelectedDataset] = useState('Customers');
+  const [selectedColumns, setSelectedColumns] = useState(['Name', 'City', 'State', 'Vehicle Brand']);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [reportData, setReportData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const datasets: Record<string, { endpoint: string; columns: string[] }> = {
+    'Customers': {
+      endpoint: '/admin/reports',
+      columns: ['Name', 'City', 'State', 'Vehicle Brand', 'Vehicle Model', 'Fuel Type']
+    },
+    'Users': {
+      endpoint: '/customer/customer?limit=50',
+      columns: ['Name', 'Phone', 'Email', 'Role', 'Status', 'CreatedAt']
+    },
+    'Agents': {
+      endpoint: '/agent/agent?limit=50',
+      columns: ['Name', 'Phone', 'Email', 'Status', 'DutyStatus', 'City']
+    },
+    'Orders': {
+      endpoint: '/order/admin/orders?limit=50',
+      columns: ['Order Number', 'Customer', 'Agent', 'Amount', 'Status', 'Date']
+    }
+  };
+
+  const fetchDatasetData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const config = datasets[selectedDataset] || datasets['Customers'];
+      const response = await api.get(config.endpoint);
+      const raw = response.data?.data || response.data || {};
+      setReportData(raw);
+    } catch (err: any) {
+      console.error('Failed to load dataset:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to fetch report dataset.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDatasetData();
+  }, [selectedDataset]);
+
+  // Extract preview rows dynamically from API response
+  const previewRows = React.useMemo(() => {
+    if (!reportData) return [];
+    if (selectedDataset === 'Customers') {
+      const byCity = reportData.customers?.byCity || [];
+      if (Array.isArray(byCity)) {
+        return byCity.map((c: any) => ({
+          'Name': c.name || c.city || 'Customer Group',
+          'City': c.city || c.name || 'N/A',
+          'State': c.state || 'N/A',
+          'Vehicle Brand': c.brand || 'N/A',
+          'Vehicle Model': c.model || 'N/A',
+          'Fuel Type': c.fuelType || 'N/A'
+        }));
+      }
+    }
+
+    const list = Array.isArray(reportData) 
+      ? reportData 
+      : (reportData.customers || reportData.users || reportData.agents || reportData.orders || reportData.list || reportData.data || []);
+    
+    if (Array.isArray(list)) {
+      return list.slice(0, 10).map((item: any, i: number) => ({
+        'Name': item.fullName || item.name || item.title || `User #${i+1}`,
+        'Phone': item.mobileNumber || item.phone || 'N/A',
+        'Email': item.email || 'N/A',
+        'Role': item.role || 'USER',
+        'Status': item.status || (item.isActive ? 'ACTIVE' : 'INACTIVE'),
+        'DutyStatus': item.dutyStatus || item.status || 'OFFLINE',
+        'City': item.city?.name || item.city || 'N/A',
+        'State': item.state?.name || item.state || 'N/A',
+        'Order Number': item.orderNumber || item.orderId || item._id || `ORD-${i+1}`,
+        'Customer': item.user?.name || item.customerName || 'N/A',
+        'Agent': item.agent?.name || item.agentName || 'Unassigned',
+        'Amount': item.totalAmount ? `₹${item.totalAmount}` : '₹0',
+        'Date': item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A',
+        'Vehicle Brand': item.brand?.name || item.brand || 'N/A',
+        'Vehicle Model': item.model?.name || item.model || 'N/A',
+        'Fuel Type': item.fuelType?.name || item.fuelType || 'N/A'
+      }));
+    }
+    return [];
+  }, [reportData, selectedDataset]);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Custom Report Builder</h2>
-          <p className="text-sm text-slate-400 mt-1">Design and generate custom data exports</p>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Custom Report Builder</h2>
+          <p className="text-xs text-slate-500 mt-1 font-medium">Design and generate custom data exports directly from system data</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-800 transition-colors text-sm shadow-sm">
-            <Save className="w-4 h-4" /> Save Template
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-medium rounded-lg shadow-lg shadow-emerald-900/20 transition-all text-sm">
-            <Play className="w-4 h-4" /> Generate Report
+        <div className="flex gap-2">
+          <button 
+            onClick={fetchDatasetData}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all text-xs cursor-pointer disabled:opacity-50"
+          >
+            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />} Generate Report
           </button>
         </div>
       </div>
@@ -25,112 +113,98 @@ export function CustomReportBuilder() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Configuration Sidebar */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg p-5">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Database className="w-4 h-4 text-red-400" /> 1. Select Dataset
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-5 space-y-3">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Database className="w-4 h-4 text-red-600" /> 1. Select Dataset
             </h3>
-            <div className="space-y-2">
-              {['Users', 'Drivers', 'Services', 'Orders', 'Payments', 'Refunds', 'Notifications'].map(dataset => (
+            <div className="space-y-1.5">
+              {Object.keys(datasets).map(dataset => (
                 <button
                   key={dataset}
-                  onClick={() => setSelectedDataset(dataset)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  onClick={() => {
+                    setSelectedDataset(dataset);
+                    setSelectedColumns(datasets[dataset].columns.slice(0, 4));
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     selectedDataset === dataset 
-                      ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
-                      : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent'
+                      ? 'bg-red-50 text-red-600 border border-red-200/80' 
+                      : 'text-slate-700 hover:bg-slate-50 border border-transparent font-medium'
                   }`}
                 >
-                  {dataset} Data
+                  {dataset} Dataset
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg p-5">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Columns className="w-4 h-4 text-blue-400" /> 2. Columns
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-5 space-y-3">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Columns className="w-4 h-4 text-blue-600" /> 2. Select Columns
             </h3>
-            <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-              {['Order ID', 'Customer Name', 'Driver Name', 'Service Type', 'Amount', 'Tax', 'Discount', 'Date', 'Status', 'City'].map(col => (
-                <label key={col} className="flex items-center gap-3 p-2 rounded hover:bg-slate-900 cursor-pointer transition-colors">
+            <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar">
+              {(datasets[selectedDataset]?.columns || []).map(col => (
+                <label key={col} className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors text-xs">
                   <input 
                     type="checkbox" 
-                    className="rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900"
+                    className="rounded border-slate-300 text-red-600 focus:ring-red-500"
                     checked={selectedColumns.includes(col)}
                     onChange={(e) => {
                       if (e.target.checked) setSelectedColumns([...selectedColumns, col]);
                       else setSelectedColumns(selectedColumns.filter(c => c !== col));
                     }}
                   />
-                  <span className="text-sm text-slate-300">{col}</span>
+                  <span className="font-semibold text-slate-800">{col}</span>
                 </label>
               ))}
-            </div>
-          </div>
-          
-          <div className="bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <Filter className="w-4 h-4 text-emerald-400" /> 3. Filters
-              </h3>
-              <button className="text-emerald-400 hover:text-emerald-300 p-1"><Plus className="w-4 h-4"/></button>
-            </div>
-            <div className="space-y-3">
-              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
-                 <div className="text-slate-400 mb-1">Date Range</div>
-                 <div className="text-white font-medium">Last 30 Days</div>
-              </div>
-              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs">
-                 <div className="text-slate-400 mb-1">Status</div>
-                 <div className="text-white font-medium">Completed, Pending</div>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Data Preview */}
-        <div className="lg:col-span-3 bg-[#0f1218] rounded-xl border border-slate-800/60 shadow-lg overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-slate-800/60 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <FileText className="w-4 h-4 text-emerald-500" /> Report Preview
+        <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-emerald-600" /> Report Preview ({selectedDataset})
             </h3>
-            <div className="flex gap-2">
-              <button className="p-2 bg-slate-900 border border-slate-700 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center gap-2 text-xs font-medium">
-                <Download className="w-4 h-4" /> CSV
-              </button>
-              <button className="p-2 bg-slate-900 border border-slate-700 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center gap-2 text-xs font-medium">
-                <Download className="w-4 h-4" /> PDF
-              </button>
-            </div>
           </div>
           
           <div className="flex-1 overflow-auto custom-scrollbar p-0">
-            <table className="w-full text-left border-collapse whitespace-nowrap min-w-max">
-              <thead>
-                <tr className="bg-slate-900/50 text-slate-500 text-xs uppercase tracking-wider font-bold">
-                  {selectedColumns.map(col => (
-                    <th key={col} className="px-5 py-4 font-medium">{col}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="text-sm divide-y divide-slate-800">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((row) => (
-                  <tr key={row} className="hover:bg-slate-800/20 transition-colors">
+            {loading ? (
+              <div className="py-20 text-center flex flex-col items-center justify-center space-y-2">
+                <RefreshCw className="w-6 h-6 text-red-600 animate-spin" />
+                <p className="text-xs text-slate-500 font-medium">Fetching real API dataset...</p>
+              </div>
+            ) : previewRows.length === 0 ? (
+              <div className="py-20 text-center flex flex-col items-center justify-center space-y-2">
+                <Info className="w-8 h-8 text-slate-300" />
+                <p className="text-xs text-slate-500 font-medium">No records returned for {selectedDataset}</p>
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-max text-xs">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200">
                     {selectedColumns.map(col => (
-                      <td key={col} className="px-5 py-4 text-slate-300">
-                        {col === 'Order ID' ? `ORD-902${row}0` : 
-                         col === 'Amount' ? `$${45 * row}.00` :
-                         col === 'Date' ? `2026-07-12` : 'Sample Data'}
-                      </td>
+                      <th key={col} className="px-5 py-3.5 font-bold">{col}</th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {previewRows.map((row: any, rIdx: number) => (
+                    <tr key={rIdx} className="hover:bg-slate-50/70 transition-colors">
+                      {selectedColumns.map(col => (
+                        <td key={col} className="px-5 py-3.5 text-slate-800 font-medium">
+                          {row[col] ?? 'N/A'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
-          <div className="p-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-500 bg-slate-900/30">
-            <span>Showing preview of first 8 rows</span>
-            <span>Total Estimated Rows: 1,245</span>
+          <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 bg-slate-50/50">
+            <span>Showing real API preview of {previewRows.length} records</span>
+            <span className="font-bold text-slate-700">Dataset: {selectedDataset}</span>
           </div>
         </div>
       </div>

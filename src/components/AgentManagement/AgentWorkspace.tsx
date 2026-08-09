@@ -7,8 +7,8 @@ import { motion } from 'motion/react';
 import { ImageCropModal } from '../common/ImageCropModal';
 
 const AGENTS = [
-  { id: 'A001', name: 'John Captain', email: 'john@stylein.com', phone: '+1234567890', area: 'Downtown', vehicle: 'Van-01', jobs: 12, rating: 4.8, status: 'Available' },
-  { id: 'A002', name: 'Jane Driver', email: 'jane@stylein.com', phone: '+1987654321', area: 'Marina', vehicle: 'Car-05', jobs: 8, rating: 4.5, status: 'Busy' },
+  { id: 'A001', name: 'John Captain', email: 'john@stylein.com', phone: '+1234567890', area: 'Downtown', vehicle: 'Van-01', jobs: 12, rating: 4.8, status: 'Active' },
+  { id: 'A002', name: 'Jane Driver', email: 'jane@stylein.com', phone: '+1987654321', area: 'Marina', vehicle: 'Car-05', jobs: 8, rating: 4.5, status: 'Inactive' },
 ];
 
 import api from '../../api/axios';
@@ -89,7 +89,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           vehicle: a.vehicle || 'Service Van',
           jobs: a.jobsCompleted || 0,
           rating: a.rating || 4.5,
-          status: a.blocked ? 'Blocked' : (a.active ? 'Available' : 'Inactive')
+          status: a.blocked ? 'Blocked' : (a.active ? 'Active' : 'Inactive')
         };
       }));
     } catch (error) {
@@ -465,11 +465,11 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
   const handleToggleAgentStatus = async (agent: any) => {
     const isCurrentlyActive = agent.active !== false;
-    const newStatus = isCurrentlyActive ? 'Inactive' : 'Available';
+    const newStatus = isCurrentlyActive ? 'Inactive' : 'Active';
     try {
       await api.put(`/agent/agent/${agent.id}`, { active: !isCurrentlyActive });
       toast.success(`Agent status updated to ${newStatus}`);
-      setAgentsList(prev => prev.map(item => item.id === agent.id ? { ...item, active: !isCurrentlyActive, status: item.blocked ? 'Blocked' : (isCurrentlyActive ? 'Inactive' : 'Available') } : item));
+      setAgentsList(prev => prev.map(item => item.id === agent.id ? { ...item, active: !isCurrentlyActive, status: item.blocked ? 'Blocked' : (isCurrentlyActive ? 'Inactive' : 'Active') } : item));
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update agent status');
     }
@@ -511,8 +511,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     if (!matchesSearch) return false;
 
     if (!selectedCard || selectedCard === 'Total Agents' || selectedCard === 'AGENTS') return true;
-    if (selectedCard === 'Available' || selectedCard === 'AVAILABLE') return a.status === 'Available';
-    if (selectedCard === 'Busy' || selectedCard === 'BUSY') return a.status === 'Busy';
+    if (selectedCard === 'Active' || selectedCard === 'ACTIVE') return a.status === 'Active';
     if (selectedCard === 'Inactive' || selectedCard === 'INACTIVE' || selectedCard === 'DEACTIVATED') return a.status === 'Inactive';
     if (selectedCard === 'Blocked' || selectedCard === 'BLOCKED') return Boolean(a.blocked);
     if (selectedCard === 'Top Rated' || selectedCard === 'TOP RATED') return (a.rating || 0) >= 4.5;
@@ -550,9 +549,9 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       </div>
 
       {/* Analytics Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {loading ? (
-          Array.from({ length: 6 }).map((_, i) => (
+          Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-[90px] bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
               <div className="flex justify-between items-center">
                 <div className="h-3 w-16 bg-slate-300 rounded" />
@@ -564,8 +563,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
         ) : (
           [
             { label: 'AGENTS', value: agentsList.length, icon: Car, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Accounts' },
-            { label: 'AVAILABLE', value: agentsList.filter(a => a.status === 'Available').length, icon: UserCheck, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'On Duty' },
-            { label: 'BUSY', value: agentsList.filter(a => a.status === 'Busy').length, icon: Briefcase, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Assigned' },
+            { label: 'ACTIVE', value: agentsList.filter(a => a.status === 'Active').length, icon: UserCheck, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'On Duty' },
             { label: 'INACTIVE', value: agentsList.filter(a => a.status === 'Inactive').length, icon: UserMinus, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
             { label: 'BLOCKED', value: agentsList.filter(a => a.blocked).length, icon: UserX, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Restricted' },
             { label: 'TOP RATED', value: agentsList.filter(a => Number(a.rating || 0) > 4).length, icon: Star, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Rating > 4.0' },

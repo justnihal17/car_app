@@ -10,6 +10,7 @@ export function EditProfileModal() {
     lastName: '',
     email: '',
     phone: '',
+    password: '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -23,6 +24,7 @@ export function EditProfileModal() {
         lastName: profile.lastName || '',
         email: profile.email || '',
         phone: profile.phone || '',
+        password: '',
       });
     }
   }, [isEditProfileOpen]);
@@ -33,7 +35,7 @@ export function EditProfileModal() {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = {
+      const payload: any = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -44,6 +46,9 @@ export function EditProfileModal() {
         blocked: !!profile.blocked,
         permissions: profile.permissions || {}
       };
+      if (formData.password) {
+        payload.password = formData.password;
+      }
       
       const response = await api.put(`/admin/admin/${profile._id}`, payload);
       if (response.data?.success) {
@@ -116,6 +121,16 @@ export function EditProfileModal() {
               value={formData.phone} 
               onChange={e => setFormData({ ...formData, phone: e.target.value })} 
               placeholder="Phone Number" 
+              className="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white" 
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <input 
+              type="password" 
+              value={formData.password} 
+              onChange={e => setFormData({ ...formData, password: e.target.value })} 
+              placeholder="Enter password" 
               className="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white" 
             />
           </div>

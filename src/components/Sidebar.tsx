@@ -30,12 +30,15 @@ const MENU_ITEMS = [
   { id: 'orders', label: 'Order Management', icon: FileText },
   { id: 'payments', label: 'Payment Management', icon: CreditCard },
   { id: 'notifications', label: 'Notification Management', icon: Bell },
-  { id: 'reports', label: 'Reports & Analytics', icon: BarChart3 },
+  { id: 'reports', label: 'Reports & Analytics', icon: BarChart3, isAccordion: true, children: [
+    { id: 'report-users', label: 'User', icon: Users },
+    { id: 'report-agents', label: 'Agent', icon: UserPlus },
+    { id: 'report-revenue', label: 'Revenue', icon: CreditCard },
+  ]},
 ];
 
 const BOTTOM_MENU = [
-  { id: 'settings', label: 'Settings', icon: Settings },
-  { id: 'help', label: 'Help Center', icon: HelpCircle },
+  { id: 'profile', label: 'Settings', icon: Settings },
   { id: 'logout', label: 'Logout', icon: LogOut },
 ];
 
@@ -52,7 +55,8 @@ export function Sidebar({
 }) {
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
     'profile-mgmt': true,
-    'master-mgmt': false
+    'master-mgmt': false,
+    'reports': false
   });
   
   const toggleAccordion = (id: string) => {
