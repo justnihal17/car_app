@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, Download, Plus, ChevronLeft, ChevronRight, Clock, MapPin, RefreshCw, AlertCircle, ShoppingBag, Truck, CheckCircle2, XCircle, Activity } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
-import { fetchOrders, setFilters } from '../../store/orderSlice';
+import { fetchOrders, setFilters, fetchLiveOverview } from '../../store/orderSlice';
 import { SafeImage } from '../common/SafeImage';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -28,13 +28,14 @@ const capitalize = (str?: string) => {
 
 export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => void }) {
   const dispatch = useDispatch<AppDispatch>();
-  const { orders, loading, filters, pagination, error } = useSelector((state: RootState) => state.order);
+  const { orders, loading, filters, pagination, error, liveOverview } = useSelector((state: RootState) => state.order);
 
   const [activeTab, setActiveTab] = useState('orders');
   const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
     dispatch(fetchOrders(filters));
+    dispatch(fetchLiveOverview());
   }, [dispatch, filters]);
 
   const handleTabChange = (tabId: string) => {
@@ -112,7 +113,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
   const statCards = [
     {
       label: 'TOTAL',
-      value: pagination.total || orders.length,
+      value: liveOverview?.totalOrders ?? (pagination.total || orders.length),
       icon: ShoppingBag,
       color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
       sub: 'All Orders',
@@ -120,7 +121,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     },
     {
       label: 'PENDING',
-      value: orders.filter(o => ['pending', 'accepted', 'assigned', 'created', 'new', 'unassigned'].includes(getOrderStatus(o))).length,
+      value: liveOverview?.pending?.count ?? orders.filter(o => ['pending', 'accepted', 'assigned', 'created', 'new', 'unassigned'].includes(getOrderStatus(o))).length,
       icon: Clock,
       color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
       sub: 'Awaiting',
@@ -128,7 +129,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     },
     {
       label: 'IN PROGRESS',
-      value: orders.filter(o => ['started', 'in progress', 'in_progress', 'arrived'].includes(getOrderStatus(o))).length,
+      value: liveOverview?.inProgress?.count ?? orders.filter(o => ['started', 'in progress', 'in_progress', 'arrived'].includes(getOrderStatus(o))).length,
       icon: Activity,
       color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
       sub: 'Active',
@@ -136,7 +137,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     },
     {
       label: 'COMPLETED',
-      value: orders.filter(o => ['completed', 'delivered', 'done'].includes(getOrderStatus(o))).length,
+      value: liveOverview?.completed?.count ?? orders.filter(o => ['completed', 'delivered', 'done'].includes(getOrderStatus(o))).length,
       icon: CheckCircle2,
       color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
       sub: 'Delivered',
@@ -144,7 +145,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     },
     {
       label: 'CANCELLED',
-      value: orders.filter(o => ['cancelled', 'canceled', 'refunded', 'rejected'].includes(getOrderStatus(o))).length,
+      value: liveOverview?.cancelled?.count ?? orders.filter(o => ['cancelled', 'canceled', 'refunded', 'rejected'].includes(getOrderStatus(o))).length,
       icon: XCircle,
       color: 'text-slate-600 bg-[#F8FAFC] border-slate-200',
       sub: 'Refunded/Void',
