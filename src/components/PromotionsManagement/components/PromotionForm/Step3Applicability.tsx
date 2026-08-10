@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../../../api/axios';
 import { Promotion } from '../../types/promotion.types';
-import {
-  DUMMY_SERVICES,
-  DUMMY_BRANDS,
-  DUMMY_MODELS,
-  DUMMY_CUSTOMERS,
-  VEHICLE_TYPES,
-  FUEL_TYPES,
-  TRANSMISSIONS,
-  CITIES,
-  EMIRATES,
-  PAYMENT_METHODS,
-} from '../../data/dummyPromotions';
+import { TRANSMISSIONS, PAYMENT_METHODS } from '../../data/dummyPromotions';
 import { Wrench, Car, MapPin, Users, CreditCard, X, Check, Loader2 } from 'lucide-react';
 
 interface Step3Props {

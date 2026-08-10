@@ -1,6 +1,6 @@
 import { 
   LayoutDashboard, Users, Wrench, FileText, 
-  CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight, Car
+  CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight, Car, MessageSquare
 } from 'lucide-react';
 import { useState } from 'react';
 import { SafeImage } from './common/SafeImage';
@@ -34,6 +34,7 @@ const MENU_ITEMS = [
     { id: 'report-users', label: 'User', icon: Users },
     { id: 'report-agents', label: 'Agent', icon: UserPlus },
     { id: 'report-revenue', label: 'Revenue', icon: CreditCard },
+    { id: 'support', label: 'Support', icon: MessageSquare },
   ]},
 ];
 

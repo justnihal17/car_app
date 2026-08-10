@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowLeft, Edit2, Copy, Tag, Calendar, ShieldAlert, CheckCircle2, Layers } from 'lucide-react';
 import { Promotion } from '../types/promotion.types';
 import { PromoTypeBadge, PromotionStatusBadge, DiscountBadge, PriorityBadge } from './PromotionBadges';
-import { DUMMY_SERVICES, DUMMY_BRANDS, DUMMY_CUSTOMERS } from '../data/dummyPromotions';
+
 
 interface PromotionDetailsViewProps {
   promotion: Promotion;
@@ -20,12 +20,12 @@ export function PromotionDetailsView({ promotion, onBack, onEdit }: PromotionDet
 
   const getServiceNames = (items: any[]) => {
     if (!items || items.length === 0) return 'Applicable to all services';
-    return items.map(item => typeof item === 'object' && item !== null ? item.name || item.title : DUMMY_SERVICES.find(s => s.id === item)?.name || item).filter(Boolean).join(', ');
+    return items.map(item => typeof item === 'object' && item !== null ? item.name || item.title || item._id : item).filter(Boolean).join(', ');
   };
 
   const getBrandNames = (items: any[]) => {
     if (!items || items.length === 0) return 'Applicable to all vehicle brands';
-    return items.map(item => typeof item === 'object' && item !== null ? item.name || item.title : DUMMY_BRANDS.find(b => b.id === item)?.name || item).filter(Boolean).join(', ');
+    return items.map(item => typeof item === 'object' && item !== null ? item.name || item.title || item._id : item).filter(Boolean).join(', ');
   };
 
   return (

@@ -504,16 +504,20 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           );
           return;
         }
-      } catch (error) {
-        toast.error('Failed to verify service dependencies. Please try again.');
-        return;
+      } catch (error: any) {
+        if (error.response?.status === 404 || error.response?.data?.message === 'Service not found') {
+          // No subservices found, safe to delete. Ignore error and proceed.
+        } else {
+          toast.error('Failed to verify service dependencies. Please try again.');
+          return;
+        }
       }
     }
     if (moduleName.toLowerCase() === 'brand' || moduleName.toLowerCase() === 'make') {
       try {
         let modelList: any[] = [];
         try {
-          const response = await api.get('/master/model/admin');
+          const response = await api.get('/master/model/admin?limit=1000');
           const payload = response.data?.data || response.data;
           if (Array.isArray(payload)) {
             modelList = payload;
@@ -525,7 +529,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
             }
           }
         } catch (e) {
-          const response = await api.get('/master/model');
+          const response = await api.get('/master/model?limit=1000');
           const payload = response.data?.data || response.data;
           if (Array.isArray(payload)) modelList = payload;
           else if (payload) modelList = payload.models || payload.list || [];
@@ -564,15 +568,19 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           );
           return;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to verify brand model dependencies', error);
+        if (error.response?.status !== 404 && error.response?.status !== 400) {
+          toast.error('Failed to verify brand dependencies. Please try again.');
+          return;
+        }
       }
     }
     if (moduleName.toLowerCase() === 'emirate' || moduleName.toLowerCase() === 'state') {
       try {
         let cityList: any[] = [];
         try {
-          const response = await api.get('/master/city/admin');
+          const response = await api.get('/master/city/admin?limit=1000');
           const payload = response.data?.data || response.data;
           if (Array.isArray(payload)) {
             cityList = payload;
@@ -584,7 +592,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
             }
           }
         } catch (e) {
-          const response = await api.get('/master/city');
+          const response = await api.get('/master/city?limit=1000');
           const payload = response.data?.data || response.data;
           if (Array.isArray(payload)) cityList = payload;
           else if (payload) cityList = payload.cities || payload.list || [];
@@ -623,8 +631,12 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           );
           return;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to verify emirate city dependencies', error);
+        if (error.response?.status !== 404 && error.response?.status !== 400) {
+          toast.error('Failed to verify emirate dependencies. Please try again.');
+          return;
+        }
       }
     }
     setDeleteModal({ isOpen: true, id, name });
@@ -1191,7 +1203,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                           fileInputRef.current?.click();
                         }
                       }}
-                      className={`w-16 shrink-0 bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${moduleName.toLowerCase() === 'banner' ? 'h-8 w-[83px] rounded-sm' : 'h-16 rounded-full'} ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
+                      className={`w-16 shrink-0 bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${moduleName.toLowerCase() === 'banner' ? 'h-8 w-20.75 rounded-sm' : 'h-16 rounded-full'} ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
                     >
                       {(photo || editingItem.image) ? (
                         <SafeImage src={photo || editingItem.image} className="w-full h-full object-cover" alt="Preview" />

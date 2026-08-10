@@ -97,6 +97,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const seenNotificationIdsRef = useRef<Set<string>>(new Set());
   const isInitializingRef = useRef(false);
 
+  const isFirstFetchRef = useRef(true);
+
   // Sync Notifications List & Unread Count from Backend
   const fetchBackendNotifications = useCallback(async (params = {}) => {
     const res = await notificationService.fetchNotifications(params);
@@ -104,10 +106,93 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setUnreadCount(res.unreadCount);
     setPagination(res.pagination);
 
+    const newNotifications: any[] = [];
+
     // Track seen IDs for deduplication
     res.notifications.forEach((item: any) => {
       const itemId = item.id || item._id || item.notificationId;
-      if (itemId) seenNotificationIdsRef.current.add(itemId);
+      if (itemId) {
+        if (!seenNotificationIdsRef.current.has(itemId)) {
+          if (!isFirstFetchRef.current && !item.isRead && !item.read) {
+            newNotifications.push(item);
+          }
+          seenNotificationIdsRef.current.add(itemId);
+        }
+      }
+    });
+
+    isFirstFetchRef.current = false;
+
+    // Trigger toast for new notifications fetched via polling
+    newNotifications.forEach(notif => {
+      const title = notif.title || 'New Notification';
+      const body = notif.message || notif.body || '';
+      
+      const eventType = (notif.type || '').toUpperCase();
+      const isHighPriority = eventType === 'ORDER_CREATED' || eventType === 'CUSTOMER_CANCELLED' || eventType === 'PAYMENT_FAILED' || title.toLowerCase().includes('order');
+
+      // Dispatch to Redux Store for real-time header bell update
+      import('../store/store').then(({ store }) => {
+        import('../store/notificationSlice').then(({ fetchNotifications }) => {
+          store.dispatch(fetchNotifications());
+        });
+      });
+
+      toast.custom(
+        (t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-in slide-in-from-top-5 fade-in zoom-in-95 duration-300' : 'animate-out slide-out-to-top-5 fade-out zoom-out-95 duration-200'
+            } max-w-sm w-full bg-white text-slate-800 shadow-[0_20px_60px_-15px_rgba(220,38,38,0.25)] rounded-2xl pointer-events-auto flex flex-col border border-slate-100 p-5 space-y-4 relative overflow-hidden`}
+          >
+            {/* Elegant Accent */}
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500 to-red-600 shadow-sm" />
+            
+            <div className="flex items-start justify-between relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center border border-red-100 shadow-inner shrink-0">
+                    <span className="text-xl">🔔</span>
+                  </div>
+                  <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-ping" />
+                  <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-base font-bold text-slate-900 leading-tight tracking-wide">{title}</h4>
+                  <p className="text-sm text-slate-500 mt-1 leading-relaxed font-medium line-clamp-2">{body}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full p-2 transition-all cursor-pointer shrink-0 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-3 pt-2 relative z-10 border-t border-slate-50">
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  const targetOrderId = notif.entityId || notif.referenceId;
+                  if (targetOrderId || (notif.actionUrl && notif.actionUrl.includes('orders'))) {
+                     window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId: targetOrderId } }));
+                     if (targetOrderId) {
+                       setTimeout(() => {
+                         window.dispatchEvent(new CustomEvent('select_order', { detail: targetOrderId }));
+                       }, 300);
+                     }
+                  }
+                }}
+                className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-red-500/20 text-center cursor-pointer hover:-translate-y-0.5"
+              >
+                View Order
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: 8000, position: 'top-center' }
+      );
     });
 
     setLastSyncTime(new Date().toLocaleTimeString());
@@ -328,35 +413,38 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId } }));
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('select_order', { detail: orderId }));
-      }, 100);
+      }, 300);
     }
   }, []);
 
-  // Real-time Event Listeners for Tab Visibility & Online Network Sync
+  // Real-time Event Listeners for Tab Visibility & Online Network Sync & Polling
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && status === 'enabled') {
-        console.log('[FCM Sync] Tab regained focus - Synchronizing notifications with backend...');
+      if (document.visibilityState === 'visible') {
+        console.log('[Sync] Tab regained focus - Synchronizing notifications...');
         fetchBackendNotifications();
       }
     };
 
     const handleOnline = () => {
-      console.log('[FCM Sync] Network reconnected - Flushing offline read queue...');
+      console.log('[Sync] Network reconnected - Flushing offline read queue...');
       flushOfflineQueue();
-      if (status === 'enabled') {
-        fetchBackendNotifications();
-      }
+      fetchBackendNotifications();
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('online', handleOnline);
 
+    const pollInterval = setInterval(() => {
+      fetchBackendNotifications();
+    }, 10000);
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('online', handleOnline);
+      clearInterval(pollInterval);
     };
-  }, [status, fetchBackendNotifications, flushOfflineQueue]);
+  }, [fetchBackendNotifications, flushOfflineQueue]);
 
   // Set up Foreground Listener & SW Message Listener (ONCE for Provider)
   useEffect(() => {
@@ -377,12 +465,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const body = payload.notification?.body || payload.data?.body || 'A new customer order has been created.';
 
 
-      const orderNumber = payload.data?.orderNumber || payload.data?.order_number || payload.data?.orderId || payload.data?.id || 'New Order';
+      const orderNumber = payload.data?.orderNumber || payload.data?.order_number || payload.data?.referenceId || payload.data?.orderId || payload.data?.id || 'New Order';
       const customerName = payload.data?.customerName || payload.data?.customer || 'Customer';
       const vehicle = payload.data?.vehicle || payload.data?.car || 'Vehicle';
       const service = payload.data?.service || 'Service';
       const amount = payload.data?.amount ? `₹${payload.data.amount}` : '';
-      const orderId = payload.data?.orderId || payload.data?.id || '';
+      const orderId = payload.data?.orderId || payload.data?.id || payload.data?.referenceId || payload.data?.orderNumber || payload.data?.order_number || '';
       const deepLink = payload.data?.deepLink || payload.data?.url || '';
       const eventType = (payload.data?.type || payload.data?.eventType || '').toUpperCase();
 
@@ -424,70 +512,77 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         (t) => (
           <div
             className={`${
-              t.visible ? 'animate-enter' : 'animate-leave'
-            } max-w-md w-full bg-white text-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl pointer-events-auto flex flex-col border border-slate-100 p-4 space-y-3 ring-1 ring-slate-900/5 relative overflow-hidden`}
+              t.visible ? 'animate-in slide-in-from-top-5 fade-in zoom-in-95 duration-300' : 'animate-out slide-out-to-top-5 fade-out zoom-out-95 duration-200'
+            } max-w-sm w-full bg-white text-slate-800 shadow-[0_20px_60px_-15px_rgba(220,38,38,0.25)] rounded-2xl pointer-events-auto flex flex-col border border-slate-100 p-5 space-y-4 relative overflow-hidden`}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-red-600" />
+            {/* Elegant Accent */}
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500 to-red-600 shadow-sm" />
             
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold text-lg border border-red-100 shadow-sm shrink-0">
-                  🔔
+            <div className="flex items-start justify-between relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center border border-red-100 shadow-inner shrink-0">
+                    <span className="text-xl">🔔</span>
+                  </div>
+                  <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-ping" />
+                  <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 leading-snug">{title}</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">{body}</p>
+                <div className="flex-1">
+                  <h4 className="text-base font-bold text-slate-900 leading-tight tracking-wide">{title}</h4>
+                  <p className="text-sm text-slate-500 mt-1 leading-relaxed font-medium line-clamp-2">{body}</p>
                 </div>
               </div>
               <button
                 onClick={() => toast.dismiss(t.id)}
-                className="text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg text-xs p-1.5 font-bold transition-colors cursor-pointer shrink-0"
+                className="text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full p-2 transition-all cursor-pointer shrink-0 ml-2"
               >
                 ✕
               </button>
             </div>
 
-            <div className="bg-slate-50/80 rounded-xl p-3 text-xs space-y-2 border border-slate-100">
-              <div className="flex justify-between items-center gap-4">
-                <span className="text-slate-500 font-medium whitespace-nowrap">Order #:</span>
-                <span className="font-bold text-slate-900 break-words text-right">{orderNumber}</span>
-              </div>
-              <div className="flex justify-between items-center gap-4">
-                <span className="text-slate-500 font-medium whitespace-nowrap">Customer:</span>
-                <span className="font-semibold text-slate-700 break-words text-right">{customerName}</span>
-              </div>
-              <div className="flex justify-between items-center gap-4">
-                <span className="text-slate-500 font-medium whitespace-nowrap">Vehicle / Service:</span>
-                <span className="font-semibold text-slate-700 break-words text-right">{vehicle} • {service}</span>
-              </div>
-              {amount && (
-                <div className="flex justify-between items-center pt-2 mt-1 border-t border-slate-200">
-                  <span className="text-slate-500 font-medium">Total Amount:</span>
-                  <span className="font-bold text-emerald-600 text-sm">{amount}</span>
+            {orderNumber && orderNumber !== 'New Order' && (
+              <div className="bg-slate-50/80 rounded-xl p-3 text-xs space-y-2 border border-slate-100 relative z-10">
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-slate-500 font-medium whitespace-nowrap">Order #:</span>
+                  <span className="font-bold text-slate-900 wrap-break-words text-right">{orderNumber}</span>
                 </div>
-              )}
-            </div>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-slate-500 font-medium whitespace-nowrap">Customer:</span>
+                  <span className="font-semibold text-slate-700 wrap-break-words text-right">{customerName}</span>
+                </div>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-slate-500 font-medium whitespace-nowrap">Vehicle / Service:</span>
+                  <span className="font-semibold text-slate-700 wrap-break-words text-right">{vehicle} • {service}</span>
+                </div>
+                {amount && (
+                  <div className="flex justify-between items-center pt-2 mt-1 border-t border-slate-200">
+                    <span className="text-slate-500 font-medium">Total Amount:</span>
+                    <span className="font-bold text-emerald-600 text-sm">{amount}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2 pt-1 relative z-10 border-t border-slate-50">
               <button
                 onClick={() => {
                   toast.dismiss(t.id);
                   navigateToOrder(orderId, deepLink);
                 }}
-                className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-red-500/20 text-center cursor-pointer active:scale-[0.98]"
+                className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-red-500/20 text-center cursor-pointer hover:-translate-y-0.5"
               >
                 View Order
               </button>
               <button
                 onClick={() => toast.dismiss(t.id)}
-                className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-600 font-semibold text-xs rounded-xl transition-all cursor-pointer border border-slate-200 hover:border-slate-300"
+                className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-600 font-semibold text-sm rounded-xl transition-all cursor-pointer border border-slate-200 hover:border-slate-300"
               >
                 Dismiss
               </button>
             </div>
           </div>
         ),
-        { duration: 10000 }
+        { duration: 8000, position: 'top-center' }
       );
     });
 

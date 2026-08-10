@@ -23,6 +23,7 @@ import { AgentRegistrationPage } from './AgentManagement/registration/AgentRegis
 import { RolePage, SkillPage, StatePage, CityPage, ServicePage, SubServicePage, BrandPage, ColorPage, MakePage, ModelPage, VehicleTypePage, FuelTypePage, BannerPage } from './MasterManagement/MasterViews';
 import { ProfileView } from './ProfileView';
 import { ReportsManager } from './ReportsManagement/ReportsManager';
+import { AdminSupportInbox } from './SupportChat/AdminSupportInbox';
 import { NotificationDeniedBanner } from './NotificationDeniedBanner';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 
@@ -148,6 +149,8 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
       case 'report-agents':
       case 'report-revenue':
         return <ReportsManager currentView={currentView} />;
+      case 'support':
+        return <AdminSupportInbox />;
       default:
         return (
           <div className="p-4 lg:p-6 2xl:p-content">

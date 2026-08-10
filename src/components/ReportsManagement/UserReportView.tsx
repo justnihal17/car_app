@@ -43,47 +43,6 @@ const CHART_COLORS = [
   '#0891b2', '#db2777', '#4f46e5', '#0d9488', '#ea580c'
 ];
 
-// Default category distribution data to ensure a chart ALWAYS renders immediately by default
-const DEFAULT_DISTRIBUTIONS: Record<string, { name: string; count: number }[]> = {
-  city: [
-    { name: 'Dubai', count: 42 },
-    { name: 'Abu Dhabi', count: 28 },
-    { name: 'Sharjah', count: 18 },
-    { name: 'Ajman', count: 9 },
-    { name: 'Ras Al Khaimah', count: 5 }
-  ],
-  state: [
-    { name: 'Dubai Emirate', count: 45 },
-    { name: 'Abu Dhabi Emirate', count: 30 },
-    { name: 'Sharjah Emirate', count: 22 },
-    { name: 'Northern Emirates', count: 12 }
-  ],
-  vehicleBrand: [
-    { name: 'Ford', count: 35 },
-    { name: 'Toyota', count: 29 },
-    { name: 'Nissan', count: 20 },
-    { name: 'BMW', count: 14 },
-    { name: 'Mercedes', count: 10 }
-  ],
-  vehicleModel: [
-    { name: 'Mustang', count: 28 },
-    { name: 'Corolla', count: 22 },
-    { name: 'Patrol', count: 19 },
-    { name: 'Civic', count: 15 },
-    { name: 'Camry', count: 11 }
-  ],
-  fuelType: [
-    { name: 'Petrol', count: 65 },
-    { name: 'Diesel', count: 25 },
-    { name: 'Electric', count: 8 },
-    { name: 'Hybrid', count: 6 }
-  ],
-  paymentMethod: [
-    { name: 'ONLINE', count: 55 },
-    { name: 'COD', count: 35 },
-    { name: 'WALLET', count: 15 }
-  ]
-};
 
 export function UserReportView() {
   const [draftFilters, setDraftFilters] = useState<FilterState>(INITIAL_FILTERS);
@@ -290,8 +249,8 @@ export function UserReportView() {
     const computed = Object.entries(map).map(([name, count]) => ({ name, count }));
     if (computed.length > 0) return computed;
 
-    // Fallback 2: Default chart data to ensure a default chart ALWAYS renders immediately
-    return DEFAULT_DISTRIBUTIONS[recordField] || [];
+    // Fallback to empty if no data exists
+    return [];
   };
 
   const byCityData = useMemo(() => getDistributionFor(customerData.byCity || customerData.cities, 'city'), [customerData, userRecords]);

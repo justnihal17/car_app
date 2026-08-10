@@ -154,12 +154,12 @@ export function RevenueReportView() {
 
   // 6 Main KPI Cards matching User & Agent Report structure exactly
   const summaryCards = useMemo(() => {
-    const grossVal = summary.grossOrderValue ?? summary.grossValue ?? summary.totalGross ?? summary.grossRevenue ?? 128500;
-    const discountVal = summary.totalDiscount ?? summary.discount ?? summary.discounts ?? 12400;
-    const cashbackVal = summary.totalCashback ?? summary.cashback ?? 3500;
-    const taxVal = summary.totalTax ?? summary.tax ?? summary.vat ?? 6425;
+    const grossVal = summary.grossOrderValue ?? summary.grossValue ?? summary.totalGross ?? summary.grossRevenue ?? 0;
+    const discountVal = summary.totalDiscount ?? summary.discount ?? summary.discounts ?? 0;
+    const cashbackVal = summary.totalCashback ?? summary.cashback ?? 0;
+    const taxVal = summary.totalTax ?? summary.tax ?? summary.vat ?? 0;
     const netVal = summary.netRevenue ?? summary.netAmount ?? summary.totalRevenue ?? (grossVal - discountVal - cashbackVal);
-    const txCount = summary.totalTransactions ?? summary.transactions ?? summary.totalOrders ?? summary.total ?? 1420;
+    const txCount = summary.totalTransactions ?? summary.transactions ?? summary.totalOrders ?? summary.total ?? 0;
     const aovVal = summary.averageOrderValue ?? summary.avgOrderValue ?? summary.aov ?? (txCount ? Math.round(netVal / txCount) : 0);
 
     return [
@@ -218,51 +218,11 @@ export function RevenueReportView() {
     }).filter(i => i.count > 0 && i.name !== '' && i.name.toLowerCase() !== 'unknown');
   };
 
-  const DEFAULT_DISTRIBUTIONS: Record<string, { name: string; count: number }[]> = {
-    city: [
-      { name: 'Dubai', count: 54000 },
-      { name: 'Abu Dhabi', count: 32000 },
-      { name: 'Sharjah', count: 19500 },
-      { name: 'Ajman', count: 11000 },
-      { name: 'Ras Al Khaimah', count: 7500 },
-    ],
-    state: [
-      { name: 'Dubai Emirate', count: 56000 },
-      { name: 'Abu Dhabi Emirate', count: 34000 },
-      { name: 'Sharjah Emirate', count: 21000 },
-      { name: 'Northern Emirates', count: 13000 },
-    ],
-    brand: [
-      { name: 'Toyota', count: 38000 },
-      { name: 'Nissan', count: 29000 },
-      { name: 'Hyundai', count: 22000 },
-      { name: 'BMW', count: 19000 },
-      { name: 'Mercedes-Benz', count: 16000 },
-    ],
-    model: [
-      { name: 'Camry', count: 24000 },
-      { name: 'Patrol', count: 21000 },
-      { name: 'Corolla', count: 17000 },
-      { name: 'Elantra', count: 14000 },
-      { name: 'X5', count: 12000 },
-    ],
-    fuelType: [
-      { name: 'Petrol', count: 72000 },
-      { name: 'Diesel', count: 28000 },
-      { name: 'Hybrid', count: 16000 },
-      { name: 'Electric', count: 8000 },
-    ],
-    paymentMethod: [
-      { name: 'CARD', count: 84000 },
-      { name: 'CASH', count: 26000 },
-      { name: 'WALLET', count: 14000 },
-    ],
-  };
 
   const getDistributionFor = (reportArray: any[], recordField: string) => {
     const fromReport = parseDistribution(reportArray);
     if (fromReport.length > 0) return fromReport;
-    return DEFAULT_DISTRIBUTIONS[recordField] || [];
+    return [];
   };
 
   const byCityData = useMemo(() => getDistributionFor(revenueObj.byCity || revenueObj.cities, 'city'), [revenueObj]);

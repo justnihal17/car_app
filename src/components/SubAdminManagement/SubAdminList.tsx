@@ -339,9 +339,7 @@ export function SubAdminManagement() {
           >
             <Plus className="w-4 h-4 stroke-[2.5]" /> Create
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 font-bold rounded-xl shadow-xs transition-all hover:border-slate-300 text-sm">
-            <Download className="w-4 h-4 text-slate-500" /> Export
-          </button>
+
         </div>
       </div>
 

@@ -228,51 +228,11 @@ export function AgentReportView() {
     }).filter(i => i.count > 0 && i.name !== '' && i.name.toLowerCase() !== 'unknown');
   };
 
-  const DEFAULT_DISTRIBUTIONS: Record<string, { name: string; count: number }[]> = {
-    city: [
-      { name: 'Dubai', count: 42 },
-      { name: 'Abu Dhabi', count: 28 },
-      { name: 'Sharjah', count: 18 },
-      { name: 'Ajman', count: 9 },
-      { name: 'Ras Al Khaimah', count: 5 },
-    ],
-    state: [
-      { name: 'Dubai Emirate', count: 45 },
-      { name: 'Abu Dhabi Emirate', count: 30 },
-      { name: 'Sharjah Emirate', count: 22 },
-      { name: 'Northern Emirates', count: 12 },
-    ],
-    order: [
-      { name: 'Agent Alpha', count: 36 },
-      { name: 'Agent Bravo', count: 24 },
-      { name: 'Agent Charlie', count: 18 },
-      { name: 'Agent Delta', count: 12 },
-      { name: 'Agent Echo', count: 8 },
-    ],
-    rating: [
-      { name: '5 Stars ⭐', count: 54 },
-      { name: '4 Stars ⭐', count: 32 },
-      { name: '3 Stars ⭐', count: 12 },
-      { name: '2 Stars ⭐', count: 3 },
-    ],
-    earnings: [
-      { name: 'Agent Alpha', count: 4200 },
-      { name: 'Agent Bravo', count: 3100 },
-      { name: 'Agent Charlie', count: 2400 },
-      { name: 'Agent Delta', count: 1800 },
-      { name: 'Agent Echo', count: 1200 },
-    ],
-    paymentMethod: [
-      { name: 'CARD', count: 68 },
-      { name: 'CASH', count: 24 },
-      { name: 'WALLET', count: 16 },
-    ],
-  };
 
   const getDistributionFor = (reportArray: any[], recordField: string) => {
     const fromReport = parseDistribution(reportArray);
     if (fromReport.length > 0) return fromReport;
-    return DEFAULT_DISTRIBUTIONS[recordField] || [];
+    return [];
   };
 
   const byCityData = useMemo(() => getDistributionFor(agentData.byCity || agentData.cities || [], 'city'), [agentData]);
