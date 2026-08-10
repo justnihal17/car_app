@@ -179,12 +179,10 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
                     <span className="text-slate-500 font-medium">Subtotal</span>
                     <span className="text-slate-700 font-bold">AED {order.estimated_amount || order.final_amount}</span>
                   </div>
-                  {order.tax_amount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Tax</span>
-                      <span className="text-slate-700 font-bold">AED {order.tax_amount}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500 font-medium">VAT ({order.tax_rate || 5}%)</span>
+                    <span className="text-slate-700 font-bold">AED {order.tax_amount != null ? Number(order.tax_amount).toFixed(2) : '0.00'}</span>
+                  </div>
                   {order.additional_service_amount > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500 font-medium">Additional</span>

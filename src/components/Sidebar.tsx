@@ -34,7 +34,6 @@ const MENU_ITEMS = [
     { id: 'report-users', label: 'User', icon: Users },
     { id: 'report-agents', label: 'Agent', icon: UserPlus },
     { id: 'report-revenue', label: 'Revenue', icon: CreditCard },
-    { id: 'support', label: 'Support', icon: MessageSquare },
   ]},
 ];
 

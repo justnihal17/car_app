@@ -437,7 +437,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     const pollInterval = setInterval(() => {
       fetchBackendNotifications();
-    }, 10000);
+    }, 2000); // Changed to 2 seconds for near-instant fallback polling
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -460,6 +460,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
       seenNotificationIdsRef.current.add(notifId);
       console.log("payload,",payload)
+
+      // Dispatch to Redux Store for real-time header bell update
+      import('../store/store').then(({ store }) => {
+        import('../store/notificationSlice').then(({ fetchNotifications }) => {
+          store.dispatch(fetchNotifications());
+        });
+      });
 
       const title = payload.notification?.title || payload.data?.title || 'New Order Received! 🚗';
       const body = payload.notification?.body || payload.data?.body || 'A new customer order has been created.';

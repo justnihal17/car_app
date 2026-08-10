@@ -85,9 +85,10 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     }
 
     if (searchInput.trim()) {
-      const q = searchInput.trim().toLowerCase();
+      const q = searchInput.trim().toLowerCase().replace(/^#/, '');
       result = result.filter(o => 
         (o.order_number || '').toLowerCase().includes(q) ||
+        (o.id || o._id || o.referenceId || o.orderId || '').toLowerCase().includes(q) ||
         (o.customer_id?.fullName || o.customer_id?.firstName || '').toLowerCase().includes(q) ||
         (o.customer_id?.phone || '').toLowerCase().includes(q)
       );
@@ -97,6 +98,13 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
       const pStatus = (filters.payment || '').toLowerCase();
       result = result.filter(o => (o.payment_status || '').toLowerCase() === pStatus);
     }
+
+    // Always sort by newest first
+    result.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.created_at || a.date || 0).getTime();
+      const dateB = new Date(b.createdAt || b.created_at || b.date || 0).getTime();
+      return dateB - dateA;
+    });
 
     return result;
   }, [orders, activeTab, searchInput, filters.payment]);
@@ -330,6 +338,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                       </td>
                       <td className="px-4 2xl:px-5 py-3 2xl:py-4">
                         <div className="font-semibold text-slate-900">AED {order.final_amount}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Incl. VAT: AED {order.tax_amount != null ? Number(order.tax_amount).toFixed(2) : '0.00'}</div>
                         <div className="text-[10px] 2xl:text-xs font-medium mt-1 flex items-center gap-1.5">
                           <span className={`px-1.5 py-0.5 rounded text-[9px] 2xl:text-[10px] font-bold uppercase ${PAYMENT_BADGE_COLORS[paymentStatus] || 'bg-slate-100 text-slate-500'}`}>
                             {paymentStatus}
