@@ -174,7 +174,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
               <button
                 onClick={() => {
                   toast.dismiss(t.id);
-                  const targetOrderId = notif.entityId || notif.referenceId;
+                  let notifPayload: any = {};
+                  try {
+                    notifPayload = typeof notif.payload === 'string' ? JSON.parse(notif.payload) : (notif.payload || {});
+                  } catch (e) {}
+                  
+                  const targetOrderId = notif.entityId || notif.referenceId || notifPayload.orderId || notifPayload.order_id || (notif.actionUrl && notif.actionUrl.includes('orders/') ? notif.actionUrl.split('orders/')[1] : null);
+
                   if (targetOrderId || (notif.actionUrl && notif.actionUrl.includes('orders'))) {
                      window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId: targetOrderId } }));
                      if (targetOrderId) {

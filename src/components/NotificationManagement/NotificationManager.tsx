@@ -287,7 +287,11 @@ export function NotificationManager() {
                                   dispatch(markAsRead(notif.id));
                                   if (notif.actionUrl === '/orders' || notif.actionUrl?.includes('orders')) {
                                     window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders' } }));
-                                    const targetId = notif.entityId || notif.referenceId;
+                                    let payloadData: any = {};
+                                    try {
+                                      payloadData = typeof notif.payload === 'string' ? JSON.parse(notif.payload) : (notif.payload || {});
+                                    } catch (e) {}
+                                    const targetId = notif.entityId || notif.referenceId || payloadData.orderId || payloadData.order_id || (notif.actionUrl?.includes('orders/') ? notif.actionUrl.split('orders/')[1] : null);
                                     if (targetId) {
                                       setTimeout(() => {
                                         window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));

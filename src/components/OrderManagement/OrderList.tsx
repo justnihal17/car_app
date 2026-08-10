@@ -38,6 +38,15 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     dispatch(fetchLiveOverview());
   }, [dispatch, filters]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (filters.search !== searchInput) {
+        dispatch(setFilters({ search: searchInput, page: 1 }));
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput, dispatch, filters.search]);
+
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
     let status = '';

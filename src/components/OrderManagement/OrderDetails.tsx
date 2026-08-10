@@ -104,9 +104,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
               <User className="w-4 h-4" /> Assign Agent
             </button>
           )}
-          <button className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:text-slate-950 transition-all text-sm shadow-sm hover:shadow flex items-center gap-2">
-            <FileText className="w-4 h-4 text-slate-500" /> Invoice
-          </button>
+
           {orderStatus !== 'cancelled' && orderStatus !== 'completed' && (
             <button 
               onClick={() => setIsCancelModalOpen(true)}
@@ -137,7 +135,13 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
                 )}
                 <div>
                   <div className="font-extrabold text-slate-900 text-lg tracking-tight">{capitalize(srv?.serviceId?.name || 'Unknown')}</div>
-                  <div className="text-sm text-slate-500 font-medium">{capitalize(srv?.subServiceId?.name)} • <span className="text-slate-700">{srv?.duration} mins</span></div>
+                  {(srv?.subServiceId?.name || (srv?.duration && Number(srv.duration) > 0)) ? (
+                    <div className="text-sm text-slate-500 font-medium">
+                      {capitalize(srv?.subServiceId?.name)}
+                      {srv?.subServiceId?.name && srv?.duration && Number(srv.duration) > 0 ? ' • ' : ''}
+                      {srv?.duration && Number(srv.duration) > 0 ? <span className="text-slate-700">{srv.duration} mins</span> : null}
+                    </div>
+                  ) : null}
                   {order.vehicle_id && (
                     <div className="text-xs font-bold text-slate-600 mt-2.5 bg-slate-100/80 inline-block px-3 py-1.5 rounded-lg border border-slate-200/60">
                       Vehicle ID: {order.vehicle_id.substring(order.vehicle_id.length - 6).toUpperCase()}
@@ -147,12 +151,16 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
               </div>
               <div className="space-y-3.5 pt-5 border-t border-slate-100/80">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">Scheduled Time</span>
-                  <span className="text-slate-900 font-bold">{order.scheduled_at ? new Date(order.scheduled_at).toLocaleString() : 'Not Scheduled'}</span>
+                  <span className="text-slate-500 font-medium">Booking Date</span>
+                  <span className="text-slate-900 font-bold">
+                    {order.booking_date ? new Date(order.booking_date).toLocaleDateString() : (order.scheduled_at ? new Date(order.scheduled_at).toLocaleDateString() : 'N/A')}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500 font-medium">Time Slot</span>
-                  <span className="text-slate-900 font-bold">{order.time_slot?.from ? `${order.time_slot.from} - ${order.time_slot.to}` : 'N/A'}</span>
+                  <span className="text-slate-900 font-bold">
+                    {order.time_slot?.from ? `${order.time_slot.from} - ${order.time_slot.to}` : (order.scheduled_at ? new Date(order.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A')}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500 font-medium shrink-0">Location</span>
