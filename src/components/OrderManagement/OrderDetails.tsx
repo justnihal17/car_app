@@ -128,8 +128,12 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
                 <div className="p-1.5 bg-slate-100 rounded-lg"><Car className="w-4 h-4 text-slate-600" /></div> Service Details
               </h3>
               <div className="flex items-start gap-4 mb-7">
-                {srv?.serviceId?.image ? (
-                  <SafeImage src={srv.serviceId.image} alt={srv.serviceId.name} className="w-16 h-16 rounded-2xl border border-slate-100 shadow-sm object-cover" />
+                {(srv?.serviceId?.image || srv?.image || srv?.serviceId?.icon || srv?.serviceId?.imageUrl) ? (
+                  <SafeImage 
+                    src={srv?.serviceId?.image || srv?.image || srv?.serviceId?.icon || srv?.serviceId?.imageUrl} 
+                    alt={srv?.serviceId?.name || 'Service'} 
+                    className="w-16 h-16 rounded-2xl border border-slate-100 shadow-sm object-cover" 
+                  />
                 ) : (
                   <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 text-xs font-medium shadow-inner">IMG</div>
                 )}

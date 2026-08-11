@@ -104,11 +104,6 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
       );
     }
 
-    if (filters.payment) {
-      const pStatus = (filters.payment || '').toLowerCase();
-      result = result.filter(o => (o.payment_status || '').toLowerCase() === pStatus);
-    }
-
     // Always sort by newest first
     result.sort((a, b) => {
       const dateA = new Date(a.createdAt || a.created_at || a.date || 0).getTime();
@@ -117,7 +112,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     });
 
     return result;
-  }, [orders, activeTab, searchInput, filters.payment]);
+  }, [orders, activeTab, searchInput]);
 
   const statCards = [
     {
@@ -242,34 +237,19 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
         <div className="p-5 border-b border-slate-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
           <form onSubmit={handleSearch} className="flex items-center gap-3 flex-1">
             <div className="relative w-full max-w-md group">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500 transition-colors" />
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
               <input 
                 type="text" 
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search by Order ID..." 
-                className="bg-slate-50 border border-slate-200 text-sm text-slate-800 placeholder-slate-400 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 focus:bg-white w-full transition-all"
+                className="bg-slate-50 border border-slate-200 text-sm text-slate-800 placeholder-slate-400 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-slate-300 focus:shadow-md focus:bg-white w-full transition-all"
               />
             </div>
-            <button type="button" className="p-2.5 bg-white border border-slate-200 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2 text-sm px-4 shadow-sm hover:shadow">
-              <Filter className="w-4 h-4" />
-              <span className="hidden sm:inline font-medium">Filters</span>
+            <button type="submit" className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all flex items-center gap-2 text-sm px-6 shadow-sm hover:shadow-md">
+              <span className="hidden sm:inline font-bold">Search</span>
             </button>
           </form>
-          
-          <div className="flex items-center gap-3 text-sm">
-            <select 
-              value={filters.payment || ''} 
-              onChange={(e) => dispatch(setFilters({ payment: e.target.value, page: 1 }))}
-              className="bg-white border border-slate-200 text-slate-700 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all shadow-sm text-xs font-medium cursor-pointer hover:bg-slate-50 appearance-none"
-              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.5em 1.5em`, paddingRight: `2.5rem` }}
-            >
-              <option value="">Payment: All</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-            </select>
-          </div>
         </div>
 
         {/* Data Table */}

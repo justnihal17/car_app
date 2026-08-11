@@ -5,30 +5,33 @@ import { fetchOrders } from '../store/orderSlice';
 import { WelcomeSection } from './WelcomeSection';
 import { KpiCards } from './KpiCards';
 import { LiveOrderOverview } from './LiveOrderOverview';
-import { UserWorkspace } from './UserManagement/UserWorkspace';
-import { UserProfileWorkspace } from './UserManagement/UserProfileWorkspace';
 import { UserRegistrationPage } from './UserManagement/registration/UserRegistrationPage';
-import { DriverList } from './DriverManagement/DriverList';
-import { DriverDetails } from './DriverManagement/DriverDetails';
-import { OrderList } from './OrderManagement/OrderList';
-import { OrderDetails } from './OrderManagement/OrderDetails';
-import { SettingsManager } from './SettingsManagement/SettingsManager';
-import { HelpCentre } from './HelpCentre';
-import { PaymentManager } from './PaymentManagement/PaymentManager';
-import { NotificationManager } from './NotificationManagement/NotificationManager';
-import { SubAdminManagement } from './SubAdminManagement/SubAdminList';
-import { AgentWorkspace } from './AgentManagement/AgentWorkspace';
-import { AgentProfileWorkspace } from './AgentManagement/AgentProfileWorkspace';
 import { AgentRegistrationPage } from './AgentManagement/registration/AgentRegistrationPage';
 import { RolePage, SkillPage, StatePage, CityPage, ServicePage, SubServicePage, BrandPage, ColorPage, MakePage, ModelPage, VehicleTypePage, FuelTypePage, BannerPage } from './MasterManagement/MasterViews';
 import { ProfileView } from './ProfileView';
-import { ReportsManager } from './ReportsManagement/ReportsManager';
 import { NotificationDeniedBanner } from './NotificationDeniedBanner';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-
-import React from 'react';
+import React, { Suspense } from 'react';
 import { StatsShimmer } from './shimmer/ShimmerLoader';
+
+// Lazy load heavy modules
+const UserWorkspace = React.lazy(() => import('./UserManagement/UserWorkspace').then(m => ({ default: m.UserWorkspace })));
+const UserProfileWorkspace = React.lazy(() => import('./UserManagement/UserProfileWorkspace').then(m => ({ default: m.UserProfileWorkspace })));
+const DriverList = React.lazy(() => import('./DriverManagement/DriverList').then(m => ({ default: m.DriverList })));
+const DriverDetails = React.lazy(() => import('./DriverManagement/DriverDetails').then(m => ({ default: m.DriverDetails })));
+const OrderList = React.lazy(() => import('./OrderManagement/OrderList').then(m => ({ default: m.OrderList })));
+const OrderDetails = React.lazy(() => import('./OrderManagement/OrderDetails').then(m => ({ default: m.OrderDetails })));
+const SettingsManager = React.lazy(() => import('./SettingsManagement/SettingsManager').then(m => ({ default: m.SettingsManager })));
+const HelpCentre = React.lazy(() => import('./HelpCentre').then(m => ({ default: m.HelpCentre })));
+const PaymentManager = React.lazy(() => import('./PaymentManagement/PaymentManager').then(m => ({ default: m.PaymentManager })));
+const NotificationManager = React.lazy(() => import('./NotificationManagement/NotificationManager').then(m => ({ default: m.NotificationManager })));
+const SubAdminManagement = React.lazy(() => import('./SubAdminManagement/SubAdminList').then(m => ({ default: m.SubAdminManagement })));
+const AgentWorkspace = React.lazy(() => import('./AgentManagement/AgentWorkspace').then(m => ({ default: m.AgentWorkspace })));
+const AgentProfileWorkspace = React.lazy(() => import('./AgentManagement/AgentProfileWorkspace').then(m => ({ default: m.AgentProfileWorkspace })));
+const ReportsManager = React.lazy(() => import('./ReportsManagement/ReportsManager').then(m => ({ default: m.ReportsManager })));
 const PromotionsModule = React.lazy(() => import('./PromotionsManagement/PromotionsModule'));
+
+
 
 export function DashboardContent({ currentView, onViewChange }: { currentView: string; onViewChange: (view: string) => void }) {
   const dispatch = useDispatch<AppDispatch>();
@@ -160,7 +163,9 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
 
   return (
     <div className="flex-1 w-full min-h-[calc(100vh-3.5rem)] 2xl:min-h-[calc(100vh-4rem)]">
-      {renderContent()}
+      <Suspense fallback={<div className="p-8 flex justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-red-500 rounded-full animate-spin"></div></div>}>
+        {renderContent()}
+      </Suspense>
     </div>
   );
 }

@@ -2,22 +2,18 @@ import { useState, useRef, useEffect } from 'react';
 import { Search, Bell, MessageSquare, Moon, Globe, ChevronRight, LogOut, Settings as SettingsIcon, ChevronDown, Check, CheckCircle2, Circle } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
-import { markAsRead, markAllAsRead, fetchNotifications } from '../store/notificationSlice';
+import { usePushNotifications } from '../context/NotificationContext';
 import { SafeImage } from './common/SafeImage';
 import { formatDistanceToNow } from 'date-fns';
 
 export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCollapsed: boolean, onViewChange: (view: string) => void, onLogout: () => void }) {
   const dispatch = useDispatch<AppDispatch>();
-  const { notifications, unreadCount } = useSelector((state: RootState) => state.notifications);
+  const { notifications, unreadCount, markRead, markAllRead } = usePushNotifications();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    dispatch(fetchNotifications());
-  }, [dispatch]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -33,7 +29,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
   }, []);
 
   const handleNotificationClick = (id: string, actionUrl?: string, referenceId?: string, entityId?: string) => {
-    dispatch(markAsRead(id));
+    markRead(id);
     setIsNotifOpen(false);
     
     if (actionUrl) {
@@ -90,7 +86,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
                 <h3 className="font-bold text-slate-900">Notifications</h3>
                 {unreadCount > 0 && (
                   <button 
-                    onClick={() => dispatch(markAllAsRead())}
+                    onClick={() => markAllRead()}
                     className="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 transition-colors"
                   >
                     <Check className="w-3.5 h-3.5" />

@@ -146,7 +146,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             } max-w-sm w-full bg-white text-slate-800 shadow-[0_20px_60px_-15px_rgba(220,38,38,0.25)] rounded-2xl pointer-events-auto flex flex-col border border-slate-100 p-5 space-y-4 relative overflow-hidden`}
           >
             {/* Elegant Accent */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500 to-red-600 shadow-sm" />
+            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-red-500 to-red-600 shadow-sm" />
             
             <div className="flex items-start justify-between relative z-10">
               <div className="flex items-center gap-4">
@@ -179,7 +179,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                     notifPayload = typeof notif.payload === 'string' ? JSON.parse(notif.payload) : (notif.payload || {});
                   } catch (e) {}
                   
-                  const targetOrderId = notif.entityId || notif.referenceId || notifPayload.orderId || notifPayload.order_id || (notif.actionUrl && notif.actionUrl.includes('orders/') ? notif.actionUrl.split('orders/')[1] : null);
+                  const targetOrderId = notif.entityId || notif.referenceId || notif.entity_id || notif.reference_id || notifPayload._id || notifPayload.orderId || notifPayload.order_id || notifPayload.referenceId || notifPayload.reference_id || notifPayload.entityId || notifPayload.entity_id || (notif.actionUrl && notif.actionUrl.includes('orders/') ? notif.actionUrl.split('orders/')[1] : null);
 
                   if (targetOrderId || (notif.actionUrl && notif.actionUrl.includes('orders'))) {
                      window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId: targetOrderId } }));
@@ -442,8 +442,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     window.addEventListener('online', handleOnline);
 
     const pollInterval = setInterval(() => {
-      fetchBackendNotifications();
-    }, 2000); // Changed to 2 seconds for near-instant fallback polling
+      if (!document.hidden) {
+        fetchBackendNotifications();
+      }
+    }, 15000); // 15 seconds fallback polling (FCM push handles instant notifications)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -483,7 +485,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const vehicle = payload.data?.vehicle || payload.data?.car || 'Vehicle';
       const service = payload.data?.service || 'Service';
       const amount = payload.data?.amount ? `₹${payload.data.amount}` : '';
-      const orderId = payload.data?.orderId || payload.data?.id || payload.data?.referenceId || payload.data?.orderNumber || payload.data?.order_number || '';
+      const orderId = payload.data?._id || payload.data?.orderId || payload.data?.order_id || payload.data?.id || payload.data?.referenceId || payload.data?.reference_id || payload.data?.entityId || payload.data?.entity_id || payload.data?.orderNumber || payload.data?.order_number || '';
       const deepLink = payload.data?.deepLink || payload.data?.url || '';
       const eventType = (payload.data?.type || payload.data?.eventType || '').toUpperCase();
 
@@ -529,7 +531,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             } max-w-sm w-full bg-white text-slate-800 shadow-[0_20px_60px_-15px_rgba(220,38,38,0.25)] rounded-2xl pointer-events-auto flex flex-col border border-slate-100 p-5 space-y-4 relative overflow-hidden`}
           >
             {/* Elegant Accent */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500 to-red-600 shadow-sm" />
+            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-red-500 to-red-600 shadow-sm" />
             
             <div className="flex items-start justify-between relative z-10">
               <div className="flex items-center gap-4">
