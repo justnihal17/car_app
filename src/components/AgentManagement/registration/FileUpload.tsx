@@ -1,16 +1,29 @@
 import React, { useState, useRef } from 'react';
 import { Upload, User } from 'lucide-react';
 import { SafeImage } from '../../common/SafeImage';
+import { ImageCropModal } from '../../common/ImageCropModal';
 
 export function FileUpload({ name, label }: { name: string; label: string }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Crop state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawSelectedFile, setRawSelectedFile] = useState<File | null>(null);
+  const [rawPreviewUrl, setRawPreviewUrl] = useState<string | null>(null);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selected = e.target.files[0];
-      setPreviewUrl(URL.createObjectURL(selected));
+      setRawSelectedFile(selected);
+      setRawPreviewUrl(URL.createObjectURL(selected));
+      setCropModalOpen(true);
+      e.target.value = '';
     }
+  };
+
+  const handleCropComplete = (croppedFile: File, croppedPreviewUrl: string) => {
+    setPreviewUrl(croppedPreviewUrl);
   };
 
   return (
@@ -32,6 +45,20 @@ export function FileUpload({ name, label }: { name: string; label: string }) {
         <span className="text-[11px] text-slate-400 font-medium mt-1">PNG, JPG or WEBP up to 5MB</span>
       </div>
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        aspectRatio={1}
+        isCircular={false}
+        onClose={() => {
+          setCropModalOpen(false);
+          setRawSelectedFile(null);
+          setRawPreviewUrl(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

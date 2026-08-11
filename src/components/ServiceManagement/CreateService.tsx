@@ -92,6 +92,29 @@ export function CreateService({
     });
   };
 
+  const handleFileSelect = (file: File) => {
+    setRawSelectedFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    setRawPreviewUrl(objectUrl);
+    setCropModalOpen(true);
+  };
+
+  const handleCropComplete = async (croppedFile: File, croppedPreviewUrl: string) => {
+    setUploadingImage(true);
+    try {
+      setImagePreview(croppedPreviewUrl);
+      const url = await uploadImage(croppedFile);
+      handleInputChange('image', url);
+      toast.success('Image cropped and uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image. Please try again.');
+      setImagePreview(null);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleImageUpload = async (file: File) => {
     setUploadingImage(true);
     try {
@@ -246,7 +269,7 @@ export function CreateService({
                       onChange={(e) => {
                         if (e.target.files?.[0]) {
                           const file = e.target.files[0];
-                          handleImageUpload(file);
+                          handleFileSelect(file);
                           e.target.value = '';
                         }
                       }}
@@ -556,29 +579,12 @@ export function CreateService({
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
                   <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Service Preview</h3>
 
-                  <div className="flex items-start gap-6">
-                    <div className="w-32 h-32 bg-[#0f1218] rounded-xl border border-slate-700 flex flex-col items-center justify-center shrink-0">
-                      {imagePreview ? (
-                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                      ) : (
-                        <span className="text-slate-500 text-xs">No Image</span>
-                      )}
-                    </div>
-                    <div className="space-y-4 flex-1">
-                      <div>
-                        <h4 className="text-xl font-bold text-white mb-1">{formData.name || 'Untitled Service'}</h4>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-emerald-400 font-medium">AED {formData.price || '0.00'}</span>
-                          <span className="text-slate-500">•</span>
-                          <span className="text-slate-400">{formData.duration || '45'} Mins</span>
-                          <span className="text-slate-500">•</span>
-                          <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-xs">{formData.category}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-slate-400 leading-relaxed max-w-xl">
-                        {formData.detailedDescription || 'Premium service with reliable delivery and quality support.'}
-                      </p>
-                    </div>
+                  <div className="flex justify-center md:justify-start">
+                    <ServiceCard
+                      image={imagePreview || undefined}
+                      title={formData.name || 'Untitled Service'}
+                      className="w-full sm:w-[340px]"
+                    />
                   </div>
                 </div>
 

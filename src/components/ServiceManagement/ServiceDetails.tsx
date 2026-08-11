@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { getAdminSubServicesByServiceId } from '../../services/subServiceService';
 import { SafeImage } from '../common/SafeImage';
+import { ServiceCard } from '../common/ServiceCard';
 
 function normalizeService(item: any) {
   const rawPrice = item.price ?? item.amount ?? 0;
@@ -163,7 +164,7 @@ export function ServiceDetails({ serviceId, onBack }: { serviceId: string; onBac
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg flex items-start gap-6">
-            <SafeImage src={service.image} alt={service.name} className="w-32 h-32 rounded-xl border border-slate-700 object-cover" />
+            <ServiceCard image={service.image} title={service.name} className="w-48 shrink-0" />
             <div className="flex-1">
               <h2 className="text-3xl font-bold text-white mb-2">{service.name}</h2>
               <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">

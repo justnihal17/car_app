@@ -9,11 +9,27 @@ import { Save, X, Calendar as CalendarIcon, User, Mail, Phone, Upload } from 'lu
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { SafeImage } from '../../common/SafeImage';
+import { ImageCropModal } from '../../common/ImageCropModal';
 
 export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Crop state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawSelectedFile, setRawSelectedFile] = useState<File | null>(null);
+  const [rawPreviewUrl, setRawPreviewUrl] = useState<string | null>(null);
+
+  const handleFileSelect = (file: File) => {
+    setRawSelectedFile(file);
+    setRawPreviewUrl(URL.createObjectURL(file));
+    setCropModalOpen(true);
+  };
+
+  const handleCropComplete = (croppedFile: File, croppedPreviewUrl: string) => {
+    setUserPhoto(croppedPreviewUrl);
+  };
 
   const form = useForm<UserRegistrationFormValues>({
     resolver: zodResolver(userRegistrationSchema),
@@ -126,7 +142,8 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
                 className="hidden" 
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
-                    setUserPhoto(URL.createObjectURL(e.target.files[0]));
+                    handleFileSelect(e.target.files[0]);
+                    e.target.value = '';
                   }
                 }} 
               />
@@ -215,6 +232,20 @@ export function UserRegistrationPage({ onViewChange }: { onViewChange: (view: st
           <ProfilePreview formData={formData} />
         </div>
       </div>
+
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        aspectRatio={1}
+        isCircular={false}
+        onClose={() => {
+          setCropModalOpen(false);
+          setRawSelectedFile(null);
+          setRawPreviewUrl(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

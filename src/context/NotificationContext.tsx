@@ -260,8 +260,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
         nativeNotif.onclick = () => {
           window.focus();
-          if (deepLink) {
-            window.dispatchEvent(new CustomEvent('navigate_url', { detail: { url: deepLink } }));
+          const targetOrderId = deepLink && deepLink.includes('orders/') ? deepLink.split('orders/')[1] : undefined;
+          window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId: targetOrderId } }));
+          if (targetOrderId) {
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('select_order', { detail: targetOrderId }));
+            }, 150);
           }
         };
       } catch (err) {
@@ -413,13 +417,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   // Helper to Navigate to Order Details or Deep Link
   const navigateToOrder = useCallback((orderId?: string, deepLink?: string) => {
-    if (deepLink) {
-      window.dispatchEvent(new CustomEvent('navigate_url', { detail: { url: deepLink } }));
-    } else if (orderId) {
-      window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId } }));
+    console.log('[Navigation] Navigating to order from notification popup:', { orderId, deepLink });
+
+    let targetId = (orderId && orderId !== 'New Order') ? orderId : undefined;
+    if (!targetId && deepLink && deepLink.includes('orders/')) {
+      targetId = deepLink.split('orders/')[1];
+    }
+
+    // Always navigate view to 'orders'
+    window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId: targetId } }));
+
+    // If we have a specific order ID, dispatch select_order to open Order Details modal/view
+    if (targetId) {
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('select_order', { detail: orderId }));
-      }, 300);
+        window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));
+      }, 150);
     }
   }, []);
 

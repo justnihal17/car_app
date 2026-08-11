@@ -197,7 +197,7 @@ export function ServiceManager() {
                   <tr key={service.id} className="hover:bg-slate-800/20 transition-colors group cursor-pointer" onClick={() => setSelectedService(service.id)}>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-4">
-                        <SafeImage src={service.image} alt={service.name} className="w-12 h-12 rounded-lg border border-slate-700 object-cover" />
+                        <SafeImage src={service.image} alt={service.name} className="w-16 aspect-video rounded-lg border border-slate-700 object-cover" />
                         <div>
                           <div className="font-medium text-white">{service.name}</div>
                           <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">

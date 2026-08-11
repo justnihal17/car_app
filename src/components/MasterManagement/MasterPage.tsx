@@ -1012,11 +1012,16 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                     return (
                       <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
                         {row.image && !hasError ? (
-                          <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 shadow-2xs mx-auto flex items-center justify-center bg-slate-50">
+                          <div className="w-14 aspect-video rounded-md overflow-hidden border border-slate-200 shadow-2xs mx-auto flex items-center justify-center bg-slate-900 relative">
                             <SafeImage 
                               src={row.image} 
                               alt={row.name} 
-                              className="w-full h-full object-contain" 
+                              className="absolute inset-0 w-full h-full object-cover blur-xs scale-110 opacity-50" 
+                            />
+                            <SafeImage 
+                              src={row.image} 
+                              alt={row.name} 
+                              className="relative z-10 w-full h-full object-contain" 
                               onError={() => setImgErrors(prev => ({ ...prev, [row.id]: true }))}
                             />
                           </div>
@@ -1203,10 +1208,21 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                           fileInputRef.current?.click();
                         }
                       }}
-                      className={`w-16 shrink-0 bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${moduleName.toLowerCase() === 'banner' ? 'h-8 w-20.75 rounded-sm' : 'h-16 rounded-full'} ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
+                      className={`shrink-0 bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${moduleName.toLowerCase() === 'banner' ? 'h-9 w-23.4 rounded-md' : 'w-24 aspect-video rounded-lg'} ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
                     >
                       {(photo || editingItem.image) ? (
-                        <SafeImage src={photo || editingItem.image} className="w-full h-full object-cover" alt="Preview" />
+                        <div className="relative w-full h-full overflow-hidden flex items-center justify-center bg-slate-950">
+                          <SafeImage 
+                            src={photo || editingItem.image} 
+                            className="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-60" 
+                            alt="Blur Background" 
+                          />
+                          <SafeImage 
+                            src={photo || editingItem.image} 
+                            className="relative z-10 w-full h-full object-contain" 
+                            alt="Preview" 
+                          />
+                        </div>
                       ) : ['vehicletype', 'vehicle-type', 'make', 'model', 'brand'].includes(moduleName.toLowerCase()) ? (
                         <Car className="w-6 h-6 text-slate-400" />
                       ) : ['service', 'subservice', 'sub-service'].includes(moduleName.toLowerCase()) ? (
@@ -1448,8 +1464,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         isOpen={cropModalOpen}
         imageSrc={rawPreviewUrl}
         file={rawSelectedFile}
-        aspectRatio={moduleName.toLowerCase() === 'banner' ? 2.6 : 1}
-        isCircular={moduleName.toLowerCase() !== 'banner'}
+        aspectRatio={moduleName.toLowerCase() === 'banner' ? 2.4 : (16 / 9)}
+        outputWidth={moduleName.toLowerCase() === 'banner' ? 1200 : undefined}
+        outputHeight={moduleName.toLowerCase() === 'banner' ? 500 : undefined}
+        isCircular={false}
         onClose={() => {
           setCropModalOpen(false);
           setRawSelectedFile(null);
