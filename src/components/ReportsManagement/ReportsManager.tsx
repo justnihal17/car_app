@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Filter, MapPin, SlidersHorizontal, Download, Play, PieChart, Users, DollarSign, Bell } from 'lucide-react';
-import { ExecutiveDashboard } from './ExecutiveDashboard';
-import { CustomReportBuilder } from './CustomReportBuilder';
-import { UserReportView } from './UserReportView';
-import { AgentReportView } from './AgentReportView';
-import { RevenueReportView } from './RevenueReportView';
+import React, { useState, useEffect, Suspense } from 'react';
+import { PieChart } from 'lucide-react';
+import { StatsShimmer } from '../shimmer/ShimmerLoader';
+
+// Lazy load report views — each pulls in recharts (~170KB), so they should only load on demand
+const ExecutiveDashboard = React.lazy(() => import('./ExecutiveDashboard').then(m => ({ default: m.ExecutiveDashboard })));
+const CustomReportBuilder = React.lazy(() => import('./CustomReportBuilder').then(m => ({ default: m.CustomReportBuilder })));
+const UserReportView = React.lazy(() => import('./UserReportView').then(m => ({ default: m.UserReportView })));
+const AgentReportView = React.lazy(() => import('./AgentReportView').then(m => ({ default: m.AgentReportView })));
+const RevenueReportView = React.lazy(() => import('./RevenueReportView').then(m => ({ default: m.RevenueReportView })));
 
 export function ReportsManager({ currentView }: { currentView?: string }) {
   const getTabFromView = (view?: string) => {
@@ -55,7 +58,10 @@ export function ReportsManager({ currentView }: { currentView?: string }) {
   return (
     <div className="p-4 md:px-8 md:pb-8 md:pt-2 max-w-7xl mx-auto space-y-4">
       {/* Content Area */}
-      {renderContent()}
+      <Suspense fallback={<StatsShimmer />}>
+        {renderContent()}
+      </Suspense>
     </div>
   );
 }
+

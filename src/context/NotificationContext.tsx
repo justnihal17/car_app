@@ -30,6 +30,7 @@ export interface NotificationContextType {
   fetchBackendNotifications: (params?: { page?: number; limit?: number; status?: string; type?: string }) => Promise<void>;
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
+  navigateToOrder: (orderId?: string, deepLink?: string) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
@@ -656,6 +657,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         fetchBackendNotifications,
         markRead,
         markAllRead,
+        navigateToOrder,
       }}
     >
       {children}

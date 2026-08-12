@@ -5,16 +5,31 @@ import { fetchOrders } from '../store/orderSlice';
 import { WelcomeSection } from './WelcomeSection';
 import { KpiCards } from './KpiCards';
 import { LiveOrderOverview } from './LiveOrderOverview';
-import { UserRegistrationPage } from './UserManagement/registration/UserRegistrationPage';
-import { AgentRegistrationPage } from './AgentManagement/registration/AgentRegistrationPage';
-import { RolePage, SkillPage, StatePage, CityPage, ServicePage, SubServicePage, BrandPage, ColorPage, MakePage, ModelPage, VehicleTypePage, FuelTypePage, BannerPage } from './MasterManagement/MasterViews';
-import { ProfileView } from './ProfileView';
 import { NotificationDeniedBanner } from './NotificationDeniedBanner';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import React, { Suspense } from 'react';
 import { StatsShimmer } from './shimmer/ShimmerLoader';
 
-// Lazy load heavy modules
+// Lazy load all route-level modules (none of these are needed for initial Dashboard render)
+const UserRegistrationPage = React.lazy(() => import('./UserManagement/registration/UserRegistrationPage').then(m => ({ default: m.UserRegistrationPage })));
+const AgentRegistrationPage = React.lazy(() => import('./AgentManagement/registration/AgentRegistrationPage').then(m => ({ default: m.AgentRegistrationPage })));
+const ProfileView = React.lazy(() => import('./ProfileView').then(m => ({ default: m.ProfileView })));
+
+// Master Management pages (all share MasterPage ~1480 lines — Rollup groups them into one chunk)
+const RolePage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.RolePage })));
+const SkillPage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.SkillPage })));
+const StatePage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.StatePage })));
+const CityPage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.CityPage })));
+const ServicePage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.ServicePage })));
+const SubServicePage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.SubServicePage })));
+const BrandPage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.BrandPage })));
+const ColorPage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.ColorPage })));
+const MakePage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.MakePage })));
+const ModelPage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.ModelPage })));
+const VehicleTypePage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.VehicleTypePage })));
+const FuelTypePage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.FuelTypePage })));
+const BannerPage = React.lazy(() => import('./MasterManagement/MasterViews').then(m => ({ default: m.BannerPage })));
+
 const UserWorkspace = React.lazy(() => import('./UserManagement/UserWorkspace').then(m => ({ default: m.UserWorkspace })));
 const UserProfileWorkspace = React.lazy(() => import('./UserManagement/UserProfileWorkspace').then(m => ({ default: m.UserProfileWorkspace })));
 const DriverList = React.lazy(() => import('./DriverManagement/DriverList').then(m => ({ default: m.DriverList })));

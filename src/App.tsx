@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { LogOut, Trash2 } from "lucide-react";
 import { Sidebar } from "./components/Sidebar";
 import { Header } from "./components/Header";
 import { DashboardContent } from "./components/DashboardContent";
 import { LoginPage } from "./components/auth/LoginPage";
-import { NotificationPanel } from "./components/NotificationPanel";
-import { MessagePanel } from "./components/MessagePanel";
-import { EditProfileModal } from "./components/EditProfileModal";
 import { ConfirmationModal } from "./components/ConfirmationModal";
 import { useUIStore } from "./store/uiStore";
 import api from "./api/axios";
@@ -14,6 +11,11 @@ import { Toaster } from "react-hot-toast";
 import { notificationService } from "./services/notification.service";
 import { NotificationProvider } from "./context/NotificationContext";
 import { NotificationPermissionGuard } from "./components/NotificationPermissionGuard";
+
+// Lazy-load overlay panels (only rendered when user opens them)
+const NotificationPanel = React.lazy(() => import("./components/NotificationPanel").then(m => ({ default: m.NotificationPanel })));
+const MessagePanel = React.lazy(() => import("./components/MessagePanel").then(m => ({ default: m.MessagePanel })));
+const EditProfileModal = React.lazy(() => import("./components/EditProfileModal").then(m => ({ default: m.EditProfileModal })));
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -130,9 +132,11 @@ export default function App() {
               },
             }}
           />
-      {isNotificationOpen && <NotificationPanel onClose={toggleNotification} />}
-      {isMessageOpen && <MessagePanel onClose={toggleMessage} />}
-      {isEditProfileOpen && <EditProfileModal />}
+      <Suspense fallback={null}>
+        {isNotificationOpen && <NotificationPanel onClose={toggleNotification} />}
+        {isMessageOpen && <MessagePanel onClose={toggleMessage} />}
+        {isEditProfileOpen && <EditProfileModal />}
+      </Suspense>
       <Sidebar 
         collapsed={collapsed} 
         setCollapsed={setCollapsed} 

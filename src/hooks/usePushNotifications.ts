@@ -1,1 +1,1 @@
-export * from './usePushNotifications.tsx';
+export { usePushNotifications } from '../context/NotificationContext';
