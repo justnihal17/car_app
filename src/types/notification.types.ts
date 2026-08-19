@@ -20,6 +20,7 @@ export interface AppNotification {
   referenceId?: string; // e.g. ORD000109 (display string)
   entityId?: string; // e.g. MongoDB ObjectId
   actionUrl?: string; // Deep link to related record
+  payload?: any; // Extra payload data
 }
 
 export interface NotificationState {

@@ -67,7 +67,7 @@ function patchFile() {
                     <ServiceCard
                       image={imagePreview || undefined}
                       title={formData.name || 'Untitled Service'}
-                      className="w-full sm:w-[340px]"
+                      className="w-full sm:w-85"
                     />
                   </div>`;
   content = content.replace(previewRegex, newPreview);

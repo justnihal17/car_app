@@ -43,6 +43,7 @@ const NotificationManager = React.lazy(() => import('./NotificationManagement/No
 const SubAdminManagement = React.lazy(() => import('./SubAdminManagement/SubAdminList').then(m => ({ default: m.SubAdminManagement })));
 const AgentWorkspace = React.lazy(() => import('./AgentManagement/AgentWorkspace').then(m => ({ default: m.AgentWorkspace })));
 const AgentProfileWorkspace = React.lazy(() => import('./AgentManagement/AgentProfileWorkspace').then(m => ({ default: m.AgentProfileWorkspace })));
+const SubscriptionManagement = React.lazy(() => import('./SubscriptionManagement').then(m => ({ default: m.SubscriptionManagement })));
 const ReportsManager = React.lazy(() => import('./ReportsManagement/ReportsManager').then(m => ({ default: m.ReportsManager })));
 const PromotionsModule = React.lazy(() => import('./PromotionsManagement/PromotionsModule'));
 
@@ -143,12 +144,20 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
             <PromotionsModule />
           </React.Suspense>
         );
+      case 'subscriptions':
+      case 'subscription':
+        return (
+          <React.Suspense fallback={<StatsShimmer />}>
+            <SubscriptionManagement />
+          </React.Suspense>
+        );
       case 'drivers':
         if (selectedDriverId) {
           return <DriverDetails driverId={selectedDriverId} onBack={() => setSelectedDriverId(null)} />;
         }
         return <DriverList onDriverSelect={setSelectedDriverId} />;
       case 'orders':
+      case 'order':
         if (selectedOrderId) {
           return <OrderDetails orderId={selectedOrderId} onBack={() => setSelectedOrderId(null)} />;
         }

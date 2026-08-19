@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Clock, MapPin, User, Car, CheckCircle, FileText, XCircle, CreditCard, Star, Phone, Mail, Award, Activity, Edit2 } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, User, Car, CheckCircle, FileText, XCircle, CreditCard, Star, Phone, Mail, Award, Activity, Edit2, Camera, X as CloseIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { fetchOrderById, clearSelectedOrder } from '../../store/orderSlice';
@@ -30,6 +30,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     dispatch(fetchOrderById(orderId));
@@ -99,7 +100,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
           {orderStatus === 'pending' && (
             <button 
               onClick={() => setIsAssignModalOpen(true)}
-              className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold rounded-xl text-sm shadow-lg shadow-red-500/25 transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
+              className="px-5 py-2.5 bg-linear-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold rounded-xl text-sm shadow-lg shadow-red-500/25 transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
             >
               <User className="w-4 h-4" /> Assign Agent
             </button>
@@ -168,7 +169,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500 font-medium shrink-0">Location</span>
-                  <span className="text-slate-900 font-bold text-right truncate max-w-[200px]" title={order.pickup_location?.address}>{order.pickup_location?.address || 'N/A'}</span>
+                  <span className="text-slate-900 font-bold text-right truncate max-w-50" title={order.pickup_location?.address}>{order.pickup_location?.address || 'N/A'}</span>
                 </div>
               </div>
             </div>
@@ -255,6 +256,46 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
               )}
             </div>
           )}
+
+          {/* Service Completion Photos */}
+          {order.completionPhotos?.length > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
+              <h3 className="text-sm font-extrabold text-slate-800 tracking-wider mb-5 flex items-center gap-2.5">
+                <div className="p-1.5 bg-emerald-50 rounded-lg"><Camera className="w-4 h-4 text-emerald-600" /></div>
+                Service Completion Photos
+                <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">{order.completionPhotos.length} Photo{order.completionPhotos.length > 1 ? 's' : ''}</span>
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {order.completionPhotos.map((photo: any, idx: number) => (
+                  <button
+                    key={photo.public_id || idx}
+                    onClick={() => setLightboxIndex(idx)}
+                    className="relative group aspect-square rounded-xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-200 cursor-pointer"
+                  >
+                    <SafeImage
+                      src={photo.url}
+                      alt={`Completion photo ${idx + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all duration-200 flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 rounded-full p-1.5 shadow">
+                        <Camera className="w-3.5 h-3.5 text-slate-700" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-1.5 right-1.5 bg-slate-900/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                      {idx + 1}/{order.completionPhotos.length}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {order.completionPhotos[0]?.uploadedAt && (
+                <p className="text-xs text-slate-400 font-medium mt-4 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  Uploaded on {new Date(order.completionPhotos[order.completionPhotos.length - 1]?.uploadedAt).toLocaleString()}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar - Timeline & Profiles */}
@@ -262,7 +303,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
           
           {/* Order Timeline */}
           {history.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 max-h-[420px] overflow-y-auto custom-scrollbar hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 max-h-150 overflow-y-auto custom-scrollbar hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
               <h3 className="text-sm font-extrabold text-slate-800 tracking-wider mb-7 flex items-center gap-2.5">
                 <div className="p-1.5 bg-slate-100 rounded-lg"><Activity className="w-4 h-4 text-slate-600" /></div> Timeline
               </h3>
@@ -398,6 +439,58 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
         onClose={() => setIsAssignModalOpen(false)} 
         order={order} 
       />
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && order.completionPhotos?.length > 0 && (
+        <div
+          className="fixed inset-0 z-[9999] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <button
+            onClick={() => setLightboxIndex(null)}
+            className="absolute top-5 right-5 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors border border-white/20 backdrop-blur-sm"
+          >
+            <CloseIcon className="w-5 h-5" />
+          </button>
+          {lightboxIndex > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1); }}
+              className="absolute left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors border border-white/20 backdrop-blur-sm"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          {lightboxIndex < order.completionPhotos.length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1); }}
+              className="absolute right-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors border border-white/20 backdrop-blur-sm"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
+          <div className="flex flex-col items-center gap-4 max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+            <SafeImage
+              src={order.completionPhotos[lightboxIndex]?.url}
+              alt={`Completion photo ${lightboxIndex + 1}`}
+              className="max-h-[80vh] max-w-full rounded-2xl object-contain shadow-2xl ring-1 ring-white/10"
+            />
+            <div className="flex items-center gap-3">
+              {order.completionPhotos.map((_: any, idx: number) => (
+                <button
+                  key={idx}
+                  onClick={() => setLightboxIndex(idx)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    idx === lightboxIndex ? 'bg-white scale-125' : 'bg-white/40 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="text-white/60 text-sm font-medium">
+              {lightboxIndex + 1} / {order.completionPhotos.length}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -30,7 +30,7 @@ export function FileUpload({ name, label }: { name: string; label: string }) {
     <div className="space-y-2">
       <div 
         onClick={() => fileInputRef.current?.click()} 
-        className="border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-gradient-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs cursor-pointer hover:shadow-md hover:shadow-red-500/5"
+        className="border-2 border-dashed border-blue-200 hover:border-red-500 rounded-2xl p-6 flex flex-col items-center justify-center bg-linear-to-b from-red-50/40 via-red-50/10 to-transparent transition-all group shadow-2xs cursor-pointer hover:shadow-md hover:shadow-red-500/5"
       >
         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-slate-200/80 shadow-md mb-3 overflow-hidden group-hover:scale-105 transition-all relative">
           {previewUrl ? (

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { LogOut, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { Header } from "./components/Header";
-import { DashboardContent } from "./components/DashboardContent";
+import { AppRoutes } from "./components/AppRoutes";
 import { LoginPage } from "./components/auth/LoginPage";
 import { ConfirmationModal } from "./components/ConfirmationModal";
 import { useUIStore } from "./store/uiStore";
@@ -22,11 +23,9 @@ export default function App() {
     return !!sessionStorage.getItem('accessToken');
   });
   const [collapsed, setCollapsed] = useState(false);
-  const [currentView, setCurrentView] = useState(() => {
-    return localStorage.getItem('currentView') || "dashboard";
-  });
   const { isNotificationOpen, isMessageOpen, isEditProfileOpen, toggleNotification, toggleMessage, toggleEditProfile } = useUIStore();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogoutRequest = () => {
     setIsLogoutModalOpen(true);
@@ -51,17 +50,11 @@ export default function App() {
     }
   };
 
-  const handleViewChange = (view: string) => {
-    setCurrentView(view);
-    localStorage.setItem('currentView', view);
-  };
-
   useEffect(() => {
     const handleNavigate = (e: any) => {
-      if (e.detail && typeof e.detail === 'string') {
-        handleViewChange(e.detail);
-      } else if (e.detail && typeof e.detail === 'object' && e.detail.view) {
-        handleViewChange(e.detail.view);
+      const view = typeof e.detail === 'string' ? e.detail : e.detail?.view;
+      if (view) {
+        navigate(view.startsWith('/') ? view : `/${view}`);
       }
     };
     const handleUnauthorized = () => {
@@ -81,7 +74,7 @@ export default function App() {
       window.removeEventListener('navigate_view', handleNavigate as EventListener);
       window.removeEventListener('auth_unauthorized', handleUnauthorized);
     };
-  }, []);
+  }, [navigate]);
 
   if (!isAuthenticated) {
     return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
@@ -140,23 +133,16 @@ export default function App() {
       <Sidebar 
         collapsed={collapsed} 
         setCollapsed={setCollapsed} 
-        currentView={currentView}
-        onViewChange={(view) => {
-          if (view === 'logout') {
-            handleLogoutRequest();
-          } else {
-            handleViewChange(view);
-          }
-        }}
+        onLogout={handleLogoutRequest}
       />
       
       <div 
         className={`transition-all duration-300 flex-1 w-full min-w-0 flex flex-col ${collapsed ? 'pl-20' : 'xl:pl-sidebar lg:pl-64 pl-sidebar'}`}
       >
-        <Header sidebarCollapsed={collapsed} onViewChange={handleViewChange} onLogout={handleLogoutRequest} />
+        <Header sidebarCollapsed={collapsed} onLogout={handleLogoutRequest} />
         <main className="pt-14 2xl:pt-header flex-1 w-full min-w-0">
           <div className="max-w-[1600px] mx-auto w-full">
-            <DashboardContent currentView={currentView} onViewChange={handleViewChange} />
+            <AppRoutes />
           </div>
         </main>
       </div>

@@ -41,7 +41,7 @@ export function RolesPermissions() {
       <div className="flex flex-col lg:flex-row gap-6">
         
         {/* Roles List */}
-        <div className="w-full lg:w-64 flex-shrink-0 space-y-2">
+        <div className="w-full lg:w-64 shrink-0 space-y-2">
           {roles.map(role => (
             <button
               key={role}

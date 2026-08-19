@@ -1012,16 +1012,11 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                     return (
                       <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
                         {row.image && !hasError ? (
-                          <div className="w-14 aspect-video rounded-md overflow-hidden border border-slate-200 shadow-2xs mx-auto flex items-center justify-center bg-slate-900 relative">
+                          <div className="w-14 aspect-video rounded-md overflow-hidden border border-slate-200 shadow-2xs mx-auto flex items-center justify-center bg-slate-50 relative">
                             <SafeImage 
                               src={row.image} 
                               alt={row.name} 
-                              className="absolute inset-0 w-full h-full object-cover blur-xs scale-110 opacity-50" 
-                            />
-                            <SafeImage 
-                              src={row.image} 
-                              alt={row.name} 
-                              className="relative z-10 w-full h-full object-contain" 
+                              className="w-full h-full object-cover" 
                               onError={() => setImgErrors(prev => ({ ...prev, [row.id]: true }))}
                             />
                           </div>
@@ -1211,15 +1206,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                       className={`shrink-0 bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${moduleName.toLowerCase() === 'banner' ? 'h-9 w-23.4 rounded-md' : 'w-24 aspect-video rounded-lg'} ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
                     >
                       {(photo || editingItem.image) ? (
-                        <div className="relative w-full h-full overflow-hidden flex items-center justify-center bg-slate-950">
+                        <div className="relative w-full h-full overflow-hidden flex items-center justify-center bg-slate-50">
                           <SafeImage 
                             src={photo || editingItem.image} 
-                            className="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-60" 
-                            alt="Blur Background" 
-                          />
-                          <SafeImage 
-                            src={photo || editingItem.image} 
-                            className="relative z-10 w-full h-full object-contain" 
+                            className="w-full h-full object-cover" 
                             alt="Preview" 
                           />
                         </div>

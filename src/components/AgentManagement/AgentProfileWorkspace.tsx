@@ -23,7 +23,7 @@ export function AgentProfileWorkspace({ agentId, onBack }: AgentProfileWorkspace
           </div>
         </div>
       </div>
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[400px]">
+      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-100">
         <div className="text-center text-slate-500">
           <p className="text-lg font-semibold">Agent Profile Under Construction</p>
           <p className="text-sm mt-2">The detailed profile view will be implemented soon.</p>

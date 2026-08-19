@@ -17,12 +17,14 @@ import {
 import { formatDistanceToNow, format } from 'date-fns';
 import { NotificationCategory, NotificationPriority, AppNotification } from '../../types/notification.types';
 import toast from 'react-hot-toast';
+import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
 
 export function NotificationManager() {
   const dispatch = useDispatch<AppDispatch>();
   const { notifications, unreadCount, filters, loading } = useSelector((state: RootState) => state.notifications);
   
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
 
   useEffect(() => {
     const params: { is_read?: boolean } = {};
@@ -125,15 +127,11 @@ export function NotificationManager() {
           </button>
           
           <button 
-            onClick={() => {
-              if(window.confirm('Are you sure you want to clear all notifications?')) {
-                dispatch(clearReadNotifications());
-                toast.success('All notifications cleared');
-              }
-            }}
-            className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold rounded-xl shadow-xs transition-all hover:border-slate-300 text-sm flex items-center gap-2"
+            onClick={() => setIsClearAllModalOpen(true)}
+            disabled={notifications.length === 0}
+            className="px-4 py-2.5 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 border border-slate-200 font-bold rounded-xl shadow-xs transition-all hover:border-slate-300 text-sm flex items-center gap-2 cursor-pointer"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 text-red-500" />
             Clear All
           </button>
           
@@ -202,7 +200,7 @@ export function NotificationManager() {
                 <Bell className="w-8 h-8 text-slate-300" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">No notifications found</h3>
-              <p className="text-sm text-slate-500 mt-1.5 max-w-[280px]">
+              <p className="text-sm text-slate-500 mt-1.5 max-w-70">
                 {notifications.length === 0 
                   ? 'New order, user, agent, payment, and system updates will appear here.'
                   : 'Try adjusting your filters or search query.'}
@@ -212,7 +210,7 @@ export function NotificationManager() {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-slate-50/80 text-slate-500 text-xs uppercase tracking-wider font-bold border-b border-slate-200/80">
-                  <th className="px-5 py-4 w-[60px] text-center">Status</th>
+                  <th className="px-5 py-4 w-15 text-center">Status</th>
                   <th className="px-5 py-4">Notification Details</th>
                   <th className="px-5 py-4">Time</th>
                   <th className="px-5 py-4 text-right">Actions</th>
@@ -233,12 +231,12 @@ export function NotificationManager() {
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top max-w-[400px]">
+                    <td className="px-5 py-4 align-top max-w-100">
                       <div className="flex flex-col gap-1">
                         <span className={`text-[15px] truncate ${notif.isRead ? 'font-semibold text-slate-700' : 'font-bold text-slate-900'}`}>
                           {notif.title}
                         </span>
-                        <span className={`text-sm whitespace-normal break-words line-clamp-2 ${notif.isRead ? 'text-slate-500' : 'text-slate-700 font-medium'}`}>
+                        <span className={`text-sm whitespace-normal wrap-break-words line-clamp-2 ${notif.isRead ? 'text-slate-500' : 'text-slate-700 font-medium'}`}>
                           {notif.message}
                         </span>
                         {notif.referenceId && (
@@ -285,13 +283,13 @@ export function NotificationManager() {
                               <button 
                                 onClick={() => {
                                   dispatch(markAsRead(notif.id));
-                                  if (notif.actionUrl === '/orders' || notif.actionUrl?.includes('orders')) {
-                                    window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders' } }));
+                                  if (notif.actionUrl === '/orders' || notif.actionUrl === '/order' || notif.actionUrl?.includes('orders') || notif.actionUrl?.includes('order')) {
+                                    window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'order' } }));
                                     let payloadData: any = {};
                                     try {
                                       payloadData = typeof notif.payload === 'string' ? JSON.parse(notif.payload) : (notif.payload || {});
                                     } catch (e) {}
-                                    const targetId = notif.entityId || notif.referenceId || payloadData.orderId || payloadData.order_id || (notif.actionUrl?.includes('orders/') ? notif.actionUrl.split('orders/')[1] : null);
+                                    const targetId = notif.entityId || notif.referenceId || payloadData.orderId || payloadData.order_id || (notif.actionUrl?.includes('orders/') ? notif.actionUrl.split('orders/')[1] : (notif.actionUrl?.includes('order/') ? notif.actionUrl.split('order/')[1] : null));
                                     if (targetId) {
                                       setTimeout(() => {
                                         window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));
@@ -312,12 +310,11 @@ export function NotificationManager() {
                             
                             <button 
                               onClick={() => {
-                                if(window.confirm('Are you sure you want to delete this notification?')) {
-                                  dispatch(deleteNotification(notif.id));
-                                }
+                                dispatch(deleteNotification(notif.id));
+                                toast.success('Notification deleted');
                                 setActiveMenu(null);
                               }}
-                              className="w-full text-left flex items-center px-3 py-2 text-sm text-slate-600 font-medium hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors group"
+                              className="w-full text-left flex items-center px-3 py-2 text-sm text-slate-600 font-medium hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors group cursor-pointer"
                             >
                               <Trash2 className="mr-2.5 w-4 h-4 text-red-500 group-hover:text-red-600" /> Delete
                             </button>
@@ -339,6 +336,20 @@ export function NotificationManager() {
           </div>
         )}
       </div>
+
+      {/* Clear All Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isClearAllModalOpen}
+        name="all notifications"
+        title="Clear All Notifications?"
+        description="Are you sure you want to clear all notifications? This action cannot be undone."
+        onCancel={() => setIsClearAllModalOpen(false)}
+        onConfirm={async () => {
+          await dispatch(clearReadNotifications());
+          toast.success('All notifications cleared');
+          setIsClearAllModalOpen(false);
+        }}
+      />
     </div>
   );
 }

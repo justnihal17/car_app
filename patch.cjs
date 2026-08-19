@@ -28,7 +28,7 @@ content = content.replace(
 // 5. Replace preview with ServiceCard
 content = content.replace(
   /<div className="flex items-start gap-6">[\s\S]*?<\/p>\s*<\/div>\s*<\/div>/,
-  '<div className="flex justify-center md:justify-start">\n                    <ServiceCard\n                      image={imagePreview || undefined}\n                      title={formData.name || \'Untitled Service\'}\n                      className="w-full sm:w-[340px]"\n                    />\n                  </div>'
+  '<div className="flex justify-center md:justify-start">\n                    <ServiceCard\n                      image={imagePreview || undefined}\n                      title={formData.name || \'Untitled Service\'}\n                      className="w-full sm:w-85"\n                    />\n                  </div>'
 );
 
 // 6. Append ImageCropModal

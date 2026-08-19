@@ -76,21 +76,8 @@ export function ImageCropModal({
     const cropWidth = completedCrop.width * scaleX;
     const cropHeight = completedCrop.height * scaleY;
 
-    let canvasWidth = outputWidth || cropWidth;
-    let canvasHeight = outputHeight || cropHeight;
-
-    if (!outputWidth && !outputHeight && aspectRatio) {
-      const cropAspect = cropWidth / cropHeight;
-      if (cropAspect > aspectRatio) {
-        // Crop is wider than target aspect, so canvas height needs to be taller
-        canvasWidth = cropWidth;
-        canvasHeight = cropWidth / aspectRatio;
-      } else {
-        // Crop is taller than target aspect, so canvas width needs to be wider
-        canvasHeight = cropHeight;
-        canvasWidth = cropHeight * aspectRatio;
-      }
-    }
+    const canvasWidth = outputWidth || cropWidth;
+    const canvasHeight = outputHeight || cropHeight;
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
@@ -98,51 +85,19 @@ export function ImageCropModal({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Use output dimensions directly without pixelRatio scaling to ensure exact file size
     ctx.imageSmoothingQuality = 'high';
 
-    // Calculate scaling to contain crop inside canvas
-    const containScale = Math.min(canvasWidth / cropWidth, canvasHeight / cropHeight);
-    const drawWidth = cropWidth * containScale;
-    const drawHeight = cropHeight * containScale;
-
-    // Calculate centered position
-    const drawX = (canvasWidth - drawWidth) / 2;
-    const drawY = (canvasHeight - drawHeight) / 2;
-
-    const needsPadding = Math.abs(canvasWidth - drawWidth) > 1 || Math.abs(canvasHeight - drawHeight) > 1;
-
-    if (needsPadding) {
-      // Draw blurred background
-      ctx.filter = 'blur(24px)';
-      ctx.drawImage(
-        img,
-        cropX,
-        cropY,
-        cropWidth,
-        cropHeight,
-        -20, // slight bleed to hide blur edges
-        -20,
-        canvasWidth + 40,
-        canvasHeight + 40
-      );
-      ctx.filter = 'none';
-      
-      // Add a slight dark overlay over the blur for better contrast
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    }
-
+    // Draw exact cropped area without any blur or padding
     ctx.drawImage(
       img,
       cropX,
       cropY,
       cropWidth,
       cropHeight,
-      drawX,
-      drawY,
-      drawWidth,
-      drawHeight
+      0,
+      0,
+      canvasWidth,
+      canvasHeight
     );
 
     canvas.toBlob((blob) => {
@@ -212,7 +167,7 @@ export function ImageCropModal({
               disabled={!completedCrop?.width || !completedCrop?.height}
               className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm hover:shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Check className="w-4 h-4" /> Apply / Save Crop
+              <Check className="w-4 h-4" /> Apply
             </button>
           </div>
         </div>

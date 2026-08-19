@@ -8,7 +8,7 @@ export function SkillChips() {
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-slate-700">Professional Skills</label>
-      <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[48px] focus-within:ring-2 focus-within:ring-red-500">
+      <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-12 focus-within:ring-2 focus-within:ring-red-500">
         {skills.map(skill => (
           <span key={skill} className="flex items-center gap-1 bg-white border border-blue-200 text-red-700 px-3 py-1 rounded-full text-sm shadow-sm">
             {skill} <X className="w-3 h-3 cursor-pointer" onClick={() => setSkills(skills.filter(s => s !== skill))} />

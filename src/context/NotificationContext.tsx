@@ -180,10 +180,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                     notifPayload = typeof notif.payload === 'string' ? JSON.parse(notif.payload) : (notif.payload || {});
                   } catch (e) {}
                   
-                  const targetOrderId = notif.entityId || notif.referenceId || notif.entity_id || notif.reference_id || notifPayload._id || notifPayload.orderId || notifPayload.order_id || notifPayload.referenceId || notifPayload.reference_id || notifPayload.entityId || notifPayload.entity_id || (notif.actionUrl && notif.actionUrl.includes('orders/') ? notif.actionUrl.split('orders/')[1] : null);
+                  const targetOrderId = notif.entityId || notif.referenceId || notif.entity_id || notif.reference_id || notifPayload._id || notifPayload.orderId || notifPayload.order_id || notifPayload.referenceId || notifPayload.reference_id || notifPayload.entityId || notifPayload.entity_id || (notif.actionUrl && notif.actionUrl.includes('orders/') ? notif.actionUrl.split('orders/')[1] : (notif.actionUrl && notif.actionUrl.includes('order/') ? notif.actionUrl.split('order/')[1] : null));
 
-                  if (targetOrderId || (notif.actionUrl && notif.actionUrl.includes('orders'))) {
-                     window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId: targetOrderId } }));
+                  if (targetOrderId || (notif.actionUrl && (notif.actionUrl.includes('orders') || notif.actionUrl.includes('order')))) {
+                     window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'order', orderId: targetOrderId } }));
                      if (targetOrderId) {
                        setTimeout(() => {
                          window.dispatchEvent(new CustomEvent('select_order', { detail: targetOrderId }));
@@ -261,8 +261,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
         nativeNotif.onclick = () => {
           window.focus();
-          const targetOrderId = deepLink && deepLink.includes('orders/') ? deepLink.split('orders/')[1] : undefined;
-          window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId: targetOrderId } }));
+          const targetOrderId = deepLink && deepLink.includes('orders/') ? deepLink.split('orders/')[1] : (deepLink && deepLink.includes('order/') ? deepLink.split('order/')[1] : undefined);
+          window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'order', orderId: targetOrderId } }));
           if (targetOrderId) {
             setTimeout(() => {
               window.dispatchEvent(new CustomEvent('select_order', { detail: targetOrderId }));
@@ -421,12 +421,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     console.log('[Navigation] Navigating to order from notification popup:', { orderId, deepLink });
 
     let targetId = (orderId && orderId !== 'New Order') ? orderId : undefined;
-    if (!targetId && deepLink && deepLink.includes('orders/')) {
+    if (deepLink && deepLink.includes('orders/')) {
       targetId = deepLink.split('orders/')[1];
+    } else if (deepLink && deepLink.includes('order/')) {
+      targetId = deepLink.split('order/')[1];
     }
 
-    // Always navigate view to 'orders'
-    window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders', orderId: targetId } }));
+    // Always navigate view to 'order'
+    window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'order', orderId: targetId } }));
 
     // If we have a specific order ID, dispatch select_order to open Order Details modal/view
     if (targetId) {

@@ -18,7 +18,7 @@ export function NotificationDashboard() {
         {kpis.map((kpi, idx) => {
           const Icon = kpi.icon;
           return (
-            <div key={idx} className={`bg-gradient-to-br ${kpi.bgGrad} p-5 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden group hover:-translate-y-1 transition-all duration-300`}>
+            <div key={idx} className={`bg-linear-to-br ${kpi.bgGrad} p-5 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden group hover:-translate-y-1 transition-all duration-300`}>
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-2.5 rounded-xl border ${kpi.iconBg} ${kpi.color}`}>
                   <Icon className="w-5 h-5" />
@@ -47,7 +47,7 @@ export function NotificationDashboard() {
           <div className="space-y-4">
             {NOTIFICATIONS.slice(0, 4).map((notif, idx) => (
               <div key={idx} className="flex gap-4 p-4 rounded-xl bg-slate-50/70 border border-slate-100 hover:bg-slate-100/80 transition-colors">
-                <div className={`mt-1.5 flex-shrink-0 w-2.5 h-2.5 rounded-full ${
+                <div className={`mt-1.5 shrink-0 w-2.5 h-2.5 rounded-full ${
                   notif.status === 'Delivered' ? 'bg-emerald-500 ring-4 ring-emerald-100' :
                   notif.status === 'Failed' ? 'bg-red-500 ring-4 ring-red-100' : 'bg-amber-500 ring-4 ring-amber-100'
                 }`} />

@@ -145,7 +145,7 @@ export function PromotionsTable({
                       </button>
 
                       {activeMenuId === rowId && (
-                        <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-[99] animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, promotions.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
+                        <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-99 animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, promotions.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
                           <button 
                             onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); onView(promo); }} 
                             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"

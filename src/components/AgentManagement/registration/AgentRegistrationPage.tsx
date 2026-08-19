@@ -20,7 +20,7 @@ export function AgentRegistrationPage() {
 
   return (
     <FormProvider {...methods}>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-[1300px] mx-auto p-8 space-y-8 bg-slate-50 min-h-screen">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-325 mx-auto p-8 space-y-8 bg-slate-50 min-h-screen">
         <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
             <span>Dashboard</span> <ChevronRight className="w-4 h-4" /> <span>Agent Management</span> <ChevronRight className="w-4 h-4" /> <span className="text-red-600 font-medium">Create Agent</span>
         </div>

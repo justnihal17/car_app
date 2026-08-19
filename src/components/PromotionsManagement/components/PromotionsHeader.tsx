@@ -30,7 +30,7 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
         </div>
         <button
           onClick={onCreateClick}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-linear-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Create Promotion
         </button>
@@ -40,7 +40,7 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-[90px] bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
+            <div key={i} className="h-22.5 bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
               <div className="flex justify-between items-center">
                 <div className="h-3 w-16 bg-slate-300 rounded" />
                 <div className="w-8 h-8 bg-slate-300 rounded-xl" />

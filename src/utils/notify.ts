@@ -65,9 +65,9 @@ export const triggerSystemNotification = (data: Omit<AppNotification, 'id' | 'cr
             <button
               onClick={() => {
                 toast.dismiss(t.id);
-                if (data.actionUrl === '/orders' || data.actionUrl?.includes('orders')) {
-                  window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'orders' } }));
-                  const targetId = data.entityId || data.referenceId;
+                if (data.actionUrl === '/orders' || data.actionUrl === '/order' || data.actionUrl?.includes('orders') || data.actionUrl?.includes('order')) {
+                  window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'order' } }));
+                  const targetId = data.entityId || data.referenceId || (data.actionUrl?.includes('orders/') ? data.actionUrl.split('orders/')[1] : (data.actionUrl?.includes('order/') ? data.actionUrl.split('order/')[1] : null));
                   if (targetId) {
                     setTimeout(() => {
                       window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));

@@ -310,12 +310,14 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           email: formData.email,
           phone: formData.phone,
           ...(formData.password ? { password: formData.password } : {}),
-          gender: formData.gender,
-          city: formData.city,
-          country: formData.country,
-          role: formData.role,
+          gender: formData.gender || 'Male',
+          city: formData.city || 'Dubai',
+          state: formData.emirate || 'Dubai',
+          emirate: formData.emirate || 'Dubai',
+          country: formData.country || 'UAE',
+          role: formData.role || 'service_agent',
           joiningDate: formData.joiningDate,
-          skills: selectedSkills,
+          skills: selectedSkills.length > 0 ? selectedSkills : ['Car Wash'],
           active: true,
           ...(finalProfileUrl ? { profileImage: finalProfileUrl, profileUrl: finalProfileUrl, imageUrl: finalProfileUrl } : {})
         };
@@ -367,6 +369,10 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       setEditingAgentId(agent.id);
       const editFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
       const editLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
+      const parsedSkills = parseSkillsArray(agent.skills);
+      const defaultEmirate = agent.emirate || agent.state || 'Dubai';
+      const defaultCity = agent.city || 'Dubai';
+      const defaultGender = agent.gender || 'Male';
       setFormData({
           fullName: agent.name || '',
           firstName: editFirstName,
@@ -375,17 +381,19 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           phone: agent.phone || '',
           employeeCode: agent.employeeCode || '',
           role: agent.role || 'service_agent',
-          gender: agent.gender || '',
+          gender: defaultGender,
           userId: agent.userId || '',
           password: '',
           confirmPassword: '',
-          city: agent.city || 'Delhi',
-          country: agent.country || 'India',
+          emirate: defaultEmirate,
+          city: defaultCity,
+          country: agent.country || 'UAE',
           joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
       });
-      setPhoto(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
-      setPhotoPreview(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
-      setSelectedSkills(parseSkillsArray(agent.skills));
+      const agentPhoto = agent.profileImage || agent.profileUrl || agent.imageUrl || null;
+      setPhoto(agentPhoto);
+      setPhotoPreview(agentPhoto);
+      setSelectedSkills(parsedSkills.length > 0 ? parsedSkills : (availableSkills.length > 0 ? [availableSkills[0]] : ['Car Wash']));
       setIsDrawerOpen(true);
   };
 
@@ -538,7 +546,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
         <div className="flex items-center gap-3">
           <button 
             onClick={openRegister} 
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm"
+            className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" /> Create
           </button>
@@ -550,7 +558,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-[90px] bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
+            <div key={i} className="h-22.5 bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
               <div className="flex justify-between items-center">
                 <div className="h-3 w-16 bg-slate-300 rounded" />
                 <div className="w-8 h-8 bg-slate-300 rounded-xl" />
@@ -621,10 +629,10 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           <table className="w-full text-sm text-left border-collapse">
             <thead className="bg-[#FFF] backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
               <tr className="bg-slate-50/50 border-b border-slate-200">
-                <th className="px-4 py-4 pl-6 text-left text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-xl w-[300px]">Agent Name</th>
-                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Phone</th>
-                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Status</th>
-                <th className="px-4 py-4 pr-6 text-right text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tr-xl w-[120px]">Actions</th>
+                <th className="px-4 py-4 pl-6 text-left text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-xl w-75">Agent Name</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-37.5">Phone</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-37.5">Status</th>
+                <th className="px-4 py-4 pr-6 text-right text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tr-xl w-30">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -645,7 +653,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 <tr key={agent.id} className="hover:bg-[#FEFEFE] transition-all duration-150 group cursor-pointer border-b border-slate-100 last:border-0" onClick={(e) => handleViewDrawer(e, agent)}>
                   <td className="px-4 py-4 pl-6 whitespace-nowrap">
                     <div className="flex items-center gap-2.5">
-                      <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(agent.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
+                      <div className={`w-8 h-8 shrink-0 rounded-full bg-linear-to-br ${getAvatarColor(agent.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
                         {(agent.profileImage || agent.profileUrl || agent.imageUrl) ? (
                           <SafeImage 
                             src={agent.profileImage || agent.profileUrl || agent.imageUrl} 
@@ -682,7 +690,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                       </button>
 
                     {openActionMenuId === agent.id && (
-                      <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-[99] animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedAgents.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
+                      <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-99 animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedAgents.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleViewDrawer(e, agent); }} 
                           className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
@@ -986,7 +994,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                     </div>
 
                     <div className="relative">
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password {drawerMode === "create" && <span className="text-red-500">*</span>}</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password {drawerMode === "register" && <span className="text-red-500">*</span>}</label>
                       <div className="relative">
                         <input 
                           type={showPassword ? "text" : "password"} 
@@ -1128,7 +1136,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 <button 
                   type="button" 
                   onClick={handleSubmit} 
-                  disabled={loading || !(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim() && formData.phone?.trim() && formData.gender?.trim() && formData.emirate?.trim() && formData.city?.trim() && selectedSkills.length > 0 && (drawerMode === 'edit' || Boolean(formData.password?.trim())))}
+                  disabled={loading || !(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim() && formData.phone?.trim() && (drawerMode === 'edit' || (Boolean(formData.gender?.trim()) && Boolean(formData.emirate?.trim()) && Boolean(formData.city?.trim()) && selectedSkills.length > 0 && Boolean(formData.password?.trim()))))}
                   className="flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
                 >
                   {loading ? (
@@ -1162,7 +1170,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       {/* Full Screen Image Modal */}
       {showImageModal && (photoPreview || photo) && (
         <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setShowImageModal(false)}
         >
           <div className="relative max-w-4xl max-h-[90vh] mx-4">

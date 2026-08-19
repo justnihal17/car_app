@@ -74,9 +74,9 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                     notifPayload = typeof n.payload === 'string' ? JSON.parse(n.payload) : (n.payload || {});
                   } catch (e) {}
                   
-                  const targetOrderId = n.entityId || n.referenceId || n.entity_id || n.reference_id || notifPayload._id || notifPayload.orderId || notifPayload.order_id || notifPayload.referenceId || notifPayload.reference_id || notifPayload.entityId || notifPayload.entity_id || (n.actionUrl && n.actionUrl.includes('orders/') ? n.actionUrl.split('orders/')[1] : null);
+                  const targetOrderId = n.entityId || n.referenceId || n.entity_id || n.reference_id || notifPayload._id || notifPayload.orderId || notifPayload.order_id || notifPayload.referenceId || notifPayload.reference_id || notifPayload.entityId || notifPayload.entity_id || (n.actionUrl && n.actionUrl.includes('orders/') ? n.actionUrl.split('orders/')[1] : (n.actionUrl && n.actionUrl.includes('order/') ? n.actionUrl.split('order/')[1] : null));
                   
-                  if (targetOrderId || (n.actionUrl && n.actionUrl.includes('orders'))) {
+                  if (targetOrderId || (n.actionUrl && (n.actionUrl.includes('orders') || n.actionUrl.includes('order')))) {
                     navigateToOrder(targetOrderId, n.actionUrl);
                     onClose();
                   }

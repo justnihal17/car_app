@@ -146,7 +146,7 @@ export function Step1BasicInfo({ formData, onChange, errors }: Step1Props) {
 
       {/* Promo Code (Only for Coupon) */}
       {formData.promoType === 'COUPON' && (
-        <div className="space-y-1.5 bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-2">
+        <div className="space-y-2 bg-blue-50/50 p-4 rounded-xl border border-blue-100 ">
           <label className="text-xs font-bold text-slate-800">
             Promo Code <span className="text-red-500">*</span>
           </label>

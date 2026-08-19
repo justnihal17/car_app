@@ -249,7 +249,7 @@ export function DriverDetails({ driverId, onBack }: { driverId: string, onBack: 
           )}
 
           {activeTab === 'live' && (
-            <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg flex flex-col h-[600px]">
+            <div className="bg-[#0f1218] p-6 rounded-xl border border-slate-800/60 shadow-lg flex flex-col h-150">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-white tracking-tight">Live Tracking</h2>
                 <div className="flex items-center gap-2">
@@ -335,17 +335,17 @@ export function DriverDetails({ driverId, onBack }: { driverId: string, onBack: 
             
             <div className="relative border-l border-slate-800/60 ml-3 space-y-6">
               <div className="relative pl-6">
-                <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-[#0f1218]"></div>
+                <div className="absolute -left-1.25 top-1 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-[#0f1218]"></div>
                 <div className="text-xs text-slate-500 mb-0.5">Today, 08:30 AM</div>
                 <div className="text-sm font-medium text-slate-200">Shift Started</div>
               </div>
               <div className="relative pl-6">
-                <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-slate-700 ring-4 ring-[#0f1218]"></div>
+                <div className="absolute -left-1.25 top-1 w-2.5 h-2.5 rounded-full bg-slate-700 ring-4 ring-[#0f1218]"></div>
                 <div className="text-xs text-slate-500 mb-0.5">Yesterday, 17:45 PM</div>
                 <div className="text-sm font-medium text-slate-200">Shift Ended</div>
               </div>
               <div className="relative pl-6">
-                <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-slate-700 ring-4 ring-[#0f1218]"></div>
+                <div className="absolute -left-1.25 top-1 w-2.5 h-2.5 rounded-full bg-slate-700 ring-4 ring-[#0f1218]"></div>
                 <div className="text-xs text-slate-500 mb-0.5">Yesterday, 15:20 PM</div>
                 <div className="text-sm font-medium text-slate-200">Completed Order ORD-1029</div>
               </div>

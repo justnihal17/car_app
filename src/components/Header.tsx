@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, Bell, MessageSquare, Moon, Globe, ChevronRight, LogOut, Settings as SettingsIcon, ChevronDown, Check, CheckCircle2, Circle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Bell, MessageSquare, Moon, Globe, ChevronRight, LogOut, Settings as SettingsIcon, ChevronDown, Check, CheckCircle2, Circle, Smartphone } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { usePushNotifications } from '../context/NotificationContext';
 import { SafeImage } from './common/SafeImage';
 import { formatDistanceToNow } from 'date-fns';
 
-export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCollapsed: boolean, onViewChange: (view: string) => void, onLogout: () => void }) {
+export function Header({ sidebarCollapsed, onLogout }: { sidebarCollapsed: boolean, onLogout: () => void }) {
+  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { notifications, unreadCount, markRead, markAllRead } = usePushNotifications();
   
@@ -33,16 +35,15 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
     setIsNotifOpen(false);
     
     if (actionUrl) {
-      if (actionUrl === '/orders' || actionUrl.includes('orders')) {
-        onViewChange('orders');
-        const targetId = entityId || referenceId;
+      if (actionUrl === '/orders' || actionUrl === '/order' || actionUrl.includes('orders') || actionUrl.includes('order')) {
+        const targetId = entityId || referenceId || (actionUrl.includes('orders/') ? actionUrl.split('orders/')[1] : (actionUrl.includes('order/') ? actionUrl.split('order/')[1] : null));
         if (targetId) {
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));
-          }, 100);
+          navigate(`/order/${targetId}`);
+        } else {
+          navigate('/order');
         }
       } else {
-        onViewChange(actionUrl);
+        navigate(actionUrl.startsWith('/') ? actionUrl : `/${actionUrl}`);
       }
     }
   };
@@ -65,6 +66,18 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
       </div>
 
       <div className="flex items-center gap-4 ml-4">
+        {/* App / Website Toggle */}
+        <div className="flex items-center bg-slate-200/70 p-1 rounded-xl border border-slate-200/80 h-9.5">
+          <button className="flex items-center gap-1.5 px-3.5 py-1 bg-white text-slate-900 rounded-lg text-xs 2xl:text-sm font-bold shadow-xs transition-all h-full">
+            <Smartphone className="w-4 h-4 text-red-600" />
+            App
+          </button>
+          <button className="flex items-center gap-1.5 px-3.5 py-1 text-slate-600 hover:text-slate-900 rounded-lg text-xs 2xl:text-sm font-semibold transition-all h-full">
+            <Globe className="w-4 h-4 text-slate-500" />
+            Website
+          </button>
+        </div>
+
         {/* Notifications Dropdown */}
         <div className="relative" ref={notifRef}>
           <button 
@@ -74,14 +87,14 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full ring-2 ring-[#F8FAFC] px-1">
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-4.5 h-4.5 bg-red-500 text-white text-[10px] font-bold rounded-full ring-2 ring-[#F8FAFC] px-1">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </button>
 
           {isNotifOpen && (
-            <div className="absolute right-0 top-[3.25rem] w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-slate-200 animate-in fade-in slide-in-from-top-2 duration-200 z-50 overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="absolute right-0 top- w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-slate-200 animate-in fade-in slide-in-from-top-2 duration-200 z-50 overflow-hidden flex flex-col max-h-[85vh]">
               <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <h3 className="font-bold text-slate-900">Notifications</h3>
                 {unreadCount > 0 && (
@@ -102,7 +115,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
                       <Bell className="w-6 h-6 text-slate-300" />
                     </div>
                     <p className="text-sm font-semibold text-slate-900">No notifications yet</p>
-                    <p className="text-xs text-slate-500 mt-1 max-w-[200px]">New order and system alerts will appear here.</p>
+                    <p className="text-xs text-slate-500 mt-1 max-w-50">New order and system alerts will appear here.</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-100">
@@ -136,7 +149,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
                 <button 
                   onClick={() => {
                     setIsNotifOpen(false);
-                    onViewChange('notifications');
+                    navigate('/notifications');
                   }}
                   className="w-full py-2 text-sm font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors text-center"
                 >
@@ -164,7 +177,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute right-0 top-[3.25rem] w-64 bg-white rounded-xl shadow-lg border border-slate-200 py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+            <div className="absolute right-0 top-13 w-64 bg-white rounded-xl shadow-lg border border-slate-200 py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
               <div className="px-4 py-3">
                 <p className="text-[15px] font-semibold text-slate-900">{fullName}</p>
                 <p className="text-sm text-slate-500 mt-0.5 truncate">{email}</p>
@@ -172,10 +185,10 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
               <div className="border-t border-slate-100 my-1"></div>
               
               <button 
-                onClick={() => { setIsDropdownOpen(false); onViewChange('profile'); }}
+                onClick={() => { setIsDropdownOpen(false); navigate('/profile'); }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[15px] text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                <SettingsIcon className="w-[18px] h-[18px] text-slate-500" />
+                <SettingsIcon className="w-4.5 h-4.5 text-slate-500" />
                 <span>Settings</span>
               </button>
               
@@ -183,7 +196,7 @@ export function Header({ sidebarCollapsed, onViewChange, onLogout }: { sidebarCo
                 onClick={() => { setIsDropdownOpen(false); onLogout(); }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[15px] text-[#F91B4C] hover:bg-red-50 transition-colors"
               >
-                <LogOut className="w-[18px] h-[18px]" />
+                <LogOut className="w-4.5 h-4.5" />
                 <span className="font-medium">Log out</span>
               </button>
             </div>

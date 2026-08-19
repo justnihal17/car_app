@@ -6,7 +6,7 @@ export function ProfilePreviewCard() {
     <motion.div 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="sticky top-8 bg-gradient-to-br from-red-600 to-red-800 p-6 rounded-2xl text-white shadow-xl shadow-blue-200"
+      className="sticky top-8 bg-linear-to-br from-red-600 to-red-800 p-6 rounded-2xl text-white shadow-xl shadow-blue-200"
     >
       <div className="flex flex-col items-center text-center">
         <div className="w-32 h-32 rounded-full border-4 border-white/20 mb-4 overflow-hidden bg-white/10 flex items-center justify-center">

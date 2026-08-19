@@ -82,7 +82,7 @@ export const SubServicePage = () => (
 export const BrandPage = () => (
     <MasterPage 
         moduleName="Brand" 
-        columns={['Name', 'Model', 'Image', 'Status']} 
+        columns={['Name', 'Model', 'Status']} 
         fields={[
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'model', label: 'Model', type: 'text' },
@@ -95,7 +95,7 @@ export const BrandPage = () => (
 export const ColorPage = () => (
     <MasterPage 
         moduleName="Color" 
-        columns={['Color Name', 'Image', 'Status']} 
+        columns={['Color Name', 'Status']} 
         fields={[
             { name: 'name', label: 'Color Name', type: 'text' },
             { name: 'image', label: 'Image URL', type: 'text' },
@@ -107,7 +107,7 @@ export const ColorPage = () => (
 export const MakePage = () => (
     <MasterPage 
         moduleName="Make" 
-        columns={['Name', 'Image', 'Status']} 
+        columns={['Name', 'Status']} 
         fields={[
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'code', label: 'Code', type: 'text' },
@@ -144,7 +144,7 @@ export const VehicleTypePage = () => (
 export const BannerPage = () => (
     <MasterPage 
         moduleName="Banner" 
-        columns={['Title', 'Type', 'Position', 'Image', 'Status']} 
+        columns={['Title', 'Type', 'Position', 'Status']} 
         fields={[
             { name: 'title', label: 'Title', type: 'text' },
             { 

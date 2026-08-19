@@ -120,7 +120,7 @@ export function DriverList({ onDriverSelect }: { onDriverSelect: (id: string) =>
                         {driver.availability}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-slate-400 truncate max-w-[150px]">
+                    <div className="flex items-center gap-1 text-xs text-slate-400 truncate max-w-37.5">
                       <MapPin className="w-3 h-3" />
                       {driver.currentLocation}
                     </div>

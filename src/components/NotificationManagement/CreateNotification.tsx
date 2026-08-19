@@ -194,14 +194,14 @@ export function CreateNotification({ onBack }: { onBack: () => void }) {
                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Delivery Timing</label>
                    <div className="grid grid-cols-2 gap-4">
                      <button className="p-4 rounded-2xl border-2 border-red-600 bg-red-50/50 text-left flex items-start gap-3">
-                       <Send className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                       <Send className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                        <div>
                          <div className="font-bold text-slate-900 mb-0.5">Send Immediately</div>
                          <div className="text-xs text-slate-500">Starts processing right away</div>
                        </div>
                      </button>
                      <button className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 text-left flex items-start gap-3 opacity-60 cursor-not-allowed">
-                       <Clock className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                       <Clock className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
                        <div>
                          <div className="font-bold text-slate-700 mb-0.5">Schedule for Later</div>
                          <div className="text-xs text-slate-400">Pick a future date & time</div>
@@ -219,7 +219,7 @@ export function CreateNotification({ onBack }: { onBack: () => void }) {
                   <button className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors text-sm">
                     Save Draft
                   </button>
-                  <button onClick={onBack} className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl text-sm shadow-md shadow-red-500/20 transition-all flex items-center gap-2">
+                  <button onClick={onBack} className="px-6 py-2.5 bg-linear-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl text-sm shadow-md shadow-red-500/20 transition-all flex items-center gap-2">
                     <Send className="w-4 h-4" /> Publish Notification
                   </button>
                 </div>
@@ -235,7 +235,7 @@ export function CreateNotification({ onBack }: { onBack: () => void }) {
               <Smartphone className="w-4 h-4 text-red-600" /> Device Preview
             </h3>
             
-            <div className="bg-slate-900 rounded-[2.5rem] border-[6px] border-slate-800 p-4 h-[400px] flex items-start justify-center relative overflow-hidden shadow-md">
+            <div className="bg-slate-900 rounded-[2.5rem] border-[6px] border-slate-800 p-4 h-100 flex items-start justify-center relative overflow-hidden shadow-md">
                {/* Phone Notch */}
                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-5 bg-slate-800 rounded-b-xl"></div>
                

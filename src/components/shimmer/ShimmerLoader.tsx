@@ -10,7 +10,7 @@ export const StatsShimmer: React.FC<StatsShimmerProps> = ({ count = 3 }) => {
       {Array.from({ length: count }).map((_, i) => (
         <div 
           key={i} 
-          className="h-[105px] bg-slate-200/70 animate-pulse rounded-2xl p-5 border border-slate-200/50 flex flex-col justify-between"
+          className="h-26.25 bg-slate-200/70 animate-pulse rounded-2xl p-5 border border-slate-200/50 flex flex-col justify-between"
         >
           <div className="flex justify-between items-center">
             <div className="h-3 w-16 bg-slate-300 rounded" />
