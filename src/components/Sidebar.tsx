@@ -1,10 +1,17 @@
 import { 
   LayoutDashboard, Users, Wrench, FileText, 
-  CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight, Car, MessageSquare, Crown
+  CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight, Car, MessageSquare, Crown, Globe, Home, ShieldAlert, ArrowLeft
 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SafeImage } from './common/SafeImage';
+
+const WEBSITE_MENU_ITEMS = [
+  { id: 'web-home-services', path: '/website/home-services', label: 'Home Page Services', icon: Home },
+  { id: 'web-service-content', path: '/website/service-content', label: 'Service Detail Content', icon: FileText },
+  { id: 'web-rescue', path: '/website/rescue', label: 'Rescue Page CMS', icon: ShieldAlert },
+  { id: 'web-brands', path: '/website/brands', label: 'Luxury Brands', icon: Car },
+];
 
 const MENU_ITEMS = [
   { id: 'dashboard', path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -91,70 +98,97 @@ export function Sidebar({
 
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto py-4 2xl:py-6 px-2 2xl:px-3 flex flex-col gap-1 2xl:gap-1.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar:none]">
-        {MENU_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isDirectActive = item.path === '/' ? currentPath === '/' : (item.path && currentPath.startsWith(item.path));
-          
-          if (item.isAccordion) {
-            const isOpen = openAccordions[item.id];
-            return (
-              <div key={item.id} className="space-y-1">
+        {currentPath.startsWith('/website') ? (
+          <>
+            {/* Website CMS Navigation Items */}
+            {WEBSITE_MENU_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isDirectActive = currentPath === item.path || (item.path !== '/website' && currentPath.startsWith(item.path));
+              
+              return (
                 <button
-                  onClick={() => toggleAccordion(item.id)}
-                  className={`w-full flex items-center justify-between gap-2 2xl:gap-3 px-3 2xl:px-3.5 py-2.5 2xl:py-3 rounded-xl 2xl:rounded-2xl transition-all duration-200 text-slate-800 font-normal hover:bg-slate-100/70 outline-none focus:outline-none focus:ring-0 ${collapsed ? 'justify-center' : ''}`}
+                  key={item.id}
+                  onClick={() => { if (item.path) navigate(item.path); }}
+                  className={`w-full flex items-center justify-between gap-2 2xl:gap-3 px-3 2xl:px-4 py-2.5 2xl:py-3 rounded-xl 2xl:rounded-2xl transition-all duration-200 group relative whitespace-nowrap outline-none focus:outline-none focus:ring-0 ${
+                    isDirectActive 
+                      ? 'bg-linear-to-r from-red-50 via-red-50/90 to-red-50/40 text-red-600 font-bold border border-red-100/80 border-l-4 2xl:border-l-[6px] border-l-red-600 shadow-2xs' 
+                      : 'text-slate-800 font-normal hover:bg-slate-100/70 hover:text-slate-900'
+                  } ${collapsed ? 'justify-center' : ''}`}
                 >
-                  <div className="flex items-center gap-2 2xl:gap-3 whitespace-nowrap">
-                    <Icon className="w-4.5 h-4.5 2xl:w-5 2xl:h-5 shrink-0 text-slate-700" />
+                  <div className="flex items-center gap-2 2xl:gap-3">
+                    <Icon className={`w-4.5 h-4.5 2xl:w-5 2xl:h-5 shrink-0 ${isDirectActive ? 'text-red-600' : 'text-slate-700'}`} />
                     {!collapsed && <span className="text-[13px] 2xl:text-sm tracking-tight">{item.label}</span>}
                   </div>
-                  {!collapsed && <ChevronDown className={`w-3.5 h-3.5 2xl:w-4 2xl:h-4 text-slate-600 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />}
                 </button>
-                {isOpen && !collapsed && (
-                  <div className="pl-6 ml-4 border-l-2 border-slate-200/80 space-y-1 my-1">
-                    {item.children?.map(child => {
-                      const isSubActive = currentPath === child.path || (child.path !== '/' && currentPath.startsWith(child.path + '/'));
-                      const ChildIcon = child.icon;
-                      return (
-                        <button
-                          key={child.id}
-                          onClick={() => {
-                            if (currentPath === child.path) {
-                              window.dispatchEvent(new CustomEvent('refresh_master_data'));
-                            }
-                            if (child.path) navigate(child.path);
-                          }}
-                          className={`w-full flex items-center gap-2 2xl:gap-3 px-3 2xl:px-4 py-2 2xl:py-2.5 text-[12px] 2xl:text-sm transition-all whitespace-nowrap relative outline-none focus:outline-none focus:ring-0 ${
-                            isSubActive 
-                              ? 'bg-linear-to-r from-red-50 via-red-50/80 to-red-50/30 text-red-600 font-bold rounded-r-xl 2xl:rounded-r-2xl rounded-l-none border-l-4 2xl:border-l-[6px] border-red-600 -ml-4.5 2xl:-ml-6.5 pl-4 2xl:pl-6 w-[calc(100%+18px)] 2xl:w-[calc(100%+26px)] shadow-2xs' 
-                              : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/60 rounded-lg 2xl:rounded-xl font-normal'
-                          }`}
-                        >
-                          <ChildIcon className={`w-3.5 h-3.5 2xl:w-4 2xl:h-4 ${isSubActive ? 'text-red-600' : 'text-slate-600'}`} />
-                          {child.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          }
+              );
+            })}
+          </>
+        ) : (
+          MENU_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isDirectActive = item.path === '/' ? currentPath === '/' : (item.path && currentPath.startsWith(item.path));
+            
+            if (item.isAccordion) {
+              const isOpen = openAccordions[item.id];
+              return (
+                <div key={item.id} className="space-y-1">
+                  <button
+                    onClick={() => toggleAccordion(item.id)}
+                    className={`w-full flex items-center justify-between gap-2 2xl:gap-3 px-3 2xl:px-3.5 py-2.5 2xl:py-3 rounded-xl 2xl:rounded-2xl transition-all duration-200 text-slate-800 font-normal hover:bg-slate-100/70 outline-none focus:outline-none focus:ring-0 ${collapsed ? 'justify-center' : ''}`}
+                  >
+                    <div className="flex items-center gap-2 2xl:gap-3 whitespace-nowrap">
+                      <Icon className="w-4.5 h-4.5 2xl:w-5 2xl:h-5 shrink-0 text-slate-700" />
+                      {!collapsed && <span className="text-[13px] 2xl:text-sm tracking-tight">{item.label}</span>}
+                    </div>
+                    {!collapsed && <ChevronDown className={`w-3.5 h-3.5 2xl:w-4 2xl:h-4 text-slate-600 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />}
+                  </button>
+                  {isOpen && !collapsed && (
+                    <div className="pl-6 ml-4 border-l-2 border-slate-200/80 space-y-1 my-1">
+                      {item.children?.map(child => {
+                        const isSubActive = currentPath === child.path || (child.path !== '/' && currentPath.startsWith(child.path + '/'));
+                        const ChildIcon = child.icon;
+                        return (
+                          <button
+                            key={child.id}
+                            onClick={() => {
+                              if (currentPath === child.path) {
+                                window.dispatchEvent(new CustomEvent('refresh_master_data'));
+                              }
+                              if (child.path) navigate(child.path);
+                            }}
+                            className={`w-full flex items-center gap-2 2xl:gap-3 px-3 2xl:px-4 py-2 2xl:py-2.5 text-[12px] 2xl:text-sm transition-all whitespace-nowrap relative outline-none focus:outline-none focus:ring-0 ${
+                              isSubActive 
+                                ? 'bg-linear-to-r from-red-50 via-red-50/80 to-red-50/30 text-red-600 font-bold rounded-r-xl 2xl:rounded-r-2xl rounded-l-none border-l-4 2xl:border-l-[6px] border-red-600 -ml-4.5 2xl:-ml-6.5 pl-4 2xl:pl-6 w-[calc(100%+18px)] 2xl:w-[calc(100%+26px)] shadow-2xs' 
+                                : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/60 rounded-lg 2xl:rounded-xl font-normal'
+                            }`}
+                          >
+                            <ChildIcon className={`w-3.5 h-3.5 2xl:w-4 2xl:h-4 ${isSubActive ? 'text-red-600' : 'text-slate-600'}`} />
+                            {child.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
 
-          return (
-            <button
-              key={item.id}
-              onClick={() => { if (item.path) navigate(item.path); }}
-              className={`w-full flex items-center gap-2 2xl:gap-3 px-3 2xl:px-4 py-2.5 2xl:py-3 rounded-xl 2xl:rounded-2xl transition-all duration-200 group relative whitespace-nowrap outline-none focus:outline-none focus:ring-0 ${
-                isDirectActive 
-                  ? 'bg-linear-to-r from-red-50 via-red-50/90 to-red-50/40 text-red-600 font-bold border border-red-100/80 border-l-42xl:border-l-[6px] border-l-red-600 shadow-2xs' 
-                  : 'text-slate-800 font-normal hover:bg-slate-100/70 hover:text-slate-900'
-              } ${collapsed ? 'justify-center' : ''}`}
-            >
-              <Icon className={`w-4.5 h-4.5 2xl:w-5 2xl:h-5 shrink-0 ${isDirectActive ? 'text-red-600' : 'text-slate-700'}`} />
-              {!collapsed && <span className="text-[13px] 2xl:text-sm tracking-tight">{item.label}</span>}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={item.id}
+                onClick={() => { if (item.path) navigate(item.path); }}
+                className={`w-full flex items-center gap-2 2xl:gap-3 px-3 2xl:px-4 py-2.5 2xl:py-3 rounded-xl 2xl:rounded-2xl transition-all duration-200 group relative whitespace-nowrap outline-none focus:outline-none focus:ring-0 ${
+                  isDirectActive 
+                    ? 'bg-linear-to-r from-red-50 via-red-50/90 to-red-50/40 text-red-600 font-bold border border-red-100/80 border-l-4 2xl:border-l-[6px] border-l-red-600 shadow-2xs' 
+                    : 'text-slate-800 font-normal hover:bg-slate-100/70 hover:text-slate-900'
+                } ${collapsed ? 'justify-center' : ''}`}
+              >
+                <Icon className={`w-4.5 h-4.5 2xl:w-5 2xl:h-5 shrink-0 ${isDirectActive ? 'text-red-600' : 'text-slate-700'}`} />
+                {!collapsed && <span className="text-[13px] 2xl:text-sm tracking-tight">{item.label}</span>}
+              </button>
+            );
+          })
+        )}
 
         <div className="mt-6 mb-2 border-t border-slate-200/60" />
 

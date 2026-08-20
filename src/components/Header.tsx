@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Bell, MessageSquare, Moon, Globe, ChevronRight, LogOut, Settings as SettingsIcon, ChevronDown, Check, CheckCircle2, Circle, Smartphone } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
@@ -9,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 export function Header({ sidebarCollapsed, onLogout }: { sidebarCollapsed: boolean, onLogout: () => void }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const { notifications, unreadCount, markRead, markAllRead } = usePushNotifications();
   
@@ -67,16 +68,41 @@ export function Header({ sidebarCollapsed, onLogout }: { sidebarCollapsed: boole
 
       <div className="flex items-center gap-4 ml-4">
         {/* App / Website Toggle */}
-        <div className="flex items-center bg-slate-200/70 p-1 rounded-xl border border-slate-200/80 h-9.5">
-          <button className="flex items-center gap-1.5 px-3.5 py-1 bg-white text-slate-900 rounded-lg text-xs 2xl:text-sm font-bold shadow-xs transition-all h-full">
-            <Smartphone className="w-4 h-4 text-red-600" />
-            App
-          </button>
-          <button className="flex items-center gap-1.5 px-3.5 py-1 text-slate-600 hover:text-slate-900 rounded-lg text-xs 2xl:text-sm font-semibold transition-all h-full">
-            <Globe className="w-4 h-4 text-slate-500" />
-            Website
-          </button>
-        </div>
+        {(() => {
+          const isWebsite = location.pathname.startsWith('/website');
+          return (
+            <div className="flex items-center bg-slate-200/70 p-1 rounded-xl border border-slate-200/80 h-9.5">
+              <button 
+                onClick={() => {
+                  if (isWebsite) navigate('/');
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-lg text-xs 2xl:text-sm transition-all h-full cursor-pointer ${
+                  !isWebsite
+                    ? 'bg-white text-slate-900 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 font-semibold'
+                }`}
+                title="Switch to App Administration"
+              >
+                <Smartphone className={`w-4 h-4 ${!isWebsite ? 'text-red-600' : 'text-slate-500'}`} />
+                App
+              </button>
+              <button 
+                onClick={() => {
+                  if (!isWebsite) navigate('/website/home-services');
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-lg text-xs 2xl:text-sm transition-all h-full cursor-pointer ${
+                  isWebsite
+                    ? 'bg-white text-slate-900 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 font-semibold'
+                }`}
+                title="Switch to Website CMS"
+              >
+                <Globe className={`w-4 h-4 ${isWebsite ? 'text-red-600' : 'text-slate-500'}`} />
+                Website
+              </button>
+            </div>
+          );
+        })()}
 
         {/* Notifications Dropdown */}
         <div className="relative" ref={notifRef}>

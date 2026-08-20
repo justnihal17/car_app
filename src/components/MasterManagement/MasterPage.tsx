@@ -1454,7 +1454,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         isOpen={cropModalOpen}
         imageSrc={rawPreviewUrl}
         file={rawSelectedFile}
-        aspectRatio={moduleName.toLowerCase() === 'banner' ? 2.4 : (16 / 9)}
+        aspectRatio={moduleName.toLowerCase() === 'banner' ? 2.4 : undefined}
         outputWidth={moduleName.toLowerCase() === 'banner' ? 1200 : undefined}
         outputHeight={moduleName.toLowerCase() === 'banner' ? 500 : undefined}
         isCircular={false}

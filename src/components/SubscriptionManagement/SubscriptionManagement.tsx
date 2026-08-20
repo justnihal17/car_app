@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Search, Filter, RefreshCw, Crown, CreditCard, 
   Clock, CheckCircle2, XCircle, Edit2, Trash2, Eye, 
-  Layers, Tag, Award, AlertCircle, Calendar, ShieldCheck
+  Layers, Tag, Award, AlertCircle, Calendar, ShieldCheck, Wrench
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
@@ -11,8 +11,18 @@ import { SubscriptionForm } from './components/SubscriptionForm';
 import { SubscriptionDetailsModal } from './components/SubscriptionDetailsModal';
 import { DeleteConfirmationModal } from '../DeleteConfirmationModal';
 
+const getServiceName = (serviceVal: any, serviceNamesMap: Record<string, string>): string => {
+  if (!serviceVal) return '';
+  if (typeof serviceVal === 'object') {
+    return serviceVal.name || serviceVal.title || serviceVal.serviceName || serviceNamesMap[serviceVal._id] || '';
+  }
+  const idStr = String(serviceVal);
+  return serviceNamesMap[idStr] || '';
+};
+
 export function SubscriptionManagement() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [serviceNamesMap, setServiceNamesMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +40,34 @@ export function SubscriptionManagement() {
   const [viewingPlan, setViewingPlan] = useState<SubscriptionPlan | null>(null);
   const [deletingPlan, setDeletingPlan] = useState<SubscriptionPlan | null>(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
+
+  const fetchServicesMap = async () => {
+    try {
+      const endpoints = [
+        '/admin/subscriptions/service-tree',
+        '/admin/subscriptions/services-tree',
+        '/master/service/admin',
+        '/master/service'
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await api.get(ep);
+          const raw = res.data?.data || res.data || [];
+          const list: any[] = Array.isArray(raw) ? raw : (raw.services || raw.list || raw.tree || []);
+          if (Array.isArray(list) && list.length > 0) {
+            const map: Record<string, string> = {};
+            list.forEach((s: any) => {
+              const id = String(s._id || s.id || '');
+              const name = s.name || s.title || s.serviceName || '';
+              if (id && name) map[id] = name;
+            });
+            setServiceNamesMap(map);
+            break;
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
+  };
 
   // Fetch all subscription plans
   const fetchPlans = async () => {
@@ -78,6 +116,7 @@ export function SubscriptionManagement() {
 
   useEffect(() => {
     fetchPlans();
+    fetchServicesMap();
   }, []);
 
   // Toggle Active/Inactive status via PATCH /admin/subscriptions/:id/status
@@ -193,19 +232,9 @@ export function SubscriptionManagement() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100 shadow-inner">
-              <Crown className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight">
-                Subscription Management
-              </h1>
-              <p className="text-xs lg:text-sm text-slate-500 font-medium">
-                Create and manage customer subscription packages, pricing, credits and covered services
-              </p>
-            </div>
-          </div>
+          <h1 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight">
+            Subscription
+          </h1>
         </div>
 
         <div className="flex items-center gap-3">
@@ -461,26 +490,47 @@ export function SubscriptionManagement() {
                     </div>
                   )}
 
-                  {/* Badges Bar (Perks & Covered Services) */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-                      <Layers className="w-3 h-3 text-slate-500" />
-                      {applicableCount} Covered Service{applicableCount > 1 ? 's' : ''}
-                    </span>
-
-                    {plan.priorityBooking && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-700">
-                        <Award className="w-3 h-3 text-red-500" />
-                        Priority
-                      </span>
+                  {/* Badges Bar (Covered Services Names & Perks) */}
+                  <div className="pt-2 border-t border-slate-100 space-y-2">
+                    {plan.applicableServices && plan.applicableServices.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {plan.applicableServices.map((item, idx) => {
+                          const sName = getServiceName(item.serviceId, serviceNamesMap);
+                          const subCount = item.subServiceIds?.length || 0;
+                          return (
+                            <span 
+                              key={idx} 
+                              className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-200/80 shadow-2xs"
+                              title={sName || 'Covered Service'}
+                            >
+                              <Wrench className="w-3 h-3 text-red-500 shrink-0" />
+                              <span className="truncate max-w-[170px]">{sName || `${applicableCount} Covered Service`}</span>
+                              {subCount > 0 && (
+                                <span className="text-[10px] bg-white px-1.5 py-0.5 rounded-md text-slate-500 font-bold border border-slate-200 shrink-0">
+                                  {subCount} sub
+                                </span>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </div>
                     )}
 
-                    {Boolean(plan.additionalServiceDiscount) && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
-                        <Tag className="w-3 h-3 text-emerald-600" />
-                        {plan.additionalServiceDiscount}% Off
-                      </span>
-                    )}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {plan.priorityBooking && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-700">
+                          <Award className="w-3 h-3 text-red-500" />
+                          Priority
+                        </span>
+                      )}
+
+                      {Boolean(plan.additionalServiceDiscount) && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
+                          <Tag className="w-3 h-3 text-emerald-600" />
+                          {plan.additionalServiceDiscount}% Off
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 

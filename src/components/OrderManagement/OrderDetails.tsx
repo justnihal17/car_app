@@ -67,6 +67,12 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
   const orderStatus = order.status || 'pending';
   const paymentStatus = capitalize(order.payment?.status || 'pending');
 
+  const subtotalAmount = Number(order.estimated_amount ?? order.subtotal ?? order.base_amount ?? srv?.price ?? (order.final_amount || 0));
+  const taxRate = Number(order.tax_rate ?? 5);
+  const vatAmount = (order.tax_amount != null && Number(order.tax_amount) > 0)
+    ? Number(order.tax_amount)
+    : (subtotalAmount * (taxRate / 100));
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
       {/* Header */}
@@ -190,11 +196,11 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500 font-medium">Subtotal</span>
-                    <span className="text-slate-700 font-bold">AED {order.estimated_amount || order.final_amount}</span>
+                    <span className="text-slate-700 font-bold">AED {subtotalAmount}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 font-medium">VAT ({order.tax_rate || 5}%)</span>
-                    <span className="text-slate-700 font-bold">AED {order.tax_amount != null ? Number(order.tax_amount).toFixed(2) : '0.00'}</span>
+                    <span className="text-slate-500 font-medium">VAT ({taxRate}%)</span>
+                    <span className="text-slate-700 font-bold">AED {vatAmount.toFixed(2)}</span>
                   </div>
                   {order.additional_service_amount > 0 && (
                     <div className="flex justify-between text-sm">

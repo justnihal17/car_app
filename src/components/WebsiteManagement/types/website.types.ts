@@ -1,0 +1,92 @@
+// TypeScript interfaces for Website Management CMS Modules
+
+export interface HomePageServiceItem {
+  _id?: string;
+  id?: string;
+  serviceId?: string | { _id?: string; id?: string; name?: string; title?: string; image?: string };
+  image: string;
+  name: string;
+  title: string;
+  redline: string;
+  description: string;
+  buttonText: string;
+  order: number;
+  active: boolean;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ServiceDetailStepImage {
+  image: string;
+  text: string;
+  description: string;
+  points: string[];
+}
+
+export interface ServiceDetailGetStarted {
+  step: string;
+  points: string[];
+}
+
+export interface ServiceDetailFAQ {
+  questionName: string;
+  questionValue: string;
+}
+
+export interface ServiceDetailContentItem {
+  _id?: string;
+  id?: string;
+  serviceId?: string | { _id?: string; id?: string; name?: string; title?: string; price?: number; image?: string };
+  image: string;
+  title: string;
+  description: string;
+  duration: string;
+  price: number;
+  servicesImages: ServiceDetailStepImage[];
+  getStarted: ServiceDetailGetStarted;
+  questionsAnswered: ServiceDetailFAQ[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RescueServiceItem {
+  _id?: string;
+  id?: string;
+  image: string;
+  name: string;
+  description: string;
+  duration: string;
+  price: number;
+}
+
+export interface RescuePageData {
+  _id?: string;
+  id?: string;
+  image: string;
+  title: string;
+  description: string;
+  rescueServices: RescueServiceItem[];
+  getStarted: {
+    points: string[];
+  };
+  questionsAnswered: ServiceDetailFAQ[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BrandItem {
+  _id?: string;
+  id?: string;
+  image: string;
+  name: string;
+  tagline?: string;
+  description?: string;
+  highlights?: string[];
+  featured?: boolean;
+  order?: number;
+  active?: boolean;
+  deleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}

@@ -46,6 +46,7 @@ const AgentProfileWorkspace = React.lazy(() => import('./AgentManagement/AgentPr
 const SubscriptionManagement = React.lazy(() => import('./SubscriptionManagement').then(m => ({ default: m.SubscriptionManagement })));
 const ReportsManager = React.lazy(() => import('./ReportsManagement/ReportsManager').then(m => ({ default: m.ReportsManager })));
 const PromotionsModule = React.lazy(() => import('./PromotionsManagement/PromotionsModule'));
+const WebsiteWorkspace = React.lazy(() => import('./WebsiteManagement/WebsiteWorkspace').then(m => ({ default: m.WebsiteWorkspace })));
 
 
 
@@ -175,6 +176,15 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
       case 'report-agents':
       case 'report-revenue':
         return <ReportsManager currentView={currentView} />;
+      case 'website':
+      case 'website-home-services':
+      case 'website-service-content':
+      case 'website-rescue':
+        return (
+          <React.Suspense fallback={<StatsShimmer />}>
+            <WebsiteWorkspace />
+          </React.Suspense>
+        );
       default:
         return (
           <div className="p-4 lg:p-6 2xl:p-content">

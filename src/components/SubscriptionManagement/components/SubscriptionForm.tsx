@@ -276,23 +276,15 @@ export function SubscriptionForm({ plan, onClose, onSuccess }: SubscriptionFormP
         
         {/* Modal Top Header */}
         <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100 shadow-inner shrink-0">
-              <Crown className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
-                {isEdit ? 'Edit Subscription Plan' : 'Create Subscription Plan'}
-              </h3>
-              <p className="text-xs text-slate-500 font-medium">
-                {isEdit ? 'Update existing plan pricing, terms and covered services' : 'Define plan duration, pricing, credits and applicable service hierarchy'}
-              </p>
-            </div>
+          <div>
+            <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+              {isEdit ? 'Edit Subscription' : 'Create Subscription'}
+            </h3>
           </div>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

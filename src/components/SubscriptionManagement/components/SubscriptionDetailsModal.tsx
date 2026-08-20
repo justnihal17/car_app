@@ -55,31 +55,26 @@ export function SubscriptionDetailsModal({ plan, onClose, onEdit }: Subscription
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100 shadow-inner shrink-0">
-              <Crown className="w-6 h-6" />
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">{plan.name}</h3>
+              <span className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                plan.isActive !== false 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                  : 'bg-slate-100 text-slate-500 border-slate-200'
+              }`}>
+                {plan.isActive !== false ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                {plan.isActive !== false ? 'Active' : 'Inactive'}
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">{plan.name}</h3>
-                <span className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${
-                  plan.isActive !== false 
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                    : 'bg-slate-100 text-slate-500 border-slate-200'
-                }`}>
-                  {plan.isActive !== false ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                  {plan.isActive !== false ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {plan.frequency || 'Monthly'} Plan • {plan.duration} {plan.durationUnit?.toLowerCase() || 'months'}
-              </p>
-            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {plan.frequency || 'Monthly'} Plan • {plan.duration} {plan.durationUnit?.toLowerCase() || 'months'}
+            </p>
           </div>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

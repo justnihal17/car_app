@@ -327,8 +327,20 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                         )}
                       </td>
                       <td className="px-4 2xl:px-5 py-3 2xl:py-4">
-                        <div className="font-semibold text-slate-900">AED {order.final_amount}</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">Incl. VAT: AED {order.tax_amount != null ? Number(order.tax_amount).toFixed(2) : '0.00'}</div>
+                        {(() => {
+                          const itemSubtotal = Number(order.estimated_amount ?? order.subtotal ?? order.base_amount ?? order.final_amount ?? 0);
+                          const itemTaxRate = Number(order.tax_rate ?? 5);
+                          const itemVat = (order.tax_amount != null && Number(order.tax_amount) > 0)
+                            ? Number(order.tax_amount)
+                            : (itemSubtotal * (itemTaxRate / 100));
+
+                          return (
+                            <>
+                              <div className="font-semibold text-slate-900">AED {order.final_amount}</div>
+                              <div className="text-[10px] text-slate-500 mt-0.5">Incl. VAT: AED {itemVat.toFixed(2)}</div>
+                            </>
+                          );
+                        })()}
                         <div className="text-[10px] 2xl:text-xs font-medium mt-1 flex items-center gap-1.5">
                           <span className={`px-1.5 py-0.5 rounded text-[9px] 2xl:text-[10px] font-bold uppercase ${PAYMENT_BADGE_COLORS[paymentStatus] || 'bg-slate-100 text-slate-500'}`}>
                             {paymentStatus}

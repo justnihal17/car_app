@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect } from 'react';
-import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store/store';
 import { fetchOrders } from '../store/orderSlice';
@@ -43,6 +43,7 @@ const AgentProfileWorkspace = React.lazy(() => import('./AgentManagement/AgentPr
 const ReportsManager = React.lazy(() => import('./ReportsManagement/ReportsManager').then(m => ({ default: m.ReportsManager })));
 const PromotionsModule = React.lazy(() => import('./PromotionsManagement/PromotionsModule'));
 const SubscriptionManagement = React.lazy(() => import('./SubscriptionManagement').then(m => ({ default: m.SubscriptionManagement })));
+const WebsiteWorkspace = React.lazy(() => import('./WebsiteManagement/WebsiteWorkspace').then(m => ({ default: m.WebsiteWorkspace })));
 const HelpCentre = React.lazy(() => import('./HelpCentre').then(m => ({ default: m.HelpCentre })));
 
 // Wrapper for Dashboard Home to preserve its exact layout and initialization
@@ -58,7 +59,7 @@ const DashboardHome = () => {
   return (
     <div className="flex-1 p-4 lg:p-6 2xl:p-content space-y-4 lg:space-y-6 max-w-[1600px] mx-auto">
       {permission === 'denied' && <NotificationDeniedBanner />}
-      <KpiCards onViewChange={(view) => navigate(`/${view}`)} />
+      <KpiCards onViewChange={(view) => navigate(view.startsWith('/') ? view : `/${view}`)} />
       <div className="space-y-4 lg:space-y-6">
         <LiveOrderOverview />
       </div>
@@ -191,9 +192,23 @@ export function AppRoutes() {
         <Route path="/reports" element={<ReportsManagerRoute />} />
         <Route path="/reports/users" element={<ReportsManagerRoute />} />
         <Route path="/reports/agents" element={<ReportsManagerRoute />} />
-        <Route path="/reports/revenue" element={<ReportsManagerRoute />} />
-        
+        {/* Website CMS Management */}
+        <Route path="/website" element={<WebsiteWorkspace initialTab="home-services" />} />
+        <Route path="/website/home-services" element={<WebsiteWorkspace initialTab="home-services" />} />
+        <Route path="/website/service-content" element={<WebsiteWorkspace initialTab="service-content" />} />
+        <Route path="/website/rescue" element={<WebsiteWorkspace initialTab="rescue" />} />
+        <Route path="/website/brands" element={<WebsiteWorkspace initialTab="brands" />} />
+
         <Route path="/profile" element={<ProfileView />} />
+        
+        {/* Route Aliases & Redirects for Quick Links */}
+        <Route path="/users" element={<Navigate to="/user-management" replace />} />
+        <Route path="/agents" element={<Navigate to="/agent-management" replace />} />
+        <Route path="/master-state" element={<Navigate to="/master/emirate" replace />} />
+        <Route path="/master-city" element={<Navigate to="/master/city" replace />} />
+        <Route path="/master-make" element={<Navigate to="/master/make" replace />} />
+        <Route path="/master-model" element={<Navigate to="/master/model" replace />} />
+        <Route path="/orders" element={<Navigate to="/order" replace />} />
         
         {/* 404 Fallback */}
         <Route path="*" element={

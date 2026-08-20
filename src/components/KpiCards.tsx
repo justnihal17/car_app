@@ -22,14 +22,14 @@ export function KpiCards({ onViewChange }: { onViewChange: (view: string) => voi
   }, []);
 
   const kpis = [
-    { label: 'Customers', value: stats?.customerCount ?? '0', icon: Users, subtext: 'ACCOUNTS', targetView: 'users' },
-    { label: 'Agents', value: stats?.agentCount ?? '0', icon: UserCheck, subtext: 'OPERATIONAL', targetView: 'agents' },
-    { label: 'Admins', value: stats?.adminCount ?? '0', icon: Shield, subtext: 'MANAGERS', targetView: 'sub-admin' },
-    { label: 'Emirates', value: stats?.emirateCount ?? '0', icon: MapPin, subtext: 'STATES', targetView: 'master-state' },
-    { label: 'Cities', value: stats?.cityCount ?? '0', icon: Building, subtext: 'LOCATIONS', targetView: 'master-city' },
-    { label: 'Offers', value: stats?.activeOfferCount ?? '0', icon: Tag, subtext: 'PROMOTIONS', targetView: 'promotions' },
-    { label: 'Brands', value: stats?.brandCount ?? '0', icon: Star, subtext: 'MAKES', targetView: 'master-make' },
-    { label: 'Models', value: stats?.modelCount ?? '0', icon: Car, subtext: 'VEHICLES', targetView: 'master-model' },
+    { label: 'Customers', value: stats?.customerCount ?? '0', icon: Users, subtext: 'ACCOUNTS', targetView: '/user-management' },
+    { label: 'Agents', value: stats?.agentCount ?? '0', icon: UserCheck, subtext: 'OPERATIONAL', targetView: '/agent-management' },
+    { label: 'Admins', value: stats?.adminCount ?? '0', icon: Shield, subtext: 'MANAGERS', targetView: '/sub-admin' },
+    { label: 'Emirates', value: stats?.emirateCount ?? '0', icon: MapPin, subtext: 'STATES', targetView: '/master/emirate' },
+    { label: 'Cities', value: stats?.cityCount ?? '0', icon: Building, subtext: 'LOCATIONS', targetView: '/master/city' },
+    { label: 'Offers', value: stats?.activeOfferCount ?? '0', icon: Tag, subtext: 'PROMOTIONS', targetView: '/promotions' },
+    { label: 'Brands', value: stats?.brandCount ?? '0', icon: Star, subtext: 'MAKES', targetView: '/master/make' },
+    { label: 'Models', value: stats?.modelCount ?? '0', icon: Car, subtext: 'VEHICLES', targetView: '/master/model' },
   ];
 
   return (
@@ -39,8 +39,8 @@ export function KpiCards({ onViewChange }: { onViewChange: (view: string) => voi
         return (
           <button 
             key={idx} 
-            onClick={() => onViewChange(kpi.targetView || 'dashboard')}
-            className="text-left bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between min-h-[120px]"
+            onClick={() => onViewChange(kpi.targetView || '/')}
+            className="text-left bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between min-h-[120px] cursor-pointer"
           >
             <div className="flex justify-between items-start w-full">
               <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase mt-1 w-3/4 line-clamp-2 leading-tight">{kpi.label}</span>

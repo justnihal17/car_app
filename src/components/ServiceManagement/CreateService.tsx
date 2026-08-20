@@ -3,6 +3,7 @@ import { Upload, ChevronRight, ArrowLeft, Fuel, Car, Info, MapPin, Tag, Percent,
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { uploadImage } from '../../services/uploadService';
+import { ImageCropModal } from '../common/ImageCropModal';
 
 const STEPS = [
   { id: 1, label: 'Basic Information' },
@@ -630,6 +631,18 @@ export function CreateService({
                 </button>
               )}
             </div>
+
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={rawPreviewUrl}
+        file={rawSelectedFile}
+        onClose={() => {
+          setCropModalOpen(false);
+          setRawSelectedFile(null);
+          setRawPreviewUrl(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }
