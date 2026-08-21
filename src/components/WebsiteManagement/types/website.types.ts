@@ -21,6 +21,8 @@ export interface ServiceDetailStepImage {
   image: string;
   text: string;
   description: string;
+  duration?: string;
+  price?: number;
   points: string[];
 }
 
@@ -41,11 +43,15 @@ export interface ServiceDetailContentItem {
   image: string;
   title: string;
   description: string;
-  duration: string;
-  price: number;
+  duration?: string;
+  price?: number;
+  order?: number;
   servicesImages: ServiceDetailStepImage[];
   getStarted: ServiceDetailGetStarted;
   questionsAnswered: ServiceDetailFAQ[];
+  active?: boolean;
+  deleted?: boolean;
+  isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
