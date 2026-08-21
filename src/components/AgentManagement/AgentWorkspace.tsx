@@ -125,6 +125,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
   const [availableSkills, setAvailableSkills] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [skillSearch, setSkillSearch] = useState('');
   const [isSkillsOpen, setIsSkillsOpen] = useState(false);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
   const [isEmirateOpen, setIsEmirateOpen] = useState(false);
@@ -147,27 +148,43 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const [availableEmirates, setAvailableEmirates] = useState<string[]>(DEFAULT_EMIRATES);
   const [cityMasterList, setCityMasterList] = useState<{ name: string; emirate: string }[]>([]);
 
+  const fetchSkills = async () => {
+    try {
+      const response = await api.get('/master/skill/admin').catch(() => api.get('/master/skill'));
+      const payload = response?.data?.data || response?.data;
+      let rawList: any[] = [];
+      if (Array.isArray(payload)) {
+        rawList = payload;
+      } else if (payload && typeof payload === 'object') {
+        rawList = payload.skills || payload.skill || payload.list || payload.data || [];
+        if (!Array.isArray(rawList) || rawList.length === 0) {
+          const possibleArray = Object.values(payload).find(v => Array.isArray(v));
+          if (possibleArray) rawList = possibleArray as any[];
+        }
+      }
+      
+      if (Array.isArray(rawList) && rawList.length > 0) {
+        const names = rawList
+          .filter((item: any) => item.active !== false && item.status !== 'Inactive')
+          .map((item: any) => item.name || item.title || item.skillName || item.type || (typeof item === 'string' ? item : ''))
+          .filter((name: string) => Boolean(name && name.trim()));
+        
+        if (names.length > 0) {
+          setAvailableSkills(Array.from(new Set(names)));
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load skills from server:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSkills();
+  }, []);
+
   useEffect(() => {
     if (isDrawerOpen) {
-      const fetchSkills = async () => {
-        try {
-          const response = await api.get('/master/skill/admin');
-          const rawList = Array.isArray(response.data?.data)
-            ? response.data.data
-            : (Array.isArray(response.data) ? response.data : (response.data?.skills || response.data?.list || []));
-          
-          if (Array.isArray(rawList) && rawList.length > 0) {
-            const names = rawList
-              .map((item: any) => item.name || item.title || item.skillName || (typeof item === 'string' ? item : ''))
-              .filter((name: string) => Boolean(name.trim()));
-            if (names.length > 0) {
-              setAvailableSkills(Array.from(new Set(names)));
-            }
-          }
-        } catch (err) {
-          console.warn('Failed to load skills:', err);
-        }
-      };
+      fetchSkills();
 
       const fetchEmiratesAndCities = async () => {
         try {
@@ -393,7 +410,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       const agentPhoto = agent.profileImage || agent.profileUrl || agent.imageUrl || null;
       setPhoto(agentPhoto);
       setPhotoPreview(agentPhoto);
-      setSelectedSkills(parsedSkills.length > 0 ? parsedSkills : (availableSkills.length > 0 ? [availableSkills[0]] : ['Car Wash']));
+      setSelectedSkills(parsedSkills.length > 0 ? parsedSkills : (availableSkills.length > 0 ? [availableSkills[0]] : []));
       setIsDrawerOpen(true);
   };
 
@@ -978,13 +995,13 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         <ChevronDown className="w-4 h-4 text-slate-400" />
                       </button>
                       {isGenderOpen && (
-                        <div className="absolute bottom-full mb-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
+                        <div className="absolute top-full mt-1.5 z-40 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
                           {['Male', 'Female', 'Other'].map(s => (
                             <button 
                               type="button" 
                               key={s} 
                               onClick={() => { setFormData({...formData, gender: s}); setIsGenderOpen(false); }} 
-                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors"
+                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
                             >
                               {s}
                             </button>
@@ -1028,13 +1045,13 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         <ChevronDown className="w-4 h-4 text-slate-400" />
                       </button>
                       {isEmirateOpen && (
-                        <div className="absolute bottom-full mb-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
+                        <div className="absolute top-full mt-1.5 z-40 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
                           {availableEmirates.map(e => (
                             <button 
                               type="button" 
                               key={e} 
                               onClick={() => { handleEmirateChange(e); setIsEmirateOpen(false); }} 
-                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors"
+                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
                             >
                               {e}
                             </button>
@@ -1057,13 +1074,13 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         <ChevronDown className="w-4 h-4 text-slate-400" />
                       </button>
                       {isCityOpen && (
-                        <div className="absolute bottom-full mb-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
+                        <div className="absolute top-full mt-1.5 z-40 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
                           {getCitiesForEmirate(formData.emirate || '').map(c => (
                             <button 
                               type="button" 
                               key={c} 
                               onClick={() => { setFormData({...formData, city: c}); setIsCityOpen(false); }} 
-                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors"
+                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
                             >
                               {c}
                             </button>
@@ -1077,31 +1094,99 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                       <div className="relative">
                         {(() => {
                           const skillsArr = parseSkillsArray(selectedSkills);
+                          const filteredSkills = availableSkills.filter(s => 
+                            s.toLowerCase().includes(skillSearch.toLowerCase())
+                          );
+
                           return (
                             <>
+                              {/* Selected Skills Chips */}
+                              {skillsArr.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                  {skillsArr.map((skill) => (
+                                    <span
+                                      key={skill}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 border border-red-200 shadow-2xs"
+                                    >
+                                      {skill}
+                                      {drawerMode !== 'view' && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedSkills(skillsArr.filter((s) => s !== skill));
+                                          }}
+                                          className="hover:text-red-900 rounded-full p-0.5 ml-0.5 cursor-pointer"
+                                        >
+                                          ✕
+                                        </button>
+                                      )}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Trigger Button */}
                               <button 
                                 type="button" 
                                 disabled={drawerMode === "view"} 
                                 onClick={() => { setIsSkillsOpen(!isSkillsOpen); setIsGenderOpen(false); setIsEmirateOpen(false); setIsCityOpen(false); }} 
-                                className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                                className={`w-full px-3 py-2.5 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
                               >
                                 <span className={skillsArr.length === 0 ? 'text-slate-400' : 'text-slate-900 font-medium'}>
-                                  {skillsArr.length > 0 ? skillsArr.join(', ') : 'Select Skills'}
+                                  {skillsArr.length === 0 ? 'Select Skills' : `+ Add / Manage Skills (${skillsArr.length} selected)`}
                                 </span>
-                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isSkillsOpen ? 'rotate-180 text-red-600' : ''}`} />
                               </button>
+
+                              {/* Dropdown Menu */}
                               {isSkillsOpen && (
-                                <div className="absolute bottom-full mb-1.5 z-30 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
-                                  {availableSkills.filter(s => !skillsArr.includes(s)).map(s => (
-                                    <button 
-                                      type="button" 
-                                      key={s} 
-                                      onClick={() => { setSelectedSkills([...skillsArr, s]); setIsSkillsOpen(false); }} 
-                                      className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors"
-                                    >
-                                      {s}
-                                    </button>
-                                  ))}
+                                <div className="absolute top-full mt-1.5 z-50 w-full bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-hidden flex flex-col p-1.5">
+                                  {/* Quick Search inside dropdown */}
+                                  <div className="p-1 border-b border-slate-100 mb-1">
+                                    <input
+                                      type="text"
+                                      placeholder="Search skills..."
+                                      value={skillSearch}
+                                      onChange={(e) => setSkillSearch(e.target.value)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-red-500"
+                                    />
+                                  </div>
+
+                                  {/* Skills Options List */}
+                                  <div className="overflow-y-auto max-h-48 custom-scrollbar space-y-0.5">
+                                    {filteredSkills.map((s) => {
+                                      const isSelected = skillsArr.includes(s);
+                                      return (
+                                        <button 
+                                          type="button" 
+                                          key={s} 
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              setSelectedSkills(skillsArr.filter((item) => item !== s));
+                                            } else {
+                                              setSelectedSkills([...skillsArr, s]);
+                                            }
+                                          }} 
+                                          className={`w-full px-3 py-2 text-left text-sm font-medium rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                                            isSelected 
+                                              ? 'bg-red-50 text-red-700 font-bold' 
+                                              : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900'
+                                          }`}
+                                        >
+                                          <span>{s}</span>
+                                          {isSelected && <Check className="w-4 h-4 text-red-600" />}
+                                        </button>
+                                      );
+                                    })}
+
+                                    {filteredSkills.length === 0 && (
+                                      <div className="p-3 text-center text-xs text-slate-400">
+                                        No matching skills found
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </>
