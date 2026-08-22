@@ -56,6 +56,17 @@ export interface ServiceDetailContentItem {
   updatedAt?: string;
 }
 
+export interface RescueHeroServiceItem {
+  _id?: string;
+  id?: string;
+  image: string;
+  name: string;
+  title: string;
+  redline: string;
+  description: string;
+  order: number;
+}
+
 export interface RescueServiceItem {
   _id?: string;
   id?: string;
@@ -63,14 +74,14 @@ export interface RescueServiceItem {
   name: string;
   description: string;
   duration: string;
+  points: string[];
   price: number;
 }
 
 export interface RescuePageData {
   _id?: string;
   id?: string;
-  image: string;
-  title: string;
+  heroServices: RescueHeroServiceItem[];
   description: string;
   rescueServices: RescueServiceItem[];
   getStarted: {
