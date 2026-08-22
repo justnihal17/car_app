@@ -25,6 +25,61 @@ interface NormalServiceOption {
   image?: string;
 }
 
+interface ActionMenuProps {
+  onView: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function ActionMenu({ onView, onEdit, onDelete }: ActionMenuProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button 
+        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+        className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-700 transition-colors"
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-10 overflow-hidden text-left">
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIsOpen(false); onView(); }}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+          >
+            <Eye className="w-3.5 h-3.5" /> View Details
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIsOpen(false); onEdit(); }}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" /> Edit Content
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIsOpen(false); onDelete(); }}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ServiceDetailContentManager() {
   const [contentList, setContentList] = useState<ServiceDetailContentItem[]>([]);
   const [normalServices, setNormalServices] = useState<NormalServiceOption[]>([]);
@@ -1265,64 +1320,11 @@ export function ServiceDetailContentManager() {
 
                           {/* Actions Three Dots Dropdown */}
                           <td className="py-4 px-4 sm:px-6 text-right">
-                            <div className="relative inline-block text-left">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveActionMenuId(activeActionMenuId === (cardId || String(idx)) ? null : (cardId || String(idx)));
-                                }}
-                                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-                                title="Actions"
-                              >
-                                <MoreHorizontal className="w-4 h-4" />
-                              </button>
-
-                              {activeActionMenuId === (cardId || String(idx)) && (
-                                <div 
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="absolute right-0 top-full mt-1 z-30 w-44 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-100"
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setActiveActionMenuId(null);
-                                      setViewingItem(item);
-                                    }}
-                                    className="w-full px-3.5 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 transition-colors cursor-pointer"
-                                  >
-                                    <Eye className="w-4 h-4 text-slate-400" />
-                                    <span>View Details</span>
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setActiveActionMenuId(null);
-                                      handleOpenEdit(item);
-                                    }}
-                                    className="w-full px-3.5 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2.5 transition-colors cursor-pointer"
-                                  >
-                                    <Edit2 className="w-4 h-4 text-blue-500" />
-                                    <span>Edit Content</span>
-                                  </button>
-
-                                  <div className="h-px bg-slate-100 my-1" />
-
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setActiveActionMenuId(null);
-                                      setDeletingItem(item);
-                                    }}
-                                    className="w-full px-3.5 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors cursor-pointer"
-                                  >
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                    <span>Delete</span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                            <ActionMenu
+                              onView={() => setViewingItem(item)}
+                              onEdit={() => handleOpenEdit(item)}
+                              onDelete={() => setDeletingItem(item)}
+                            />
                           </td>
 
                         </tr>
@@ -1405,35 +1407,12 @@ export function ServiceDetailContentManager() {
                     </div>
 
                     {/* Card Footer Actions */}
-                    <div className="flex items-center justify-between gap-2 px-5 py-3 bg-slate-50/80 border-t border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => setViewingItem(item)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-900 transition-all shadow-xs cursor-pointer active:scale-95"
-                        title="View Details"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-slate-500" />
-                        <span>Detail</span>
-                      </button>
-
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
-                          title="Edit Content"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeletingItem(item)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                          title="Delete Content"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                    <div className="flex items-center justify-end px-5 py-3 bg-slate-50/80 border-t border-slate-100">
+                      <ActionMenu
+                        onView={() => setViewingItem(item)}
+                        onEdit={() => handleOpenEdit(item)}
+                        onDelete={() => setDeletingItem(item)}
+                      />
                     </div>
 
                   </div>

@@ -3,7 +3,7 @@ import {
   Plus, Search, RefreshCw, Edit2, Trash2, CheckCircle2, 
   XCircle, Image as ImageIcon, Upload, Loader2, Star, 
   Sparkles, AlertCircle, Eye, ChevronLeft, ChevronRight, 
-  Layers, Check, ExternalLink, Car
+  Layers, Check, ExternalLink, Car, LayoutGrid, Table as TableIcon, MoreVertical
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../api/axios';
@@ -11,11 +11,67 @@ import { uploadImage } from '../../../services/uploadService';
 import { BrandItem } from '../types/website.types';
 import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
+interface ActionMenuProps {
+  onView: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function ActionMenu({ onView, onEdit, onDelete }: ActionMenuProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-700 transition-colors"
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-10 overflow-hidden">
+          <button 
+            onClick={() => { setIsOpen(false); onView(); }}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+          >
+            <Eye className="w-3.5 h-3.5" /> View Details
+          </button>
+          <button 
+            onClick={() => { setIsOpen(false); onEdit(); }}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" /> Edit Brand
+          </button>
+          <button 
+            onClick={() => { setIsOpen(false); onDelete(); }}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BrandManager() {
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [viewLayout, setViewLayout] = useState<'table' | 'grid'>('table');
 
   // Pagination state
   const [page, setPage] = useState(1);
@@ -275,6 +331,30 @@ export function BrandManager() {
             <span className="text-emerald-600">{activeCount} Active</span>
           </div>
 
+          {/* Layout Switcher */}
+          <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setViewLayout('table')}
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewLayout === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+              title="Table View"
+            >
+              <TableIcon className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewLayout('grid')}
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewLayout === 'grid' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+              title="Grid View"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+
           <button
             onClick={fetchBrands}
             disabled={loading}
@@ -354,8 +434,78 @@ export function BrandManager() {
         </div>
       )}
 
+      {/* Table View */}
+      {!loading && !error && brands.length > 0 && viewLayout === 'table' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50/50">
+                  <th className="px-5 py-3.5 text-left text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Brand</th>
+                  <th className="px-5 py-3.5 text-left text-[11px] font-extrabold text-slate-500 uppercase tracking-wider hidden md:table-cell">Tagline</th>
+                  <th className="px-5 py-3.5 text-center text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-24">Status</th>
+                  <th className="px-5 py-3.5 text-center text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {brands.map((brand, idx) => {
+                  const isActive = brand.active !== false;
+                  const isFeatured = Boolean(brand.featured);
+                  const cardId = brand._id || brand.id;
+                  return (
+                    <tr key={cardId || idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-5 py-4 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+                            {brand.image ? (
+                              <img src={brand.image} alt={brand.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon className="w-4 h-4 text-slate-300" />
+                            )}
+                          </div>
+                          <div>
+                            <span className="text-sm font-bold text-slate-900 block">{brand.name}</span>
+                            {brand.description && (
+                              <span className="text-xs text-slate-500 block truncate max-w-xs">{brand.description}</span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 align-middle hidden md:table-cell">
+                        <span className="text-xs font-medium text-slate-600 truncate max-w-sm block">{brand.tagline || '—'}</span>
+                      </td>
+                      <td className="px-5 py-4 align-middle text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(brand)}
+                          className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-full border cursor-pointer transition-all ${
+                            isActive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                          {isActive ? 'Active' : 'Inactive'}
+                        </button>
+                      </td>
+                      <td className="px-5 py-4 align-middle text-center">
+                        <ActionMenu
+                          onView={() => setViewingItem(brand)}
+                          onEdit={() => handleOpenEdit(brand)}
+                          onDelete={() => setDeletingItem(brand)}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Brands Cards Grid */}
-      {!loading && !error && brands.length > 0 && (
+      {!loading && !error && brands.length > 0 && viewLayout === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {brands.map((brand, idx) => {
             const isActive = brand.active !== false;
@@ -444,30 +594,12 @@ export function BrandManager() {
                 </div>
 
                 {/* Card Footer Actions */}
-                <div className="flex items-center justify-between px-5 py-3 bg-slate-50/80 border-t border-slate-100">
-                  <button
-                    onClick={() => setViewingItem(brand)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5" /> Details
-                  </button>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleOpenEdit(brand)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
-                      title="Edit Brand"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeletingItem(brand)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                      title="Delete Brand"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                <div className="flex items-center justify-end px-5 py-3 bg-slate-50/80 border-t border-slate-100">
+                  <ActionMenu
+                    onView={() => setViewingItem(brand)}
+                    onEdit={() => handleOpenEdit(brand)}
+                    onDelete={() => setDeletingItem(brand)}
+                  />
                 </div>
 
               </div>

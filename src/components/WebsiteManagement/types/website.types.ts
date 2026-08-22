@@ -56,41 +56,6 @@ export interface ServiceDetailContentItem {
   updatedAt?: string;
 }
 
-export interface RescueHeroServiceItem {
-  _id?: string;
-  id?: string;
-  image: string;
-  name: string;
-  title: string;
-  redline: string;
-  description: string;
-  order: number;
-}
-
-export interface RescueServiceItem {
-  _id?: string;
-  id?: string;
-  image: string;
-  name: string;
-  description: string;
-  duration: string;
-  points: string[];
-  price: number;
-}
-
-export interface RescuePageData {
-  _id?: string;
-  id?: string;
-  heroServices: RescueHeroServiceItem[];
-  description: string;
-  rescueServices: RescueServiceItem[];
-  getStarted: {
-    points: string[];
-  };
-  questionsAnswered: ServiceDetailFAQ[];
-  createdAt?: string;
-  updatedAt?: string;
-}
 
 export interface BrandItem {
   _id?: string;

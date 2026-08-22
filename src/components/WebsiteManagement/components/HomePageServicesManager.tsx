@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Search, RefreshCw, Globe, Edit2, Trash2, CheckCircle2, 
   XCircle, Image as ImageIcon, Upload, Loader2, ArrowUpDown, 
-  AlertCircle, ExternalLink, Sparkles, Layers, Eye
+  AlertCircle, ExternalLink, Sparkles, Layers, Eye, MoreVertical,
+  LayoutGrid, Table as TableIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../api/axios';
@@ -12,12 +13,70 @@ import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
 const MAX_HOME_SERVICES = 6;
 
+interface ActionMenuProps {
+  onView: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  loadingView?: boolean;
+}
+
+function ActionMenu({ onView, onEdit, onDelete, loadingView }: ActionMenuProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-700 transition-colors"
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-10 overflow-hidden">
+          <button 
+            onClick={() => { setIsOpen(false); onView(); }}
+            disabled={loadingView}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors disabled:opacity-50"
+          >
+            {loadingView ? <Loader2 className="w-3.5 h-3.5 animate-spin text-red-600" /> : <Eye className="w-3.5 h-3.5" />} View Details
+          </button>
+          <button 
+            onClick={() => { setIsOpen(false); onEdit(); }}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" /> Edit Service
+          </button>
+          <button 
+            onClick={() => { setIsOpen(false); onDelete(); }}
+            className="w-full px-4 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function HomePageServicesManager() {
   const [services, setServices] = useState<HomePageServiceItem[]>([]);
   const [normalServices, setNormalServices] = useState<{ _id: string; name: string; image?: string; price?: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [viewLayout, setViewLayout] = useState<'table' | 'grid'>('table');
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -310,6 +369,30 @@ export function HomePageServicesManager() {
             <span className="text-slate-500 ml-1">({usedSlots}/{MAX_HOME_SERVICES})</span>
           </div>
 
+          {/* Layout Switcher */}
+          <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setViewLayout('table')}
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewLayout === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+              title="Table View"
+            >
+              <TableIcon className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewLayout('grid')}
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewLayout === 'grid' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+              title="Grid View"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+
           <button
             onClick={fetchHomeServices}
             disabled={loading}
@@ -387,8 +470,89 @@ export function HomePageServicesManager() {
         </div>
       )}
 
+      {/* Table View */}
+      {!loading && !error && filteredServices.length > 0 && viewLayout === 'table' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50/50">
+                  <th className="px-5 py-3.5 text-left text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-16">Order</th>
+                  <th className="px-5 py-3.5 text-left text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Service Name</th>
+                  <th className="px-5 py-3.5 text-left text-[11px] font-extrabold text-slate-500 uppercase tracking-wider hidden md:table-cell">Title</th>
+                  <th className="px-5 py-3.5 text-center text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-24">Status</th>
+                  <th className="px-5 py-3.5 text-center text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredServices.map((service, idx) => {
+                  const isActive = service.active !== false;
+                  const cardId = service._id || service.id;
+                  return (
+                    <tr key={cardId || idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-5 py-4 align-middle">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200">
+                          {service.order ?? idx + 1}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+                            {service.image ? (
+                              <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon className="w-4 h-4 text-slate-300" />
+                            )}
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-extrabold uppercase text-red-600 block">{service.name || 'SERVICE'}</span>
+                            <span className="text-xs text-slate-500 block truncate max-w-xs">
+                              ID: {(cardId || '').slice(-5)}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 align-middle hidden md:table-cell">
+                        <div>
+                          <span className="text-sm font-bold text-slate-900 block truncate max-w-sm">{service.title}</span>
+                          {service.description && (
+                            <span className="text-xs text-slate-500 block truncate max-w-sm mt-0.5">{service.description}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 align-middle text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(service)}
+                          className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-full border cursor-pointer transition-all ${
+                            isActive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                          {isActive ? 'Active' : 'Inactive'}
+                        </button>
+                      </td>
+                      <td className="px-5 py-4 align-middle text-center">
+                        <ActionMenu
+                          onView={() => handleViewDetails(service)}
+                          onEdit={() => handleOpenEdit(service)}
+                          onDelete={() => setDeletingItem(service)}
+                          loadingView={loadingDetailsId === (service._id || service.id)}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Services Grid (Max 6) */}
-      {!loading && !error && filteredServices.length > 0 && (
+      {!loading && !error && filteredServices.length > 0 && viewLayout === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredServices.map((service, idx) => {
             const isActive = service.active !== false;
@@ -454,36 +618,13 @@ export function HomePageServicesManager() {
                 </div>
 
                 {/* Card Footer Actions */}
-                <div className="flex items-center justify-between px-5 py-3 bg-slate-50/80 border-t border-slate-100">
-                  <button
-                    onClick={() => handleViewDetails(service)}
-                    disabled={loadingDetailsId === (service._id || service.id)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {loadingDetailsId === (service._id || service.id) ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-red-600" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                    <span>Details</span>
-                  </button>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleOpenEdit(service)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
-                      title="Edit Service"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeletingItem(service)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                      title="Delete / Free Slot"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                <div className="flex items-center justify-end px-5 py-3 bg-slate-50/80 border-t border-slate-100">
+                  <ActionMenu
+                    onView={() => handleViewDetails(service)}
+                    onEdit={() => handleOpenEdit(service)}
+                    onDelete={() => setDeletingItem(service)}
+                    loadingView={loadingDetailsId === (service._id || service.id)}
+                  />
                 </div>
 
               </div>
