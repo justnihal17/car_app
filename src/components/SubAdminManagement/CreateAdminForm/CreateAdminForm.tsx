@@ -27,7 +27,7 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
   const [statusMessage, setStatusMessage] = useState('');
   const [apiError, setApiError] = useState('');
   const [apiSuccess, setApiSuccess] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(mode === 'view');
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isAccessDropdownOpen, setIsAccessDropdownOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -87,6 +87,7 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
   }, []);
 
   const [formData, setFormData] = useState({
+    adminId: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -116,13 +117,34 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
       const lastName = admin.lastName || nameParts.slice(1).join(' ') || '';
       const perms = admin.permissions || {};
 
+      const passMapStr = localStorage.getItem('adminPasswords');
+      const passMap = passMapStr ? JSON.parse(passMapStr) : {};
+      const idKey = admin._id || admin.id || '';
+      const usernameKey = admin.adminId?.toLowerCase() || admin.username?.toLowerCase() || '';
+      const emailKey = (admin.email || '').toLowerCase().trim();
+      const firstNameKey = (admin.firstName || firstName).toLowerCase().trim();
+      const nameKey = `${admin.firstName || firstName || ''} ${admin.lastName || lastName || ''}`.trim().toLowerCase();
+      const phoneKey = (admin.phone || '').trim();
+
+      let resolvedPassword = admin.password || admin.plainPassword || admin.tempPassword || admin.originalPassword ||
+        passMap[idKey] || passMap[usernameKey] || passMap[emailKey] || passMap[firstNameKey] || passMap[nameKey] || passMap[phoneKey] || '';
+
+      if (!resolvedPassword || resolvedPassword === '••••••••') {
+        resolvedPassword = 'Admin@123';
+        if (idKey) passMap[idKey] = resolvedPassword;
+        if (usernameKey) passMap[usernameKey] = resolvedPassword;
+        if (emailKey) passMap[emailKey] = resolvedPassword;
+        localStorage.setItem('adminPasswords', JSON.stringify(passMap));
+      }
+
       setFormData({
+        adminId: admin.adminId || admin.username || admin.id || admin._id || '',
         firstName,
         lastName,
         email: admin.email || '',
         phone: admin.phone || '',
         role: admin.role || 'admin',
-        password: admin.password || '',
+        password: resolvedPassword,
         imageUrl: admin.imageUrl || admin.profileUrl || '',
         active: admin.status ? admin.status === 'Active' : (admin.active !== undefined ? admin.active : true),
         blocked: admin.blocked || false,
@@ -140,8 +162,12 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
       });
       setSelectedFile(null);
       setPreviewUrl(null);
+      if (mode === 'view' || currentMode === 'view') {
+        setShowPassword(true);
+      }
     } else {
       setFormData({
+        adminId: '',
         firstName: '',
         lastName: '',
         email: '',
@@ -166,7 +192,7 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
       setSelectedFile(null);
       setPreviewUrl(null);
     }
-  }, [admin, mode]);
+  }, [admin, mode, currentMode]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isView = currentMode === 'view';
@@ -307,6 +333,27 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
       const result = response.data;
 
       if (result.success) {
+        // Persist entered password to adminPasswords in localStorage
+        if (formData.password && formData.password !== '••••••••') {
+          const passMapStr = localStorage.getItem('adminPasswords');
+          const passMap = passMapStr ? JSON.parse(passMapStr) : {};
+          const enteredPass = formData.password.trim();
+
+          const createdId = result.data?._id || result.data?.id || admin?.id || admin?._id;
+          const createdAdminId = result.data?.adminId || admin?.adminId || admin?.username;
+
+          if (createdId) passMap[createdId] = enteredPass;
+          if (createdAdminId) passMap[String(createdAdminId).toLowerCase()] = enteredPass;
+          if (formData.email) passMap[formData.email.toLowerCase().trim()] = enteredPass;
+          if (formData.firstName) passMap[formData.firstName.toLowerCase().trim()] = enteredPass;
+          if (formData.phone) passMap[formData.phone.trim()] = enteredPass;
+          if (formData.firstName || formData.lastName) {
+            passMap[`${formData.firstName} ${formData.lastName}`.trim().toLowerCase()] = enteredPass;
+          }
+
+          localStorage.setItem('adminPasswords', JSON.stringify(passMap));
+        }
+
         toast.success(isEdit ? 'Admin updated successfully!' : 'Admin registered successfully!');
         setApiSuccess(isEdit ? 'Admin updated successfully!' : `Admin registered successfully! ID: ${result.data?.adminId || 'N/A'}`);
         
@@ -341,13 +388,20 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold tracking-tight text-slate-900 capitalize leading-tight">
-                {currentMode === 'view'
-                  ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'View Admin')
-                  : currentMode === 'edit'
-                  ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'Edit Admin')
-                  : 'Create Admin'}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold tracking-tight text-slate-900 capitalize leading-tight">
+                  {currentMode === 'view'
+                    ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'View Admin')
+                    : currentMode === 'edit'
+                    ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'Edit Admin')
+                    : 'Create Admin'}
+                </h3>
+                {formData.adminId && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                    ID: {formData.adminId}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-500 mt-0.5">
                 {isView ? 'View admin details and permissions.' : (isEdit ? 'Manage admin details and permissions.' : 'Add a new sub-admin to the system.')}
               </p>

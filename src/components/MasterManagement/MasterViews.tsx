@@ -50,8 +50,9 @@ export const CityPage = () => (
 export const ServicePage = () => (
     <MasterPage 
         moduleName="Service" 
-        columns={['Name', 'Price', 'Status']} 
+        columns={['S.No', 'Name', 'Price', 'Instant', 'Status']} 
         fields={[
+            { name: 'displayOrder', label: 'Display Order / Sequence', type: 'number' },
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'image', label: 'Image', type: 'text' },
             { name: 'price', label: 'Price', type: 'text' },

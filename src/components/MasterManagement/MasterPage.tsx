@@ -122,11 +122,16 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         const mapped = rawList.map((item: any) => {
           const desc = item.description || item.shortDescription || item.detailedDescription || '';
           const img = item.image || item.icon || item.imageUrl || item.photo || item.avatar || '';
+          const dispOrder = item.displayOrder !== undefined && item.displayOrder !== null 
+            ? Number(item.displayOrder) 
+            : (item.order !== undefined && item.order !== null ? Number(item.order) : 9999);
+
           return {
             ...item,
             id: item._id || item.id,
             name: item.name || item.title || item.type || '',
             title: item.title || item.name || '',
+            displayOrder: dispOrder,
             description: desc,
             shortDescription: desc,
             detailedDescription: desc,
@@ -273,7 +278,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   }, [moduleName]);
 
   const filteredData = useMemo(() => {
-    return data.filter(item => {
+    const result = data.filter(item => {
         const itemVal = item.name || item.title || item.type || '';
         const matchesSearch = itemVal.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = (statusFilter === 'All Status' || item.status === statusFilter);
@@ -282,6 +287,15 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           (String(item.serviceId) === String(serviceFilter) || String(item.service?._id || item.service?.id) === String(serviceFilter) || String(item.service?.name || item.serviceName || item.service || '').toLowerCase() === String(serviceFilter).toLowerCase() || String(item.serviceId) === String(serviceFilter));
         return matchesSearch && matchesStatus && matchesService;
     });
+
+    if (moduleName.toLowerCase() === 'service') {
+      return [...result].sort((a, b) => {
+        const ordA = a.displayOrder !== undefined && a.displayOrder !== null ? Number(a.displayOrder) : 9999;
+        const ordB = b.displayOrder !== undefined && b.displayOrder !== null ? Number(b.displayOrder) : 9999;
+        return ordA - ordB;
+      });
+    }
+    return result;
   }, [data, searchTerm, statusFilter, serviceFilter, moduleName]);
 
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
@@ -327,10 +341,45 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     { label: 'INACTIVE', value: data.filter(d => d.status === 'Inactive').length, icon: Wrench, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Off-line' },
   ];
 
+  // Quick inline update displayOrder API (PUT /master/service/:id)
+  const handleUpdateDisplayOrder = async (item: any, newOrder: number) => {
+    if (!item || isNaN(newOrder) || newOrder < 1) return;
+    try {
+      const itemId = item.id || item._id;
+      const cleanModuleName = moduleName.toLowerCase() === 'service' ? 'service' : moduleName.toLowerCase();
+      const endpoint = `/master/${cleanModuleName}/${itemId}`;
+      
+      const payload: any = {
+        name: item.name || item.title,
+        displayOrder: Number(newOrder),
+        active: item.status === 'Active' || item.active !== false,
+        status: item.status || (item.active !== false ? 'Active' : 'Inactive'),
+      };
+      if (item.price !== undefined) {
+        const numPrice = typeof item.price === 'number' ? item.price : Number(String(item.price).replace(/[^0-9.]/g, ''));
+        payload.price = !isNaN(numPrice) ? numPrice : 0;
+      }
+      if (item.image) payload.image = item.image;
+      if (item.description) payload.description = item.description;
+      if (item.isInstant !== undefined) payload.isInstant = item.isInstant === true || item.isInstant === 'true';
+
+      const response = await api.put(endpoint, payload);
+      if (response.data?.success || response.status === 200) {
+        toast.success(`Display sequence updated to #${newOrder}`);
+        fetchData();
+      }
+    } catch (err: any) {
+      console.error('Failed to update service display sequence order:', err);
+      toast.error(err.response?.data?.message || 'Failed to update display order');
+    }
+  };
+
   const handleAdd = () => { 
     setMode('add'); 
     setEditingItem({ 
       status: 'Active',
+      active: true,
+      ...(moduleName.toLowerCase() === 'service' ? { displayOrder: data.length + 1, isInstant: false } : {}),
       ...((moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service') && serviceFilter !== 'all' ? { serviceId: serviceFilter } : {})
     }); 
     setIsPanelOpen(true); 
@@ -352,12 +401,17 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     }
     const desc = item.description || item.shortDescription || item.detailedDescription || '';
     const img = item.image || item.icon || item.imageUrl || item.photo || item.avatar || '';
+    const dispOrder = item.displayOrder !== undefined && item.displayOrder !== null 
+      ? Number(item.displayOrder) 
+      : (item.order !== undefined && item.order !== null ? Number(item.order) : 9999);
+
     setEditingItem({
       ...item,
       id: item.id || item._id,
       description: desc,
       shortDescription: desc,
       detailedDescription: desc,
+      displayOrder: dispOrder,
       image: img,
       icon: img,
       imageUrl: img,
@@ -466,6 +520,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     }
     const desc = item.description || item.shortDescription || item.detailedDescription || '';
     const img = item.image || item.icon || item.imageUrl || item.photo || item.avatar || '';
+    const dispOrder = item.displayOrder !== undefined && item.displayOrder !== null 
+      ? Number(item.displayOrder) 
+      : (item.order !== undefined && item.order !== null ? Number(item.order) : 9999);
+
     setEditingItem({
       ...item,
       id: item._id || item.id,
@@ -474,6 +532,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       description: desc,
       shortDescription: desc,
       detailedDescription: desc,
+      displayOrder: dispOrder,
       image: img,
       icon: img,
       imageUrl: img,
@@ -730,7 +789,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
             payload.imageUrl = finalImg;
           } else {
             let val = editingItem[f.name];
-            if ((f.name === 'price' || f.name === 'duration' || f.name === 'position' || f.type === 'number') && val !== undefined && val !== null && val !== '') {
+            if ((f.name === 'price' || f.name === 'duration' || f.name === 'position' || f.name === 'displayOrder' || f.type === 'number') && val !== undefined && val !== null && val !== '') {
               const parsed = Number(val);
               if (!isNaN(parsed)) {
                 val = parsed;
@@ -740,6 +799,15 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           }
         }
       });
+
+      if (editingItem.displayOrder !== undefined && editingItem.displayOrder !== null && editingItem.displayOrder !== '') {
+        payload.displayOrder = Number(editingItem.displayOrder);
+      } else if (moduleName.toLowerCase() === 'service') {
+        payload.displayOrder = 9999;
+      }
+      if (editingItem.isInstant !== undefined) {
+        payload.isInstant = Boolean(editingItem.isInstant);
+      }
 
       if (payload.description !== undefined) {
         payload.shortDescription = payload.description;
@@ -784,6 +852,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   const getColWidthClass = (col: string, total: number) => {
     const cLower = col.toLowerCase();
     
+    if (cLower === 'order' || cLower === 'sequence' || cLower === 'displayorder' || cLower === 's.no' || cLower === 's.no.') {
+      return 'w-[10%] text-center';
+    }
+
     if (total === 6) {
       if (cLower === 'name') return 'w-[25%]';
       if (cLower.includes('service')) return 'w-[20%]';
@@ -827,6 +899,9 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
 
   const getColAlignClass = (col: string) => {
     const cLower = col.toLowerCase();
+    if (cLower === 'order' || cLower === 'sequence' || cLower === 'displayorder' || cLower === 's.no' || cLower === 's.no.') {
+      return 'text-center';
+    }
     if (cLower.includes('name') || cLower === 'title') {
       return 'text-left px-6';
     }
@@ -960,7 +1035,36 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                   if (cUpper === 'ID') {
                     return <td key={col} className={`px-6 py-5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{row.id}</td>;
                   }
-                  if (cUpper === 'S.NO' || cUpper === 'S.NO.') {
+                  if (cUpper === 'S.NO' || cUpper === 'S.NO.' || col.toLowerCase() === 'order' || col.toLowerCase() === 'sequence' || col.toLowerCase() === 'displayorder') {
+                    if (moduleName.toLowerCase() === 'service') {
+                      return (
+                        <td key={col} className={`px-4 py-5 text-center ${widthClass}`} onClick={(e) => e.stopPropagation()}>
+                          <div className="inline-flex items-center justify-center bg-slate-50 border border-slate-200 hover:border-slate-300 focus-within:border-red-500 rounded-xl px-2 py-1 shadow-xs transition-colors">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              defaultValue={row.displayOrder !== undefined && row.displayOrder !== null && row.displayOrder !== 9999 ? row.displayOrder : ''}
+                              placeholder="9999"
+                              key={`displayOrder-${row.id}-${row.displayOrder}`}
+                              onBlur={(e) => {
+                                const val = parseInt(e.target.value);
+                                if (!isNaN(val) && val > 0 && val !== row.displayOrder) {
+                                  handleUpdateDisplayOrder(row, val);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.currentTarget.blur();
+                                }
+                              }}
+                              className="w-12 text-center bg-transparent border-0 font-extrabold text-xs text-slate-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none cursor-pointer placeholder:text-slate-300"
+                              title="Change sequence order number and press Enter to save"
+                            />
+                          </div>
+                        </td>
+                      );
+                    }
                     return <td key={col} className={`px-6 py-5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{index + 1}</td>;
                   }
                   if (col.toLowerCase() === 'status') {

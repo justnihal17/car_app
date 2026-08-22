@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Lock, LogIn } from 'lucide-react';
+import { User, Lock, LogIn, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 export function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [adminId, setAdminId] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,11 +23,11 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
 
       const payload: any = {
         adminId: trimmedId,
+        email: trimmedId,
+        username: trimmedId,
+        id: trimmedId,
         password: trimmedPassword
       };
-      if (trimmedId.includes('@')) {
-        payload.email = trimmedId;
-      }
 
       const response = await api.post('/admin/admin/login', payload);
 
@@ -154,14 +155,22 @@ export function LoginPage({ onLogin }: { onLogin: () => void }) {
               <div className="relative group">
                 <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400 group-focus-within:text-red-600 transition-colors" />
                 <input 
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(e); }}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#F8FAFC] rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all text-sm font-normal shadow-2xs"
+                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-[#F8FAFC] rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all text-sm font-normal shadow-2xs"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </motion.div>
 

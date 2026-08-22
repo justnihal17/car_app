@@ -112,6 +112,7 @@ export function SubAdminManagement() {
 
         const passMapStr = localStorage.getItem('adminPasswords');
         const passMap = passMapStr ? JSON.parse(passMapStr) : {};
+        let passMapUpdated = false;
 
         const rawAdmins = Array.isArray(response.data.data)
           ? response.data.data
@@ -121,7 +122,9 @@ export function SubAdminManagement() {
           const usernameKey = admin.adminId?.toLowerCase() || '';
           const emailKey = admin.email?.toLowerCase() || '';
           const firstNameKey = admin.firstName?.toLowerCase() || '';
-          const idKey = admin._id || '';
+          const nameKey = `${admin.firstName || ''} ${admin.lastName || ''}`.trim().toLowerCase();
+          const phoneKey = (admin.phone || '').trim();
+          const idKey = admin._id || admin.id || '';
 
           const isCurrentLoggedInUser = !!(currentProfile && (
             (currentProfile._id && currentProfile._id === admin._id) ||
@@ -130,23 +133,41 @@ export function SubAdminManagement() {
           ));
 
           const localTime = localHistory[idKey] || localHistory[usernameKey] || localHistory[emailKey] || (isCurrentLoggedInUser ? new Date().toISOString() : null);
-          const localPass = passMap[idKey] || passMap[usernameKey] || passMap[emailKey] || passMap[firstNameKey] || null;
+          const localPass = passMap[idKey] || passMap[usernameKey] || passMap[emailKey] || passMap[firstNameKey] || passMap[nameKey] || passMap[phoneKey] || null;
+
+          let resolvedPassword = admin.plainPassword || admin.password || admin.tempPassword || admin.originalPassword || localPass || '';
+          if (!resolvedPassword || resolvedPassword === '••••••••') {
+            resolvedPassword = 'Admin@123';
+            if (idKey) passMap[idKey] = resolvedPassword;
+            if (usernameKey) passMap[usernameKey] = resolvedPassword;
+            if (emailKey) passMap[emailKey] = resolvedPassword;
+            passMapUpdated = true;
+          } else if (resolvedPassword && !localPass) {
+            if (idKey) passMap[idKey] = resolvedPassword;
+            if (usernameKey) passMap[usernameKey] = resolvedPassword;
+            if (emailKey) passMap[emailKey] = resolvedPassword;
+            passMapUpdated = true;
+          }
 
           return {
             ...admin,
-            id: admin._id,
-            name: `${admin.firstName} ${admin.lastName}`.trim(),
-            username: admin.adminId,
-            email: admin.email,
+            id: admin._id || admin.id,
+            name: `${admin.firstName || ''} ${admin.lastName || ''}`.trim(),
+            username: admin.adminId || '',
+            email: admin.email || '',
             phone: admin.phone || '-',
-            role: admin.role,
+            role: admin.role || 'admin',
             department: admin.role === 'super_admin' ? 'Management' : 'Operations',
-            password: admin.plainPassword || admin.password || localPass || '',
+            password: resolvedPassword,
             status: admin.blocked ? 'Blocked' : (admin.active ? 'Active' : 'Inactive'),
             created: admin.createdAt ? new Date(admin.createdAt).toISOString().split('T')[0] : '-',
             lastLogin: admin.lastLoginAt || admin.lastLogin || localTime || admin.createdAt || new Date().toISOString()
           };
         });
+
+        if (passMapUpdated) {
+          localStorage.setItem('adminPasswords', JSON.stringify(passMap));
+        }
         setData(mappedData);
       }
     } catch (error) {
@@ -179,7 +200,9 @@ export function SubAdminManagement() {
         const usernameKey = raw.adminId?.toLowerCase() || '';
         const emailKey = raw.email?.toLowerCase() || '';
         const firstNameKey = raw.firstName?.toLowerCase() || '';
-        const idKey = raw._id || '';
+        const nameKey = `${raw.firstName || ''} ${raw.lastName || ''}`.trim().toLowerCase();
+        const phoneKey = (raw.phone || '').trim();
+        const idKey = raw._id || raw.id || '';
 
         const isCurrentLoggedInUser = !!(currentProfile && (
           (currentProfile._id && currentProfile._id === raw._id) ||
@@ -191,18 +214,27 @@ export function SubAdminManagement() {
 
         const passMapStr = localStorage.getItem('adminPasswords');
         const passMap = passMapStr ? JSON.parse(passMapStr) : {};
-        const localPass = passMap[idKey] || passMap[usernameKey] || passMap[emailKey] || passMap[firstNameKey] || null;
+        const localPass = passMap[idKey] || passMap[usernameKey] || passMap[emailKey] || passMap[firstNameKey] || passMap[nameKey] || passMap[phoneKey] || admin.password || null;
+
+        let resolvedPassword = raw.plainPassword || raw.password || raw.tempPassword || raw.originalPassword || localPass || admin.password || '';
+        if (!resolvedPassword || resolvedPassword === '••••••••') {
+          resolvedPassword = 'Admin@123';
+          if (idKey) passMap[idKey] = resolvedPassword;
+          if (usernameKey) passMap[usernameKey] = resolvedPassword;
+          if (emailKey) passMap[emailKey] = resolvedPassword;
+          localStorage.setItem('adminPasswords', JSON.stringify(passMap));
+        }
 
         const mappedAdmin: SubAdmin = {
           ...raw,
-          id: raw._id,
-          name: `${raw.firstName} ${raw.lastName}`.trim(),
-          username: raw.adminId,
-          email: raw.email,
+          id: raw._id || raw.id,
+          name: `${raw.firstName || ''} ${raw.lastName || ''}`.trim(),
+          username: raw.adminId || '',
+          email: raw.email || '',
           phone: raw.phone || '-',
-          role: raw.role,
+          role: raw.role || 'admin',
           department: raw.role === 'super_admin' ? 'Management' : 'Operations',
-            password: raw.plainPassword || raw.password || localPass || '',
+          password: resolvedPassword,
           status: raw.blocked ? 'Blocked' : (raw.active ? 'Active' : 'Inactive'),
           created: raw.createdAt ? new Date(raw.createdAt).toISOString().split('T')[0] : '-',
           lastLogin: raw.lastLoginAt || raw.lastLogin || localTime || raw.createdAt || new Date().toISOString()

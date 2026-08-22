@@ -1,6 +1,7 @@
 import React from 'react';
-import { Upload, User, ChevronDown, Check, Eye, EyeOff, X, Shield, Lock, Activity } from 'lucide-react';
+import { Upload, User, ChevronDown, Check, Eye, EyeOff, X, Shield, Lock, Activity, Copy } from 'lucide-react';
 import { SafeImage } from '../../common/SafeImage';
+import toast from 'react-hot-toast';
 
 export const getCompactDrawerClass = (): string => {
   return "sub-admin-drawer-container animate-in slide-in-from-right duration-300";
@@ -204,24 +205,30 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
         </div>
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="relative">
-              <label className="block text-xs font-medium text-slate-700 mb-1">Password</label>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-slate-700">Admin ID</label>
+                {formData.adminId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(formData.adminId || '');
+                      toast.success('Admin ID copied to clipboard!');
+                    }}
+                    className="text-[11px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Copy Admin ID"
+                  >
+                    <Copy className="w-3 h-3" /> Copy
+                  </button>
+                )}
+              </div>
               <input 
-                type={showPassword ? "text" : "password"} 
-                value={formData.password || ''}
-                onChange={e => !isView && setFormData({...formData, password: e.target.value})}
-                disabled={isView}
-                placeholder="Enter password" 
-                className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm transition-colors pr-10 ${isView ? 'bg-slate-50 text-slate-500' : 'placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200'}`} 
+                disabled={true} 
+                value={formData.adminId || (isView ? 'N/A' : 'Auto-generated on creation')} 
+                type="text" 
+                placeholder="Auto-generated" 
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-700 font-mono font-medium disabled:bg-slate-50 disabled:text-slate-600 transition-colors select-all" 
               />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  className="absolute right-3 top-[26px] p-1 text-slate-400 hover:text-slate-600 transition-colors z-10"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              {!isView && errors.password && <p className="text-rose-500 text-xs font-medium mt-1">{errors.password}</p>}
             </div>
 
             <div className="relative" ref={roleDropdownRef}>
@@ -270,6 +277,48 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 </div>
               )}
               {errors.role && <p className="text-rose-500 text-xs font-medium mt-1">{errors.role}</p>}
+            </div>
+
+            <div className="relative md:col-span-2">
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-slate-700">Password</label>
+                {isView && formData.password && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(formData.password || '');
+                      toast.success('Password copied to clipboard!');
+                    }}
+                    className="text-[11px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Copy Password"
+                  >
+                    <Copy className="w-3 h-3" /> Copy
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  value={formData.password || ''}
+                  onChange={e => !isView && setFormData({...formData, password: e.target.value})}
+                  disabled={isView}
+                  placeholder={isView ? "No password available" : "Enter password"} 
+                  className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm transition-colors pr-10 ${
+                    isView 
+                      ? 'bg-slate-50 text-slate-700 font-normal select-all' 
+                      : 'placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 font-normal'
+                  }`} 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors z-10 cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {!isView && errors.password && <p className="text-rose-500 text-xs font-medium mt-1">{errors.password}</p>}
             </div>
           </div>
         </div>
