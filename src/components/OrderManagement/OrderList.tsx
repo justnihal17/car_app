@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, Download, Plus, ChevronLeft, ChevronRight, Clock, MapPin, RefreshCw, AlertCircle, ShoppingBag, Truck, CheckCircle2, XCircle, Activity } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
-import { fetchOrders, setFilters, fetchLiveOverview } from '../../store/orderSlice';
+import { fetchOrders, setFilters, fetchLiveOverview, getOrderTimestamp } from '../../store/orderSlice';
 import { SafeImage } from '../common/SafeImage';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -38,6 +38,27 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
     dispatch(fetchLiveOverview());
   }, [dispatch, filters]);
 
+  // Real-time refresh when new order arrives or periodic background sync
+  useEffect(() => {
+    const handleRefreshEvent = () => {
+      dispatch(fetchOrders(filters));
+      dispatch(fetchLiveOverview());
+    };
+    window.addEventListener('refresh_orders', handleRefreshEvent);
+
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        dispatch(fetchOrders(filters));
+        dispatch(fetchLiveOverview());
+      }
+    }, 20000);
+
+    return () => {
+      window.removeEventListener('refresh_orders', handleRefreshEvent);
+      clearInterval(interval);
+    };
+  }, [dispatch, filters]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (filters.search !== searchInput) {
@@ -67,6 +88,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
 
   const handleRefresh = () => {
     dispatch(fetchOrders(filters));
+    dispatch(fetchLiveOverview());
   };
 
   const handlePageChange = (newPage: number) => {
@@ -104,11 +126,14 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
       );
     }
 
-    // Always sort by newest first
+    // Always sort by newest first (newly booked orders appear at the very top)
     result.sort((a, b) => {
-      const dateA = new Date(a.order_date || a.createdAt || a.created_at || a.date || 0).getTime();
-      const dateB = new Date(b.order_date || b.createdAt || b.created_at || b.date || 0).getTime();
-      return dateB - dateA;
+      const timeA = getOrderTimestamp(a);
+      const timeB = getOrderTimestamp(b);
+      if (timeB !== timeA) return timeB - timeA;
+      const idA = String(a.order_number || a._id || a.id || '');
+      const idB = String(b.order_number || b._id || b.id || '');
+      return idB.localeCompare(idA, undefined, { numeric: true });
     });
 
     return result;

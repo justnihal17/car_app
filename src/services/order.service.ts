@@ -20,6 +20,11 @@ export const OrderService = {
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.limit) params.append('limit', filters.limit.toString());
     
+    // Sort newest orders first
+    params.append('sort', '-createdAt');
+    params.append('sortBy', 'createdAt');
+    params.append('sortOrder', 'desc');
+    
     const response = await api.get('/admin/order', { params });
     return response.data;
   },

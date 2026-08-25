@@ -17,6 +17,36 @@ export interface LiveOverviewData {
   cancelled: LiveOverviewItem;
 }
 
+export const getOrderTimestamp = (order: any): number => {
+  if (!order) return 0;
+  if (order.order_date) {
+    const t = new Date(order.order_date).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (order.createdAt) {
+    const t = new Date(order.createdAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (order.created_at) {
+    const t = new Date(order.created_at).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (order.date) {
+    const t = new Date(order.date).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  const id = order._id || order.id;
+  if (typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)) {
+    const t = parseInt(id.substring(0, 8), 16) * 1000;
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (order.scheduled_at) {
+    const t = new Date(order.scheduled_at).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  return 0;
+};
+
 export interface OrderState {
   orders: any[];
   recentOrders: any[];
@@ -150,7 +180,15 @@ const orderSlice = createSlice({
     });
     builder.addCase(fetchOrders.fulfilled, (state, action) => {
       state.loading = false;
-      const ordersList = action.payload.data || [];
+      const ordersList = Array.isArray(action.payload.data) ? [...action.payload.data] : [];
+      ordersList.sort((a, b) => {
+        const timeA = getOrderTimestamp(a);
+        const timeB = getOrderTimestamp(b);
+        if (timeB !== timeA) return timeB - timeA;
+        const idA = String(a.order_number || a._id || a.id || '');
+        const idB = String(b.order_number || b._id || b.id || '');
+        return idB.localeCompare(idA, undefined, { numeric: true });
+      });
       state.orders = ordersList;
 
       const paginationObj = action.payload.pagination;
@@ -173,7 +211,16 @@ const orderSlice = createSlice({
 
     // Fetch Recent Orders
     builder.addCase(fetchRecentOrders.fulfilled, (state, action) => {
-      state.recentOrders = action.payload;
+      const recent = Array.isArray(action.payload) ? [...action.payload] : [];
+      recent.sort((a, b) => {
+        const timeA = getOrderTimestamp(a);
+        const timeB = getOrderTimestamp(b);
+        if (timeB !== timeA) return timeB - timeA;
+        const idA = String(a.order_number || a._id || a.id || '');
+        const idB = String(b.order_number || b._id || b.id || '');
+        return idB.localeCompare(idA, undefined, { numeric: true });
+      });
+      state.recentOrders = recent;
     });
 
     // Fetch Order By Id

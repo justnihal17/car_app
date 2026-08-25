@@ -137,6 +137,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         import('../store/notificationSlice').then(({ fetchNotifications }) => {
           store.dispatch(fetchNotifications());
         });
+        if (title.toLowerCase().includes('order') || eventType.includes('ORDER') || isHighPriority) {
+          window.dispatchEvent(new CustomEvent('refresh_orders'));
+          import('../store/orderSlice').then(({ fetchOrders, fetchLiveOverview }) => {
+            store.dispatch(fetchOrders({ page: 1 }));
+            store.dispatch(fetchLiveOverview());
+          });
+        }
       });
 
       toast.custom(
@@ -535,6 +542,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             actionUrl: deepLink || (orderId ? `/orders` : undefined)
           }));
         });
+        if (title.toLowerCase().includes('order') || eventType.includes('ORDER') || isHighPriority) {
+          window.dispatchEvent(new CustomEvent('refresh_orders'));
+          import('../store/orderSlice').then(({ fetchOrders, fetchLiveOverview }) => {
+            store.dispatch(fetchOrders({ page: 1 }));
+            store.dispatch(fetchLiveOverview());
+          });
+        }
       });
 
       // Show Custom Hot Toast (Matching Light Theme)
