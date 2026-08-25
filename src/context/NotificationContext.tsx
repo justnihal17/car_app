@@ -182,25 +182,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
               <button
                 onClick={() => {
                   toast.dismiss(t.id);
-                  let notifPayload: any = {};
-                  try {
-                    notifPayload = typeof notif.payload === 'string' ? JSON.parse(notif.payload) : (notif.payload || {});
-                  } catch (e) {}
-                  
-                  const targetOrderId = notif.entityId || notif.referenceId || notif.entity_id || notif.reference_id || notifPayload._id || notifPayload.orderId || notifPayload.order_id || notifPayload.referenceId || notifPayload.reference_id || notifPayload.entityId || notifPayload.entity_id || (notif.actionUrl && notif.actionUrl.includes('orders/') ? notif.actionUrl.split('orders/')[1] : (notif.actionUrl && notif.actionUrl.includes('order/') ? notif.actionUrl.split('order/')[1] : null));
-
-                  if (targetOrderId || (notif.actionUrl && (notif.actionUrl.includes('orders') || notif.actionUrl.includes('order')))) {
-                     window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'order', orderId: targetOrderId } }));
-                     if (targetOrderId) {
-                       setTimeout(() => {
-                         window.dispatchEvent(new CustomEvent('select_order', { detail: targetOrderId }));
-                       }, 300);
-                     }
-                  }
+                  navigateToOrder(notif, notif.actionUrl);
                 }}
                 className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-red-500/20 text-center cursor-pointer hover:-translate-y-0.5"
               >
-                View Order
+                View Details
               </button>
             </div>
           </div>
@@ -424,24 +410,86 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [initializeFCM]);
 
   // Helper to Navigate to Order Details or Deep Link
-  const navigateToOrder = useCallback((orderId?: string, deepLink?: string) => {
-    console.log('[Navigation] Navigating to order from notification popup:', { orderId, deepLink });
+  const navigateToOrder = useCallback((orderData?: any, deepLink?: string) => {
+    console.log('[Navigation] Navigating to order from notification popup:', { orderData, deepLink });
 
-    let targetId = (orderId && orderId !== 'New Order') ? orderId : undefined;
-    if (deepLink && deepLink.includes('orders/')) {
-      targetId = deepLink.split('orders/')[1];
-    } else if (deepLink && deepLink.includes('order/')) {
-      targetId = deepLink.split('order/')[1];
+    let targetId = '';
+    if (orderData) {
+      if (typeof orderData === 'object') {
+        let nestedPayload: any = {};
+        try {
+          if (typeof orderData.payload === 'string') nestedPayload = JSON.parse(orderData.payload);
+          else if (typeof orderData.payload === 'object') nestedPayload = orderData.payload;
+        } catch (e) {}
+
+        let nestedData: any = {};
+        try {
+          if (typeof orderData.data === 'string') nestedData = JSON.parse(orderData.data);
+          else if (typeof orderData.data === 'object') nestedData = orderData.data;
+        } catch (e) {}
+
+        let nestedOrder: any = {};
+        try {
+          if (typeof orderData.order === 'string') nestedOrder = JSON.parse(orderData.order);
+          else if (typeof orderData.order === 'object') nestedOrder = orderData.order;
+        } catch (e) {}
+
+        const raw =
+          orderData.orderId ||
+          orderData.order_id ||
+          orderData._id ||
+          orderData.entityId ||
+          orderData.entity_id ||
+          orderData.referenceId ||
+          orderData.reference_id ||
+          orderData.id ||
+          nestedPayload?.orderId ||
+          nestedPayload?.order_id ||
+          nestedPayload?._id ||
+          nestedPayload?.entityId ||
+          nestedPayload?.entity_id ||
+          nestedPayload?.referenceId ||
+          nestedPayload?.reference_id ||
+          nestedPayload?.id ||
+          nestedData?.orderId ||
+          nestedData?.order_id ||
+          nestedData?._id ||
+          nestedData?.entityId ||
+          nestedData?.entity_id ||
+          nestedData?.referenceId ||
+          nestedData?.reference_id ||
+          nestedData?.id ||
+          nestedOrder?._id ||
+          nestedOrder?.orderId ||
+          nestedOrder?.order_id ||
+          nestedOrder?.id ||
+          orderData.orderNumber ||
+          orderData.order_number ||
+          '';
+        targetId = String(raw || '').trim();
+      } else if (typeof orderData === 'string' && orderData !== 'New Order' && orderData !== 'undefined' && orderData !== 'null') {
+        targetId = orderData.trim();
+      }
     }
 
-    // Always navigate view to 'order'
-    window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'order', orderId: targetId } }));
+    if (!targetId && deepLink) {
+      if (deepLink.includes('orders/')) {
+        targetId = deepLink.split('orders/')[1]?.trim() || '';
+      } else if (deepLink.includes('order/')) {
+        targetId = deepLink.split('order/')[1]?.trim() || '';
+      }
+    }
 
-    // If we have a specific order ID, dispatch select_order to open Order Details modal/view
+    if (targetId === 'New Order' || targetId === 'undefined' || targetId === 'null') {
+      targetId = '';
+    }
+
     if (targetId) {
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));
-      }, 150);
+      targetId = targetId.split('?')[0].replace(/\/$/, '');
+      window.dispatchEvent(new CustomEvent('navigate_view', { detail: `/order/${targetId}` }));
+      window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));
+    } else {
+      window.dispatchEvent(new CustomEvent('navigate_view', { detail: '/order' }));
     }
   }, []);
 
@@ -506,7 +554,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const customerName = payload.data?.customerName || payload.data?.customer || 'Customer';
       const vehicle = payload.data?.vehicle || payload.data?.car || 'Vehicle';
       const service = payload.data?.service || 'Service';
-      const amount = payload.data?.amount ? `₹${payload.data.amount}` : '';
+      const amount = payload.data?.amount ? `AED ${payload.data.amount}` : '';
       const orderId = payload.data?._id || payload.data?.orderId || payload.data?.order_id || payload.data?.id || payload.data?.referenceId || payload.data?.reference_id || payload.data?.entityId || payload.data?.entity_id || payload.data?.orderNumber || payload.data?.order_number || '';
       const deepLink = payload.data?.deepLink || payload.data?.url || '';
       const eventType = (payload.data?.type || payload.data?.eventType || '').toUpperCase();
@@ -611,11 +659,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
               <button
                 onClick={() => {
                   toast.dismiss(t.id);
-                  navigateToOrder(orderId, deepLink);
+                  navigateToOrder(payload.data || orderId, deepLink);
                 }}
                 className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-red-500/20 text-center cursor-pointer hover:-translate-y-0.5"
               >
-                View Order
+                View Details
               </button>
               <button
                 onClick={() => toast.dismiss(t.id)}

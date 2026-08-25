@@ -82,7 +82,7 @@ export function CustomReportBuilder() {
         'Order Number': item.orderNumber || item.orderId || item._id || `ORD-${i+1}`,
         'Customer': item.user?.name || item.customerName || 'N/A',
         'Agent': item.agent?.name || item.agentName || 'Unassigned',
-        'Amount': item.totalAmount ? `₹${item.totalAmount}` : '₹0',
+        'Amount': item.totalAmount ? `AED ${item.totalAmount}` : 'AED 0',
         'Date': item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A',
         'Vehicle Brand': item.brand?.name || item.brand || 'N/A',
         'Vehicle Model': item.model?.name || item.model || 'N/A',

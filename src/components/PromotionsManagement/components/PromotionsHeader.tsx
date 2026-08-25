@@ -56,7 +56,7 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
             { label: 'Active', value: activeCount, icon: CheckCircle2, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Currently live' },
             { label: 'Inactive / Expired', value: inactiveCount, icon: XCircle, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Paused or ended' },
             { label: 'Redemptions', value: totalRedemptions.toLocaleString(), icon: RefreshCw, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Times applied' },
-            { label: 'Discount Given', value: `₹${totalDiscountGiven.toLocaleString()}`, icon: BadgePercent, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Customer savings' },
+            { label: 'Discount Given', value: `AED ${totalDiscountGiven.toLocaleString()}`, icon: BadgePercent, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Customer savings' },
           ].map((card, i) => {
             const Icon = card.icon;
             return (

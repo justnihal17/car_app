@@ -120,7 +120,7 @@ export function Step2DiscountLimits({ formData, onChange, errors, isEditMode }: 
           </label>
           <div className="relative">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-              {formData.discountType === 'FLAT' ? '₹' : '%'}
+              {formData.discountType === 'FLAT' ? 'AED' : '%'}
             </span>
             <input
               type="number"
@@ -129,7 +129,7 @@ export function Step2DiscountLimits({ formData, onChange, errors, isEditMode }: 
               value={formData.discountValue !== undefined ? formData.discountValue : ''}
               onChange={(e) => onChange({ discountValue: e.target.value ? Number(e.target.value) : undefined })}
               placeholder={formData.discountType === 'FLAT' ? '200' : '20'}
-              className="w-full pl-8 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+              className="w-full pl-12 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
             />
           </div>
           {errors.discountValue && <p className="text-[11px] font-semibold text-red-500">{errors.discountValue}</p>}
@@ -164,14 +164,14 @@ export function Step2DiscountLimits({ formData, onChange, errors, isEditMode }: 
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700">Minimum Order Amount</label>
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">AED</span>
             <input
               type="number"
               min={0}
               value={formData.minimumOrderAmount !== undefined ? formData.minimumOrderAmount : ''}
               onChange={(e) => onChange({ minimumOrderAmount: e.target.value ? Number(e.target.value) : undefined })}
               placeholder="0"
-              className="w-full pl-8 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+              className="w-full pl-12 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
             />
           </div>
           <p className="text-[11px] text-slate-400">Applies only when total order meets this amount.</p>
@@ -180,7 +180,7 @@ export function Step2DiscountLimits({ formData, onChange, errors, isEditMode }: 
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700">Maximum Discount Amount (Cap)</label>
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">AED</span>
             <input
               type="number"
               min={0}

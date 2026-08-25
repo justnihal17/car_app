@@ -76,7 +76,7 @@ export function PromotionDetailsView({ promotion, onBack, onEdit }: PromotionDet
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[11px] font-bold uppercase text-slate-400">Discount Given</span>
-          <p className="text-lg font-black text-emerald-600 mt-1">₹{totalDiscountGiven.toLocaleString()}</p>
+          <p className="text-lg font-black text-emerald-600 mt-1">AED {totalDiscountGiven.toLocaleString()}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[11px] font-bold uppercase text-slate-400">Per User Limit</span>
@@ -95,7 +95,7 @@ export function PromotionDetailsView({ promotion, onBack, onEdit }: PromotionDet
             <span>Promotion Limit Utilization</span>
             <span>{usagePercent}% Used</span>
           </div>
-          <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-100 h-full rounded-full overflow-hidden">
             <div className="bg-red-600 h-full rounded-full transition-all duration-500" style={{ width: `${usagePercent}%` }} />
           </div>
         </div>
@@ -123,11 +123,11 @@ export function PromotionDetailsView({ promotion, onBack, onEdit }: PromotionDet
             </div>
             <div className="flex justify-between py-1 border-b border-slate-100">
               <span className="text-slate-500 font-medium">Min Order Amount:</span>
-              <span className="font-bold text-slate-900">₹{promotion.minimumOrderAmount || 0}</span>
+              <span className="font-bold text-slate-900">AED {promotion.minimumOrderAmount || 0}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-100">
               <span className="text-slate-500 font-medium">Max Discount Cap:</span>
-              <span className="font-bold text-slate-900">{promotion.maximumDiscountAmount ? `₹${promotion.maximumDiscountAmount}` : 'No Cap'}</span>
+              <span className="font-bold text-slate-900">{promotion.maximumDiscountAmount ? `AED ${promotion.maximumDiscountAmount}` : 'No Cap'}</span>
             </div>
           </div>
         </div>

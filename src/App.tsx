@@ -52,9 +52,16 @@ export default function App() {
 
   useEffect(() => {
     const handleNavigate = (e: any) => {
-      const view = typeof e.detail === 'string' ? e.detail : e.detail?.view;
-      if (view) {
-        navigate(view.startsWith('/') ? view : `/${view}`);
+      let target = '';
+      if (typeof e.detail === 'string') {
+        target = e.detail;
+      } else if (e.detail?.orderId) {
+        target = `/order/${e.detail.orderId}`;
+      } else if (e.detail?.view) {
+        target = e.detail.view;
+      }
+      if (target) {
+        navigate(target.startsWith('/') ? target : `/${target}`);
       }
     };
     const handleUnauthorized = () => {

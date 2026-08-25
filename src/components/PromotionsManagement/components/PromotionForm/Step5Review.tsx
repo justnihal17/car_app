@@ -145,11 +145,11 @@ export function Step5Review({ formData, onGoToStep }: Step5Props) {
             <div>
               <span className="text-slate-500">Value:</span>{' '}
               <strong className="text-slate-900">
-                {formData.discountType === 'FLAT' ? `₹${formData.discountValue}` : formData.discountType === 'PERCENTAGE' ? `${formData.discountValue}%` : 'Free Service'}
+                {formData.discountType === 'FLAT' ? `AED ${formData.discountValue}` : formData.discountType === 'PERCENTAGE' ? `${formData.discountValue}%` : 'Free Service'}
               </strong>
             </div>
-            <div><span className="text-slate-500">Min Order:</span> <strong className="text-slate-900">₹{formData.minimumOrderAmount || 0}</strong></div>
-            <div><span className="text-slate-500">Max Discount Cap:</span> <strong className="text-slate-900">{formData.maximumDiscountAmount ? `₹${formData.maximumDiscountAmount}` : 'None'}</strong></div>
+            <div><span className="text-slate-500">Min Order:</span> <strong className="text-slate-900">AED {formData.minimumOrderAmount || 0}</strong></div>
+            <div><span className="text-slate-500">Max Discount Cap:</span> <strong className="text-slate-900">{formData.maximumDiscountAmount ? `AED ${formData.maximumDiscountAmount}` : 'None'}</strong></div>
             <div><span className="text-slate-500">Total Usage Limit:</span> <strong className="text-slate-900">{formData.usageLimit || 'Unlimited'}</strong></div>
             <div><span className="text-slate-500">Per User Limit:</span> <strong className="text-slate-900">{formData.perUserLimit || 1}</strong></div>
             <div><span className="text-slate-500">Stackable:</span> <strong className="text-slate-900">{formData.stackable ? 'Yes' : 'No'}</strong></div>
@@ -203,8 +203,8 @@ export function Step5Review({ formData, onGoToStep }: Step5Props) {
             <div><span className="text-slate-500">Time Range:</span> <strong className="text-slate-900">{formData.validTimeFrom && formData.validTimeTo ? `${formData.validTimeFrom} - ${formData.validTimeTo}` : 'All Day'}</strong></div>
             <div><span className="text-slate-500">Auto Apply:</span> <strong className="text-slate-900">{formData.autoApply ? 'Yes' : 'No'}</strong></div>
             <div><span className="text-slate-500">Include Taxes:</span> <strong className="text-slate-900">{formData.includeTaxes ? 'Yes' : 'No'}</strong></div>
-            {formData.walletCashback ? <div><span className="text-slate-500">Wallet Cashback:</span> <strong className="text-emerald-600">₹{formData.walletCashback}</strong></div> : null}
-            {formData.referralReward ? <div><span className="text-slate-500">Referral Reward:</span> <strong className="text-amber-600">₹{formData.referralReward}</strong></div> : null}
+            {formData.walletCashback ? <div><span className="text-slate-500">Wallet Cashback:</span> <strong className="text-emerald-600">AED {formData.walletCashback}</strong></div> : null}
+            {formData.referralReward ? <div><span className="text-slate-500">Referral Reward:</span> <strong className="text-amber-600">AED {formData.referralReward}</strong></div> : null}
           </div>
         </div>
       </div>

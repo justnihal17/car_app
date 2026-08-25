@@ -429,7 +429,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const isSubService = moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service';
       const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
       const isFuelType = moduleName.toLowerCase() === 'fueltype';
-      const cleanModuleName = isVehicleType ? 'vehicleType' : (isFuelType ? 'fuelType' : moduleName.toLowerCase());
+      const cleanModuleName = isVehicleType ? 'vehicletype' : (isFuelType ? 'fuelType' : moduleName.toLowerCase());
       let endpoint = isSubService ? `/master/subservice/${item.id}` : `/master/${cleanModuleName}/${item.id}`;
       if (moduleName.toLowerCase() === 'banner') {
         endpoint = `/master/banner/${item.id}`;
@@ -456,7 +456,16 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         payload.detailedDescription = desc;
       }
 
-      const response = await api.put(endpoint, payload);
+      let response;
+      try {
+        response = await api.put(endpoint, payload);
+      } catch (err: any) {
+        if (isVehicleType && err.response?.status === 404) {
+          response = await api.put(`/master/vehicleType/${item.id}`, payload);
+        } else {
+          throw err;
+        }
+      }
       if (response.data?.success) {
         toast.success(`Status updated to ${newStatus}`);
         fetchData();
@@ -472,7 +481,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       const isSubService = moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service';
       const isVehicleType = moduleName.toLowerCase() === 'vehicletype';
       const isFuelType = moduleName.toLowerCase() === 'fueltype';
-      const cleanModuleName = isVehicleType ? 'vehicleType' : (isFuelType ? 'fuelType' : moduleName.toLowerCase());
+      const cleanModuleName = isVehicleType ? 'vehicletype' : (isFuelType ? 'fuelType' : moduleName.toLowerCase());
       let endpoint = isSubService ? `/master/subservice/${item.id || item._id}` : `/master/${cleanModuleName}/${item.id || item._id}`;
       if (moduleName.toLowerCase() === 'banner') {
         endpoint = `/master/banner/${item.id || item._id}`;
@@ -495,7 +504,16 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         payload.detailedDescription = desc;
       }
 
-      const response = await api.put(endpoint, payload);
+      let response;
+      try {
+        response = await api.put(endpoint, payload);
+      } catch (err: any) {
+        if (isVehicleType && err.response?.status === 404) {
+          response = await api.put(`/master/vehicleType/${item.id || item._id}`, payload);
+        } else {
+          throw err;
+        }
+      }
       if (response.data?.success) {
         toast.success(`Instant status updated`);
         fetchData();
@@ -821,11 +839,20 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       if (mode === 'add') {
         let endpoint = isSubService 
           ? '/master/subservice' 
-          : (isVehicleType ? '/master/vehicletype/admin' : (isFuelType ? '/master/fuelType' : `/master/${moduleName.toLowerCase()}`));
+          : (isVehicleType ? '/master/vehicletype' : (isFuelType ? '/master/fuelType' : `/master/${moduleName.toLowerCase()}`));
         if (moduleName.toLowerCase() === 'banner') {
           endpoint = '/master/banner/admin';
         }
-        const response = await api.post(endpoint, payload);
+        let response;
+        try {
+          response = await api.post(endpoint, payload);
+        } catch (err: any) {
+          if (isVehicleType && err.response?.status === 404) {
+            response = await api.post('/master/vehicletype/admin', payload);
+          } else {
+            throw err;
+          }
+        }
         if (response.data?.success) {
           toast.success(response.data?.message || `${moduleName} created successfully`);
           fetchData();
@@ -833,11 +860,20 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       } else {
         let endpoint = isSubService 
           ? `/master/subservice/${editingItem.id}` 
-          : (isVehicleType ? `/master/vehicletype/admin/${editingItem.id}` : (isFuelType ? `/master/fuelType/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`));
+          : (isVehicleType ? `/master/vehicletype/${editingItem.id}` : (isFuelType ? `/master/fuelType/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`));
         if (moduleName.toLowerCase() === 'banner') {
           endpoint = `/master/banner/${editingItem.id}`;
         }
-        const response = await api.put(endpoint, payload);
+        let response;
+        try {
+          response = await api.put(endpoint, payload);
+        } catch (err: any) {
+          if (isVehicleType && err.response?.status === 404) {
+            response = await api.put(`/master/vehicleType/${editingItem.id}`, payload);
+          } else {
+            throw err;
+          }
+        }
         if (response.data?.success) {
           toast.success(response.data?.message || `${moduleName} updated successfully`);
           fetchData();

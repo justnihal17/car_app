@@ -122,26 +122,53 @@ export const fetchRecentOrders = createAsyncThunk(
 
 export const fetchOrderById = createAsyncThunk(
   'order/fetchOrderById',
-  async (id: string, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue, getState }) => {
     try {
-      const isMongoId = /^[0-9a-fA-F]{24}$/.test(id);
+      const cleanId = String(id || '').trim();
+      if (!cleanId) return rejectWithValue('Invalid Order ID');
+
+      const isMongoId = /^[0-9a-fA-F]{24}$/.test(cleanId);
       
-      if (!isMongoId) {
-        // If it's a display order number (like ORD000109), fetch via search
-        const searchResponse = await OrderService.getOrders({ search: id, limit: 1 });
+      if (isMongoId) {
+        try {
+          const response = await OrderService.getOrderById(cleanId);
+          if (response.success && response.data) {
+            return response.data;
+          }
+        } catch (e) {
+          console.warn('Direct getOrderById failed, falling back to search/store:', e);
+        }
+      }
+
+      // Try search by order ID or Order Number
+      try {
+        const searchResponse = await OrderService.getOrders({ search: cleanId, limit: 1 });
         if (searchResponse.success && searchResponse.data && searchResponse.data.length > 0) {
           return searchResponse.data[0];
         }
-        return rejectWithValue('Order not found');
+      } catch (e) {
+        console.warn('Search fallback failed:', e);
       }
 
-      const response = await OrderService.getOrderById(id);
-      if (response.success) {
-        return response.data;
-      }
-      return rejectWithValue(response.message || 'Failed to fetch order details');
+      // Fallback: check currently loaded orders in Redux state
+      const state = getState() as any;
+      const foundInOrders = state.order?.orders?.find((o: any) => 
+        String(o._id) === cleanId || 
+        String(o.id) === cleanId || 
+        String(o.order_number).toLowerCase() === cleanId.toLowerCase()
+      );
+      if (foundInOrders) return foundInOrders;
+
+      const foundInRecent = state.order?.recentOrders?.find((o: any) => 
+        String(o._id) === cleanId || 
+        String(o.id) === cleanId || 
+        String(o.order_number).toLowerCase() === cleanId.toLowerCase()
+      );
+      if (foundInRecent) return foundInRecent;
+
+      return rejectWithValue('Order not found');
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to fetch order details');
     }
   }
 );

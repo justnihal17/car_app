@@ -76,10 +76,8 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                   
                   const targetOrderId = n.entityId || n.referenceId || n.entity_id || n.reference_id || notifPayload._id || notifPayload.orderId || notifPayload.order_id || notifPayload.referenceId || notifPayload.reference_id || notifPayload.entityId || notifPayload.entity_id || (n.actionUrl && n.actionUrl.includes('orders/') ? n.actionUrl.split('orders/')[1] : (n.actionUrl && n.actionUrl.includes('order/') ? n.actionUrl.split('order/')[1] : null));
                   
-                  if (targetOrderId || (n.actionUrl && (n.actionUrl.includes('orders') || n.actionUrl.includes('order')))) {
-                    navigateToOrder(targetOrderId, n.actionUrl);
-                    onClose();
-                  }
+                  navigateToOrder(n, n.actionUrl);
+                  onClose();
                 }}
                 className={`pt-2.5 first:pt-0 pb-1.5 px-3 rounded-xl transition-all duration-200 cursor-pointer group ${
                   isUnread ? 'bg-slate-50/60 hover:bg-slate-100/70 border-l-4 border-slate-800' : 'hover:bg-slate-50'

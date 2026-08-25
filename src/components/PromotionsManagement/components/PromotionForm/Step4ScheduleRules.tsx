@@ -185,14 +185,14 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
             <Wallet className="w-4 h-4 text-emerald-600" /> Wallet Cashback Amount <span className="text-red-500">*</span>
           </label>
           <div className="relative max-w-xs">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">AED</span>
             <input
               type="number"
               min={1}
               value={formData.walletCashback || ''}
               onChange={(e) => onChange({ walletCashback: Number(e.target.value) })}
               placeholder="100"
-              className="w-full pl-8 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
+              className="w-full pl-12 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
             />
           </div>
           {errors.walletCashback && <p className="text-[11px] font-semibold text-red-500">{errors.walletCashback}</p>}
@@ -206,14 +206,14 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
             <Share2 className="w-4 h-4 text-amber-600" /> Referral Reward Amount <span className="text-red-500">*</span>
           </label>
           <div className="relative max-w-xs">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">AED</span>
             <input
               type="number"
               min={1}
               value={formData.referralReward || ''}
               onChange={(e) => onChange({ referralReward: Number(e.target.value) })}
               placeholder="200"
-              className="w-full pl-8 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
+              className="w-full pl-12 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
             />
           </div>
           {errors.referralReward && <p className="text-[11px] font-semibold text-red-500">{errors.referralReward}</p>}

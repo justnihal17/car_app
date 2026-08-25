@@ -78,7 +78,7 @@ export function DiscountBadge({
 }) {
   let label = '';
   if (discountType === 'FLAT') {
-    label = `₹${discountValue || 0} Flat`;
+    label = `AED ${discountValue || 0} Flat`;
   } else if (discountType === 'PERCENTAGE') {
     label = `${discountValue || 0}% Off`;
   } else if (discountType === 'FREE_SERVICE') {
@@ -86,9 +86,9 @@ export function DiscountBadge({
   }
 
   if (walletCashback) {
-    label += ` (₹${walletCashback} Cashback)`;
+    label += ` (AED ${walletCashback} Cashback)`;
   } else if (referralReward) {
-    label += ` (₹${referralReward} Reward)`;
+    label += ` (AED ${referralReward} Reward)`;
   }
 
   return (

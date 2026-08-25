@@ -39,7 +39,7 @@ export function ExecutiveDashboard() {
   const kpis = [
     { 
       label: "Total Revenue", 
-      value: ordersSummary.totalRevenue ? `₹${Number(ordersSummary.totalRevenue).toLocaleString()}` : (reportData?.totalRevenue ? `₹${Number(reportData.totalRevenue).toLocaleString()}` : '₹0'), 
+      value: ordersSummary.totalRevenue ? `AED ${Number(ordersSummary.totalRevenue).toLocaleString()}` : (reportData?.totalRevenue ? `AED ${Number(reportData.totalRevenue).toLocaleString()}` : 'AED 0'), 
       icon: DollarSign, 
       color: 'text-emerald-600', 
       bg: 'bg-emerald-50 border-emerald-200/60' 
