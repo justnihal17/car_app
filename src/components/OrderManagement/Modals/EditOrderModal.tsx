@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Calendar } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../../store/store';
 import { OrderService } from '../../../services/order.service';
@@ -11,6 +11,19 @@ interface EditOrderModalProps {
   onClose: () => void;
 }
 
+const toLocalDatetimeString = (isoString?: string) => {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 export function EditOrderModal({ order, isOpen, onClose }: EditOrderModalProps) {
   const dispatch = useDispatch<AppDispatch>();
   const [scheduledAt, setScheduledAt] = useState('');
@@ -20,7 +33,8 @@ export function EditOrderModal({ order, isOpen, onClose }: EditOrderModalProps) 
 
   useEffect(() => {
     if (order && isOpen) {
-      setScheduledAt(order.scheduled_at ? new Date(order.scheduled_at).toISOString().slice(0, 16) : '');
+      const initialDate = order.scheduled_at || order.order_date || order.createdAt;
+      setScheduledAt(toLocalDatetimeString(initialDate));
       setCustomerNote(order.customer_note || '');
       setError(null);
     }
@@ -33,9 +47,13 @@ export function EditOrderModal({ order, isOpen, onClose }: EditOrderModalProps) 
     setLoading(true);
     setError(null);
     try {
-      const data: any = {};
-      if (scheduledAt) data.scheduled_at = new Date(scheduledAt).toISOString();
-      if (customerNote) data.customer_note = customerNote;
+      const data: { scheduled_at?: string; customer_note?: string } = {};
+      if (scheduledAt) {
+        data.scheduled_at = new Date(scheduledAt).toISOString();
+      }
+      if (customerNote !== undefined) {
+        data.customer_note = customerNote;
+      }
 
       const response = await OrderService.updateOrder(order._id, data);
       if (response.success) {
@@ -56,7 +74,10 @@ export function EditOrderModal({ order, isOpen, onClose }: EditOrderModalProps) 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Edit Order Details</h2>
+          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-red-600" />
+            Reschedule / Edit Order
+          </h2>
           <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -66,13 +87,18 @@ export function EditOrderModal({ order, isOpen, onClose }: EditOrderModalProps) 
           {error && <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">{error}</div>}
           
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Scheduled At</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">
+              Scheduled Appointment (Date & Time)
+            </label>
             <input 
               type="datetime-local" 
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
               className="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-4 py-2.5 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
             />
+            <p className="text-xs text-slate-400 mt-1">
+              Customer's scheduled service appointment (saved in <code className="text-slate-600">scheduled_at</code>)
+            </p>
           </div>
 
           <div>

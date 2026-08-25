@@ -106,8 +106,8 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
 
     // Always sort by newest first
     result.sort((a, b) => {
-      const dateA = new Date(a.createdAt || a.created_at || a.date || 0).getTime();
-      const dateB = new Date(b.createdAt || b.created_at || b.date || 0).getTime();
+      const dateA = new Date(a.order_date || a.createdAt || a.created_at || a.date || 0).getTime();
+      const dateB = new Date(b.order_date || b.createdAt || b.created_at || b.date || 0).getTime();
       return dateB - dateA;
     });
 
@@ -276,7 +276,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                   <th className="px-4 2xl:px-6 py-3 2xl:py-4">Customer & Location</th>
                   <th className="px-4 2xl:px-6 py-3 2xl:py-4">Agent</th>
                   <th className="px-4 2xl:px-6 py-3 2xl:py-4">Amount & Payment</th>
-                  <th className="px-4 2xl:px-6 py-3 2xl:py-4">Status & Time</th>
+                  <th className="px-4 2xl:px-6 py-3 2xl:py-4">Status & Scheduled Date</th>
                 </tr>
               </thead>
               <tbody className="text-xs 2xl:text-sm divide-y divide-slate-100">
@@ -299,6 +299,9 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                               {order.order_number}
                             </div>
                             <div className="text-[10px] 2xl:text-xs text-slate-500 mt-0.5">{capitalize(srv?.name || 'Service')}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">
+                              Placed: {order.order_date ? new Date(order.order_date).toLocaleDateString() : (order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A')}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -329,10 +332,11 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                       <td className="px-4 2xl:px-5 py-3 2xl:py-4">
                         {(() => {
                           const itemSubtotal = Number(order.estimated_amount ?? order.subtotal ?? order.base_amount ?? order.final_amount ?? 0);
-                          const itemTaxRate = Number(order.tax_rate ?? 5);
-                          const itemVat = (order.tax_amount != null && Number(order.tax_amount) > 0)
-                            ? Number(order.tax_amount)
-                            : (itemSubtotal * (itemTaxRate / 100));
+                          const itemVat = (order.vat_amount != null && Number(order.vat_amount) >= 0)
+                            ? Number(order.vat_amount)
+                            : ((order.vat != null && Number(order.vat) >= 0)
+                                ? Number(order.vat)
+                                : (itemSubtotal * ((order.vat_rate ?? 5) / 100)));
 
                           return (
                             <>
@@ -355,7 +359,12 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                         </span>
                         <div className="text-[10px] 2xl:text-xs text-slate-500 mt-1 flex items-center gap-1">
                           <Clock className="w-3 2xl:w-3.5 h-3 2xl:h-3.5 text-slate-400" />
-                          {order.time_slot?.from ? `${order.time_slot.from} - ${order.time_slot.to}` : 'N/A'}
+                          <span>
+                            {order.scheduled_at 
+                              ? new Date(order.scheduled_at).toLocaleDateString()
+                              : (order.order_date ? new Date(order.order_date).toLocaleDateString() : (order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'))}
+                            {order.time_slot?.from ? ` (${order.time_slot.from} - ${order.time_slot.to})` : ''}
+                          </span>
                         </div>
                       </td>
                     </tr>

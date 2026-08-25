@@ -11,7 +11,7 @@ import { uploadImage } from '../../../services/uploadService';
 import { HomePageServiceItem } from '../types/website.types';
 import { DeleteConfirmationModal } from '../../DeleteConfirmationModal';
 
-const MAX_HOME_SERVICES = 6;
+const MAX_HOME_SERVICES = 7;
 
 interface ActionMenuProps {
   onView: () => void;
@@ -458,7 +458,7 @@ export function HomePageServicesManager() {
           <div className="space-y-1">
             <h3 className="text-base font-bold text-slate-900">No Home Page Services Configured</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Select and feature up to 6 services to display on the main website home page.
+              Select and feature up to {MAX_HOME_SERVICES} services to display on the main website home page.
             </p>
           </div>
           <button
@@ -1039,7 +1039,7 @@ export function HomePageServicesManager() {
         isOpen={Boolean(deletingItem)}
         name={deletingItem?.title || deletingItem?.name || 'this home service'}
         title="Remove Home Page Service?"
-        description="Are you sure you want to remove this service from the home page? This will free up 1 of the 6 available slots."
+        description={`Are you sure you want to remove this service from the home page? This will free up 1 of the ${MAX_HOME_SERVICES} available slots.`}
         onCancel={() => setDeletingItem(null)}
         onConfirm={handleDeleteConfirm}
       />

@@ -67,11 +67,18 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
   const orderStatus = order.status || 'pending';
   const paymentStatus = capitalize(order.payment?.status || 'pending');
 
-  const subtotalAmount = Number(order.estimated_amount ?? order.subtotal ?? order.base_amount ?? srv?.price ?? (order.final_amount || 0));
-  const taxRate = Number(order.tax_rate ?? 5);
-  const vatAmount = (order.tax_amount != null && Number(order.tax_amount) > 0)
-    ? Number(order.tax_amount)
-    : (subtotalAmount * (taxRate / 100));
+  const estimatedAmount = Number(order.estimated_amount ?? order.subtotal ?? order.base_amount ?? srv?.price ?? 0);
+  const additionalAmount = Number(order.additional_service_amount || 0);
+  const subtotalAmount = estimatedAmount + additionalAmount;
+  const couponDiscount = Number(order.coupon_discount || 0);
+  const subscriptionDiscount = Number(order.subscriptionDiscount || order.subscription_discount || 0);
+  const totalDiscounts = couponDiscount + subscriptionDiscount;
+  const vatRate = Number(order.vat_rate ?? 5);
+  const vatAmount = (order.vat_amount != null && Number(order.vat_amount) >= 0)
+    ? Number(order.vat_amount)
+    : ((order.vat != null && Number(order.vat) >= 0)
+        ? Number(order.vat)
+        : (Math.max(0, subtotalAmount - totalDiscounts) * (vatRate / 100)));
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
@@ -92,7 +99,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
               </span>
             </div>
             <p className="text-sm text-slate-500 mt-1.5 flex items-center gap-2 font-medium">
-              <Clock className="w-4 h-4 text-slate-400" /> Booked: {new Date(order.createdAt).toLocaleString()}
+              <Clock className="w-4 h-4 text-slate-400" /> Order Placed: {new Date(order.order_date || order.createdAt).toLocaleString()}
             </p>
           </div>
         </div>
@@ -162,15 +169,23 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
               </div>
               <div className="space-y-3.5 pt-5 border-t border-slate-100/80">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">Booking Date</span>
+                  <span className="text-slate-500 font-medium">Scheduled Date</span>
                   <span className="text-slate-900 font-bold">
-                    {order.booking_date ? new Date(order.booking_date).toLocaleDateString() : (order.scheduled_at ? new Date(order.scheduled_at).toLocaleDateString() : 'N/A')}
+                    {order.scheduled_at ? new Date(order.scheduled_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : (order.order_date ? new Date(order.order_date).toLocaleDateString() : (order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">Time Slot</span>
+                  <span className="text-slate-500 font-medium">Appointment Time</span>
                   <span className="text-slate-900 font-bold">
-                    {order.time_slot?.from ? `${order.time_slot.from} - ${order.time_slot.to}` : (order.scheduled_at ? new Date(order.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A')}
+                    {order.time_slot?.from && order.time_slot?.to 
+                      ? `${order.time_slot.from} - ${order.time_slot.to}` 
+                      : (order.scheduled_at ? new Date(order.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A')}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 font-medium">Order Date</span>
+                  <span className="text-slate-700 font-semibold">
+                    {order.order_date ? new Date(order.order_date).toLocaleString() : (order.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A')}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -196,24 +211,30 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500 font-medium">Subtotal</span>
-                    <span className="text-slate-700 font-bold">AED {subtotalAmount}</span>
+                    <span className="text-slate-700 font-bold">AED {subtotalAmount.toFixed(2)}</span>
                   </div>
+                  {additionalAmount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">Additional Services</span>
+                      <span className="text-slate-700 font-bold">+ AED {additionalAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {couponDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-emerald-600">
+                      <span className="font-medium">Coupon Discount</span>
+                      <span className="font-bold">- AED {couponDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {subscriptionDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-emerald-600">
+                      <span className="font-medium">Subscription Discount</span>
+                      <span className="font-bold">- AED {subscriptionDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 font-medium">VAT ({taxRate}%)</span>
+                    <span className="text-slate-500 font-medium">VAT ({vatRate}%)</span>
                     <span className="text-slate-700 font-bold">AED {vatAmount.toFixed(2)}</span>
                   </div>
-                  {order.additional_service_amount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Additional</span>
-                      <span className="text-slate-700 font-bold">AED {order.additional_service_amount}</span>
-                    </div>
-                  )}
-                  {order.coupon_discount > 0 && (
-                    <div className="flex justify-between text-sm text-emerald-600">
-                      <span className="font-medium">Discount</span>
-                      <span className="font-bold">- AED {order.coupon_discount}</span>
-                    </div>
-                  )}
                 </div>
               </div>
               
