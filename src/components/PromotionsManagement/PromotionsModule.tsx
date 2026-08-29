@@ -74,8 +74,39 @@ export default function PromotionsModule() {
 
       const res = await api.get(endpoint, options);
       
-      let offers = Array.isArray(res.data?.data) ? res.data.data : (res.data?.data?.offers || res.data || []);
+      let offers = Array.isArray(res.data?.data) ? res.data.data : (res.data?.data?.offers || res.data?.offers || res.data || []);
       if (!Array.isArray(offers)) offers = [];
+
+      offers = offers.map((o: any) => ({
+        ...o,
+        id: o._id || o.id,
+        title: o.title || o.name || o.offerName || 'Untitled Offer',
+        code: o.code || o.couponCode || o.promoCode || o.offerCode || '',
+        description: o.description || o.details || o.desc || '',
+        promoType: (o.promoType || o.type || o.offerType || 'COUPON').toString().toUpperCase(),
+        discountType: (o.discountType || o.discount_type || 'PERCENTAGE').toString().toUpperCase(),
+        discountValue: o.discountValue ?? o.discount ?? o.discountAmount ?? o.value ?? 0,
+        minimumOrderAmount: o.minimumOrderAmount ?? o.minOrderValue ?? o.minAmount ?? o.minOrderAmount ?? 0,
+        maximumDiscountAmount: o.maximumDiscountAmount ?? o.maxDiscount ?? o.maxDiscountAmount ?? 0,
+        startDate: o.startDate || o.validFrom || o.start_date || o.valid_from || o.createdAt,
+        endDate: o.endDate || o.validTill || o.validTo || o.end_date || o.valid_till || o.expiryDate,
+        status: o.status ? String(o.status).toUpperCase() : (o.active !== false ? 'ACTIVE' : 'INACTIVE'),
+        usageLimit: o.usageLimit ?? o.totalUsageLimit ?? o.limit ?? o.maxUsage ?? 100,
+        usedCount: o.usedCount ?? o.used ?? o.usageCount ?? 0,
+        perUserLimit: o.perUserLimit ?? o.userLimit ?? o.usagePerUser ?? 1,
+        priority: o.priority ?? 10,
+        applicableServices: o.applicableServices || o.services || o.serviceIds || ['ALL'],
+        applicableVehicleBrands: o.applicableVehicleBrands || o.brands || o.vehicleBrands || [],
+        applicableVehicleTypes: o.applicableVehicleTypes || o.vehicleTypes || [],
+        applicableCities: o.applicableCities || o.cities || [],
+        validDays: (o.validDays || o.valid_days || o.days || o.daysOfWeek || o.applicableDays || ['ALL']).map((d: any) => {
+          if (typeof d === 'number') {
+            const numMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return numMap[d] || d;
+          }
+          return d;
+        }),
+      }));
 
       if (filters.search.trim()) {
         const query = filters.search.trim().toLowerCase();

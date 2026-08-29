@@ -19,10 +19,7 @@ export interface LiveOverviewData {
 
 export const getOrderTimestamp = (order: any): number => {
   if (!order) return 0;
-  if (order.order_date) {
-    const t = new Date(order.order_date).getTime();
-    if (!isNaN(t) && t > 0) return t;
-  }
+  // 1. High-precision database creation timestamp
   if (order.createdAt) {
     const t = new Date(order.createdAt).getTime();
     if (!isNaN(t) && t > 0) return t;
@@ -31,10 +28,19 @@ export const getOrderTimestamp = (order: any): number => {
     const t = new Date(order.created_at).getTime();
     if (!isNaN(t) && t > 0) return t;
   }
+  if (order.updatedAt) {
+    const t = new Date(order.updatedAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (order.order_date) {
+    const t = new Date(order.order_date).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
   if (order.date) {
     const t = new Date(order.date).getTime();
     if (!isNaN(t) && t > 0) return t;
   }
+  // 2. MongoDB ObjectId timestamp (first 4 bytes encode exact creation epoch)
   const id = order._id || order.id;
   if (typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)) {
     const t = parseInt(id.substring(0, 8), 16) * 1000;
@@ -43,6 +49,12 @@ export const getOrderTimestamp = (order: any): number => {
   if (order.scheduled_at) {
     const t = new Date(order.scheduled_at).getTime();
     if (!isNaN(t) && t > 0) return t;
+  }
+  // 3. Fallback: Parse order number digits (e.g. ORD000087 -> 87)
+  const ordNum = String(order.order_number || order.orderNumber || '');
+  const digits = ordNum.replace(/\D/g, '');
+  if (digits) {
+    return parseInt(digits, 10);
   }
   return 0;
 };
@@ -127,42 +139,78 @@ export const fetchOrderById = createAsyncThunk(
       const cleanId = String(id || '').trim();
       if (!cleanId) return rejectWithValue('Invalid Order ID');
 
-      const isMongoId = /^[0-9a-fA-F]{24}$/.test(cleanId);
-      
-      if (isMongoId) {
-        try {
-          const response = await OrderService.getOrderById(cleanId);
-          if (response.success && response.data) {
-            return response.data;
-          }
-        } catch (e) {
-          console.warn('Direct getOrderById failed, falling back to search/store:', e);
+      // 1. Direct API call with ID or order_number
+      try {
+        const response = await OrderService.getOrderById(cleanId);
+        if (response && response.success && response.data) {
+          return response.data;
         }
+        if (response && response.data && (response.data._id || response.data.order_number)) {
+          return response.data;
+        }
+      } catch (e) {
+        console.warn('Direct getOrderById failed, trying search fallback:', e);
       }
 
-      // Try search by order ID or Order Number
+      // 2. Search /admin/order with order_number / search
       try {
-        const searchResponse = await OrderService.getOrders({ search: cleanId, limit: 1 });
-        if (searchResponse.success && searchResponse.data && searchResponse.data.length > 0) {
-          return searchResponse.data[0];
+        const searchResponse = await OrderService.getOrders({ search: cleanId, limit: 20 });
+        const list = Array.isArray(searchResponse.data) ? searchResponse.data : (searchResponse.data?.orders || []);
+        if (list.length > 0) {
+          const match = list.find((o: any) => 
+            String(o.order_number || o.orderNumber || '').trim().toLowerCase() === cleanId.toLowerCase() ||
+            String(o._id || o.id || '').trim().toLowerCase() === cleanId.toLowerCase()
+          );
+          if (match) return match;
+          return list[0];
         }
       } catch (e) {
         console.warn('Search fallback failed:', e);
       }
 
-      // Fallback: check currently loaded orders in Redux state
+      // 3. Try recent orders API
+      try {
+        const recentResponse = await OrderService.getRecentOrders();
+        const recentList = Array.isArray(recentResponse.data) ? recentResponse.data : (recentResponse.data?.orders || []);
+        if (recentList.length > 0) {
+          const match = recentList.find((o: any) => 
+            String(o.order_number || o.orderNumber || '').trim().toLowerCase() === cleanId.toLowerCase() ||
+            String(o._id || o.id || '').trim().toLowerCase() === cleanId.toLowerCase()
+          );
+          if (match) return match;
+        }
+      } catch (e) {
+        console.warn('Recent orders fallback failed:', e);
+      }
+
+      // 4. Fetch general orders list
+      try {
+        const allResponse = await OrderService.getOrders({ limit: 100 });
+        const allList = Array.isArray(allResponse.data) ? allResponse.data : (allResponse.data?.orders || []);
+        if (allList.length > 0) {
+          const match = allList.find((o: any) => 
+            String(o.order_number || o.orderNumber || '').trim().toLowerCase() === cleanId.toLowerCase() ||
+            String(o._id || o.id || '').trim().toLowerCase() === cleanId.toLowerCase()
+          );
+          if (match) return match;
+        }
+      } catch (e) {
+        console.warn('All orders list fallback failed:', e);
+      }
+
+      // 5. Fallback: check currently loaded orders in Redux state
       const state = getState() as any;
       const foundInOrders = state.order?.orders?.find((o: any) => 
         String(o._id) === cleanId || 
         String(o.id) === cleanId || 
-        String(o.order_number).toLowerCase() === cleanId.toLowerCase()
+        String(o.order_number || o.orderNumber || '').trim().toLowerCase() === cleanId.toLowerCase()
       );
       if (foundInOrders) return foundInOrders;
 
       const foundInRecent = state.order?.recentOrders?.find((o: any) => 
         String(o._id) === cleanId || 
         String(o.id) === cleanId || 
-        String(o.order_number).toLowerCase() === cleanId.toLowerCase()
+        String(o.order_number || o.orderNumber || '').trim().toLowerCase() === cleanId.toLowerCase()
       );
       if (foundInRecent) return foundInRecent;
 
@@ -212,6 +260,11 @@ const orderSlice = createSlice({
         const timeA = getOrderTimestamp(a);
         const timeB = getOrderTimestamp(b);
         if (timeB !== timeA) return timeB - timeA;
+
+        const numA = parseInt(String(a.order_number || a.orderNumber || '').replace(/\D/g, ''), 10) || 0;
+        const numB = parseInt(String(b.order_number || b.orderNumber || '').replace(/\D/g, ''), 10) || 0;
+        if (numB !== numA) return numB - numA;
+
         const idA = String(a.order_number || a._id || a.id || '');
         const idB = String(b.order_number || b._id || b.id || '');
         return idB.localeCompare(idA, undefined, { numeric: true });

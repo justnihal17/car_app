@@ -84,7 +84,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
   );
 
   const toggleApplicableService = (id: string) => {
-    if (isExcludedServicesActive) return; // Locked: cannot select if excluded services are active
     const current = (formData.applicableServices || []).filter((sId) => sId !== 'ALL');
     const updated = current.includes(id)
       ? current.filter((sId) => sId !== id)
@@ -95,7 +94,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
   };
 
   const toggleExcludedService = (id: string) => {
-    if (isApplicableServicesActive) return; // Locked: cannot select if applicable services are active
     const current = (formData.excludedServices || []).filter((sId) => sId !== 'ALL');
     const updated = current.includes(id)
       ? current.filter((sId) => sId !== id)
@@ -105,13 +103,24 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
     });
   };
 
+  const isAllPaymentSelected = Boolean(
+    (formData.paymentMethods || []).includes('ALL') ||
+    ((formData.paymentMethods || []).includes('ONLINE') && (formData.paymentMethods || []).includes('COD'))
+  );
+
+  const isPaymentSelected = (pm: string) => {
+    if ((formData.paymentMethods || []).includes('ALL')) return true;
+    return (formData.paymentMethods || []).includes(pm);
+  };
+
   const togglePaymentMethod = (pm: string) => {
-    const current = (formData.paymentMethods || []).filter((item) => item !== 'ALL');
+    const isAll = (formData.paymentMethods || []).includes('ALL');
+    const current = isAll ? ['ONLINE', 'COD'] : (formData.paymentMethods || []);
     const updated = current.includes(pm)
       ? current.filter((item) => item !== pm)
       : [...current, pm];
     onChange({
-      paymentMethods: updated.length === 0 || updated.length === PAYMENT_METHODS.length ? ['ALL'] : updated,
+      paymentMethods: updated.length === 2 ? ['ALL'] : updated,
     });
   };
 
@@ -161,7 +170,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           </div>
 
           {/* Applicable / Included Services */}
-          <div className={`space-y-2 transition-opacity ${isExcludedServicesActive ? 'opacity-50' : 'opacity-100'}`}>
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
                 Applicable / Included Services
@@ -170,21 +179,33 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                     {formData.applicableServices?.filter(s => s !== 'ALL').length} Selected
                   </span>
                 )}
-                {isExcludedServicesActive && (
-                  <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                    Locked — Unselect Excluded Services first
-                  </span>
-                )}
               </label>
-              {isApplicableServicesActive && (
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => onChange({ applicableServices: ['ALL'] })}
-                  className="text-[11px] text-red-600 hover:underline font-medium cursor-pointer"
+                  onClick={() => {
+                    const allIds = servicesList.map(s => s.id);
+                    const isAllSelected = formData.applicableServices?.filter(s => s !== 'ALL').length === allIds.length;
+                    if (isAllSelected) {
+                      onChange({ applicableServices: ['ALL'] });
+                    } else {
+                      onChange({ applicableServices: allIds });
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
                 >
-                  Unselect All
+                  {formData.applicableServices?.filter(s => s !== 'ALL').length === servicesList.length ? 'Unselect All' : 'Select All'}
                 </button>
-              )}
+                {isApplicableServicesActive && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ applicableServices: ['ALL'] })}
+                    className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -195,13 +216,11 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                 return (
                   <div
                     key={s.id}
-                    onClick={() => !isExcludedServicesActive && toggleApplicableService(s.id)}
-                    className={`p-2.5 rounded-lg border text-xs flex items-center justify-between transition-all select-none ${
+                    onClick={() => toggleApplicableService(s.id)}
+                    className={`p-2.5 rounded-lg border text-xs flex items-center justify-between transition-all select-none cursor-pointer ${
                       isSelected
                         ? 'border-slate-300 bg-slate-50 text-slate-900 font-medium'
-                        : isExcludedServicesActive
-                        ? 'border-slate-200/50 bg-slate-50/50 text-slate-400 cursor-not-allowed'
-                        : 'border-slate-200/90 bg-white text-slate-700 hover:border-slate-300 cursor-pointer'
+                        : 'border-slate-200/90 bg-white text-slate-700 hover:border-slate-300'
                     }`}
                   >
                     <span className="truncate pr-2">{s.name}</span>
@@ -221,7 +240,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           </div>
 
           {/* Excluded Services */}
-          <div className={`space-y-2 pt-3 border-t border-slate-100 transition-opacity ${isApplicableServicesActive ? 'opacity-50' : 'opacity-100'}`}>
+          <div className="space-y-2 pt-3 border-t border-slate-100">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
                 Excluded Services
@@ -230,21 +249,33 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                     {formData.excludedServices?.length} Excluded
                   </span>
                 )}
-                {isApplicableServicesActive && (
-                  <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                    Locked — Unselect Applicable Services first
-                  </span>
-                )}
               </label>
-              {isExcludedServicesActive && (
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => onChange({ excludedServices: [] })}
-                  className="text-[11px] text-red-600 hover:underline font-medium cursor-pointer"
+                  onClick={() => {
+                    const allIds = servicesList.map(s => s.id);
+                    const isAllSelected = formData.excludedServices?.length === allIds.length;
+                    if (isAllSelected) {
+                      onChange({ excludedServices: [] });
+                    } else {
+                      onChange({ excludedServices: allIds });
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
                 >
-                  Unselect All
+                  {formData.excludedServices?.length === servicesList.length ? 'Unselect All' : 'Select All'}
                 </button>
-              )}
+                {isExcludedServicesActive && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ excludedServices: [] })}
+                    className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -253,13 +284,11 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                 return (
                   <div
                     key={s.id}
-                    onClick={() => !isApplicableServicesActive && toggleExcludedService(s.id)}
-                    className={`p-2.5 rounded-lg border text-xs flex items-center justify-between transition-all select-none ${
+                    onClick={() => toggleExcludedService(s.id)}
+                    className={`p-2.5 rounded-lg border text-xs flex items-center justify-between transition-all select-none cursor-pointer ${
                       isSelected
                         ? 'border-slate-300 bg-slate-50 text-slate-900 font-medium'
-                        : isApplicableServicesActive
-                        ? 'border-slate-200/50 bg-slate-50/50 text-slate-400 cursor-not-allowed'
-                        : 'border-slate-200/90 bg-white text-slate-700 hover:border-slate-300 cursor-pointer'
+                        : 'border-slate-200/90 bg-white text-slate-700 hover:border-slate-300'
                     }`}
                   >
                     <span className="truncate pr-2">{s.name}</span>
@@ -291,11 +320,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           </div>
 
           {/* Top Section: Applicable / Included Vehicles */}
-          <div className={`space-y-3 p-3.5 rounded-lg border bg-slate-50/40 transition-all ${
-            isExcludedVehiclesActive 
-              ? 'border-slate-200/50 opacity-50' 
-              : 'border-slate-200/90 opacity-100'
-          }`}>
+          <div className="space-y-3 p-3.5 rounded-lg border border-slate-200/90 bg-slate-50/40">
             <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
               <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
                 Applicable / Included Vehicles
@@ -304,26 +329,56 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                     Filter Active
                   </span>
                 )}
-                {isExcludedVehiclesActive && (
-                  <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                    Locked — Unselect Excluded Vehicles first
-                  </span>
-                )}
               </label>
-              {isApplicableVehiclesActive && (
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => onChange({ 
-                    applicableVehicleBrands: ['ALL'], 
-                    applicableCarModels: ['ALL'], 
-                    applicableVehicleTypes: ['ALL'], 
-                    applicableFuelType: ['ALL'] 
-                  })}
-                  className="text-[11px] text-red-600 hover:underline font-medium cursor-pointer"
+                  onClick={() => {
+                    const allBrands = brandsList.map(b => b.id);
+                    const allModels = carModelsList.map(m => m.id);
+                    const allTypes = vehicleTypesList.map(t => t.id);
+                    const allFuels = fuelTypesList.map(f => f.id);
+                    const isAllSelected = 
+                      formData.applicableVehicleBrands?.filter(b => b !== 'ALL').length === allBrands.length &&
+                      formData.applicableCarModels?.filter(m => m !== 'ALL').length === allModels.length &&
+                      formData.applicableVehicleTypes?.filter(t => t !== 'ALL').length === allTypes.length &&
+                      formData.applicableFuelType?.filter(f => f !== 'ALL').length === allFuels.length;
+                    
+                    if (isAllSelected) {
+                      onChange({ 
+                        applicableVehicleBrands: ['ALL'], 
+                        applicableCarModels: ['ALL'], 
+                        applicableVehicleTypes: ['ALL'], 
+                        applicableFuelType: ['ALL'] 
+                      });
+                    } else {
+                      onChange({ 
+                        applicableVehicleBrands: allBrands, 
+                        applicableCarModels: allModels, 
+                        applicableVehicleTypes: allTypes, 
+                        applicableFuelType: allFuels 
+                      });
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
                 >
-                  Unselect All
+                  Select All
                 </button>
-              )}
+                {isApplicableVehiclesActive && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ 
+                      applicableVehicleBrands: ['ALL'], 
+                      applicableCarModels: ['ALL'], 
+                      applicableVehicleTypes: ['ALL'], 
+                      applicableFuelType: ['ALL'] 
+                    })}
+                    className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -335,7 +390,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                   onChange={(vals) => onChange({ applicableVehicleBrands: vals.length === 0 ? ['ALL'] : vals })}
                   options={brandsList.map((b) => ({ value: b.id, label: b.name }))}
                   placeholder="All Vehicle Brands"
-                  disabled={isExcludedVehiclesActive}
                   size="sm"
                 />
               </div>
@@ -348,7 +402,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                   onChange={(vals) => onChange({ applicableCarModels: vals.length === 0 ? ['ALL'] : vals })}
                   options={carModelsList.map((m) => ({ value: m.id, label: m.name }))}
                   placeholder="All Car Models"
-                  disabled={isExcludedVehiclesActive}
                   size="sm"
                 />
               </div>
@@ -361,7 +414,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                   onChange={(vals) => onChange({ applicableVehicleTypes: vals.length === 0 ? ['ALL'] : vals })}
                   options={vehicleTypesList.map((t) => ({ value: t.id, label: t.name }))}
                   placeholder="All Vehicle Types"
-                  disabled={isExcludedVehiclesActive}
                   size="sm"
                 />
               </div>
@@ -374,7 +426,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                   onChange={(vals) => onChange({ applicableFuelType: vals.length === 0 ? ['ALL'] : vals })}
                   options={fuelTypesList.map((f) => ({ value: f.id, label: f.name }))}
                   placeholder="All Fuel Types"
-                  disabled={isExcludedVehiclesActive}
                   size="sm"
                 />
               </div>
@@ -382,11 +433,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           </div>
 
           {/* Bottom Section (Niche): Excluded Vehicles */}
-          <div className={`space-y-3 p-3.5 rounded-lg border bg-slate-50/40 transition-all ${
-            isApplicableVehiclesActive 
-              ? 'border-slate-200/50 opacity-50' 
-              : 'border-slate-200/90 opacity-100'
-          }`}>
+          <div className="space-y-3 p-3.5 rounded-lg border border-slate-200/90 bg-slate-50/40">
             <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
               <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
                 Excluded Vehicles
@@ -395,21 +442,36 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                     {(formData.excludedVehicleBrands?.length || 0) + (formData.excludedCarModels?.length || 0)} Excluded
                   </span>
                 )}
-                {isApplicableVehiclesActive && (
-                  <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                    Locked — Unselect Applicable Vehicles first
-                  </span>
-                )}
               </label>
-              {isExcludedVehiclesActive && (
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => onChange({ excludedVehicleBrands: [], excludedCarModels: [] })}
-                  className="text-[11px] text-red-600 hover:underline font-medium cursor-pointer"
+                  onClick={() => {
+                    const allBrands = brandsList.map(b => b.id);
+                    const allModels = carModelsList.map(m => m.id);
+                    const isAllSelected = 
+                      formData.excludedVehicleBrands?.length === allBrands.length &&
+                      formData.excludedCarModels?.length === allModels.length;
+                    if (isAllSelected) {
+                      onChange({ excludedVehicleBrands: [], excludedCarModels: [] });
+                    } else {
+                      onChange({ excludedVehicleBrands: allBrands, excludedCarModels: allModels });
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
                 >
-                  Unselect All
+                  Select All
                 </button>
-              )}
+                {isExcludedVehiclesActive && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ excludedVehicleBrands: [], excludedCarModels: [] })}
+                    className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -421,7 +483,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                   onChange={(vals) => onChange({ excludedVehicleBrands: vals })}
                   options={brandsList.map((b) => ({ value: b.id, label: b.name }))}
                   placeholder="None Excluded"
-                  disabled={isApplicableVehiclesActive}
                   size="sm"
                 />
               </div>
@@ -434,7 +495,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                   onChange={(vals) => onChange({ excludedCarModels: vals })}
                   options={carModelsList.map((m) => ({ value: m.id, label: m.name }))}
                   placeholder="None Excluded"
-                  disabled={isApplicableVehiclesActive}
                   size="sm"
                 />
               </div>
@@ -446,6 +506,42 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
       {/* Tab 3: Location (Dropdowns) */}
       {activeTab === 'location' && (
         <div className="space-y-3.5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <label className="text-xs font-semibold text-slate-800">
+              Location Targeting (Cities & Emirates)
+            </label>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  const allCities = citiesList.map(c => c.id);
+                  const allEmirates = emiratesList.map(e => e.id);
+                  const isAllSelected = 
+                    formData.applicableCities?.filter(c => c !== 'ALL').length === allCities.length &&
+                    formData.applicableAmirates?.filter(e => e !== 'ALL').length === allEmirates.length;
+                  if (isAllSelected) {
+                    onChange({ applicableCities: ['ALL'], applicableAmirates: ['ALL'] });
+                  } else {
+                    onChange({ applicableCities: allCities, applicableAmirates: allEmirates });
+                  }
+                }}
+                className="text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
+              >
+                Select All
+              </button>
+              {((formData.applicableCities && !formData.applicableCities.includes('ALL') && formData.applicableCities.length > 0) || 
+                (formData.applicableAmirates && !formData.applicableAmirates.includes('ALL') && formData.applicableAmirates.length > 0)) && (
+                <button
+                  type="button"
+                  onClick={() => onChange({ applicableCities: ['ALL'], applicableAmirates: ['ALL'] })}
+                  className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Applicable Cities */}
             <div className="space-y-1">
@@ -513,9 +609,7 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
           </div>
 
           {/* Top Section: Included / Target Users */}
-          <div className={`space-y-2 p-3.5 rounded-lg border bg-slate-50/40 transition-all ${
-            isExcludedUsersActive ? 'border-slate-200/50 opacity-50' : 'border-slate-200/90 opacity-100'
-          }`}>
+          <div className="space-y-2 p-3.5 rounded-lg border border-slate-200/90 bg-slate-50/40">
             <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
               <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
                 Included / Target Users
@@ -524,21 +618,33 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                     {((formData as any).includedUsers?.filter((u: string) => u !== 'ALL').length || 0)} Selected
                   </span>
                 )}
-                {isExcludedUsersActive && (
-                  <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                    Locked — Unselect Excluded Users first
-                  </span>
-                )}
               </label>
-              {isIncludedUsersActive && (
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => onChange({ ['includedUsers' as any]: ['ALL'] })}
-                  className="text-[11px] text-red-600 hover:underline font-medium cursor-pointer"
+                  onClick={() => {
+                    const allIds = customersList.map(u => u.id);
+                    const isAll = (formData as any).includedUsers?.filter((u: string) => u !== 'ALL').length === allIds.length;
+                    if (isAll) {
+                      onChange({ ['includedUsers' as any]: ['ALL'] });
+                    } else {
+                      onChange({ ['includedUsers' as any]: allIds });
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
                 >
-                  Unselect All
+                  Select All
                 </button>
-              )}
+                {isIncludedUsersActive && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ['includedUsers' as any]: ['ALL'] })}
+                    className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -547,16 +653,13 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                 onChange={(vals) => onChange({ ['includedUsers' as any]: vals.length === 0 ? ['ALL'] : vals })}
                 options={customersList.map((u) => ({ value: u.id, label: u.name }))}
                 placeholder="All Users"
-                disabled={isExcludedUsersActive}
                 size="sm"
               />
             </div>
           </div>
 
           {/* Bottom Section: Excluded Users */}
-          <div className={`space-y-2 p-3.5 rounded-lg border bg-slate-50/40 transition-all ${
-            isIncludedUsersActive ? 'border-slate-200/50 opacity-50' : 'border-slate-200/90 opacity-100'
-          }`}>
+          <div className="space-y-2 p-3.5 rounded-lg border border-slate-200/90 bg-slate-50/40">
             <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
               <label className="text-xs font-semibold text-slate-800 flex items-center gap-2">
                 Excluded Users
@@ -565,21 +668,33 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                     {formData.excludedUsers?.length} Excluded
                   </span>
                 )}
-                {isIncludedUsersActive && (
-                  <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                    Locked — Unselect Included Users first
-                  </span>
-                )}
               </label>
-              {isExcludedUsersActive && (
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => onChange({ excludedUsers: [] })}
-                  className="text-[11px] text-red-600 hover:underline font-medium cursor-pointer"
+                  onClick={() => {
+                    const allIds = customersList.map(u => u.id);
+                    const isAll = formData.excludedUsers?.length === allIds.length;
+                    if (isAll) {
+                      onChange({ excludedUsers: [] });
+                    } else {
+                      onChange({ excludedUsers: allIds });
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
                 >
-                  Unselect All
+                  Select All
                 </button>
-              )}
+                {isExcludedUsersActive && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ excludedUsers: [] })}
+                    className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -588,7 +703,6 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
                 onChange={(vals) => onChange({ excludedUsers: vals })}
                 options={customersList.map((u) => ({ value: u.id, label: u.name }))}
                 placeholder="None Excluded"
-                disabled={isIncludedUsersActive}
                 size="sm"
               />
             </div>
@@ -599,12 +713,28 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
       {/* Tab 5: Payment Rules */}
       {activeTab === 'payment' && (
         <div className="space-y-3">
-          <label className="text-xs font-semibold text-slate-700">Payment Methods</label>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <label className="text-xs font-semibold text-slate-800">Payment Methods</label>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isAllPaymentSelected) {
+                    onChange({ paymentMethods: [] });
+                  } else {
+                    onChange({ paymentMethods: ['ALL'] });
+                  }
+                }}
+                className="text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
+              >
+                {isAllPaymentSelected ? 'Unselect All' : 'Select All'}
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {PAYMENT_METHODS.map((pm) => {
-              const isSelected =
-                (formData.paymentMethods || []).includes('ALL') ||
-                (formData.paymentMethods || []).includes(pm);
+              const isSelected = isPaymentSelected(pm);
               return (
                 <div
                   key={pm}
@@ -629,8 +759,12 @@ export function Step3Applicability({ formData, onChange }: Step3Props) {
               );
             })}
           </div>
-          {((formData.paymentMethods || []).includes('ALL') || (formData.paymentMethods || []).length === 0) && (
+          {isAllPaymentSelected ? (
             <p className="text-[10.5px] font-medium text-emerald-600">Valid for all payment methods (default)</p>
+          ) : formData.paymentMethods && formData.paymentMethods.length === 0 ? (
+            <p className="text-[10.5px] font-medium text-amber-600">No payment method selected</p>
+          ) : (
+            <p className="text-[10.5px] font-medium text-slate-600">Valid for: {formData.paymentMethods?.join(', ')}</p>
           )}
         </div>
       )}

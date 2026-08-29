@@ -74,9 +74,38 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                     notifPayload = typeof n.payload === 'string' ? JSON.parse(n.payload) : (n.payload || {});
                   } catch (e) {}
                   
-                  const targetOrderId = n.entityId || n.referenceId || n.entity_id || n.reference_id || notifPayload._id || notifPayload.orderId || notifPayload.order_id || notifPayload.referenceId || notifPayload.reference_id || notifPayload.entityId || notifPayload.entity_id || (n.actionUrl && n.actionUrl.includes('orders/') ? n.actionUrl.split('orders/')[1] : (n.actionUrl && n.actionUrl.includes('order/') ? n.actionUrl.split('order/')[1] : null));
+                  let notifData: any = {};
+                  try {
+                    notifData = typeof n.data === 'string' ? JSON.parse(n.data) : (n.data || {});
+                  } catch (e) {}
+
+                  const extractOrd = (txt: any) => (typeof txt === 'string' ? (txt.match(/ORD\d{4,10}/i)?.[0] || '') : '');
+
+                  const targetOrderId = 
+                    n.order_number ||
+                    n.orderNumber ||
+                    notifPayload?.order_number ||
+                    notifPayload?.orderNumber ||
+                    notifData?.order_number ||
+                    notifData?.orderNumber ||
+                    n.entityId || 
+                    n.referenceId || 
+                    n.entity_id || 
+                    n.reference_id || 
+                    notifPayload._id || 
+                    notifPayload.orderId || 
+                    notifPayload.order_id || 
+                    notifData._id ||
+                    notifData.orderId ||
+                    notifData.order_id ||
+                    (n.actionUrl && n.actionUrl.includes('orders/') ? n.actionUrl.split('orders/')[1] : (n.actionUrl && n.actionUrl.includes('order/') ? n.actionUrl.split('order/')[1] : null)) ||
+                    extractOrd(n.title) ||
+                    extractOrd(n.message) ||
+                    extractOrd(n.description) ||
+                    extractOrd(notifPayload.title) ||
+                    extractOrd(notifPayload.message);
                   
-                  navigateToOrder(n, n.actionUrl);
+                  navigateToOrder(targetOrderId || n, n.actionUrl);
                   onClose();
                 }}
                 className={`pt-2.5 first:pt-0 pb-1.5 px-3 rounded-xl transition-all duration-200 cursor-pointer group ${

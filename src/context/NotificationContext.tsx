@@ -434,7 +434,22 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           else if (typeof orderData.order === 'object') nestedOrder = orderData.order;
         } catch (e) {}
 
+        // Helper regex to extract order numbers like ORD000087 from title/message
+        const extractOrdNumber = (str: any) => {
+          if (!str || typeof str !== 'string') return '';
+          const match = str.match(/ORD\d{4,10}/i);
+          return match ? match[0] : '';
+        };
+
         const raw =
+          orderData.order_number ||
+          orderData.orderNumber ||
+          nestedPayload?.order_number ||
+          nestedPayload?.orderNumber ||
+          nestedData?.order_number ||
+          nestedData?.orderNumber ||
+          nestedOrder?.order_number ||
+          nestedOrder?.orderNumber ||
           orderData.orderId ||
           orderData.order_id ||
           orderData._id ||
@@ -463,8 +478,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           nestedOrder?.orderId ||
           nestedOrder?.order_id ||
           nestedOrder?.id ||
-          orderData.orderNumber ||
-          orderData.order_number ||
+          extractOrdNumber(orderData.title) ||
+          extractOrdNumber(orderData.message) ||
+          extractOrdNumber(orderData.description) ||
+          extractOrdNumber(orderData.body) ||
+          extractOrdNumber(nestedPayload?.title) ||
+          extractOrdNumber(nestedPayload?.message) ||
+          extractOrdNumber(nestedData?.title) ||
+          extractOrdNumber(nestedData?.message) ||
           '';
         targetId = String(raw || '').trim();
       } else if (typeof orderData === 'string' && orderData !== 'New Order' && orderData !== 'undefined' && orderData !== 'null') {

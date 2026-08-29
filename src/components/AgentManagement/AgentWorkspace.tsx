@@ -53,6 +53,56 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     setShowRowPasswords(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+const getSavedAgentPassword = (agent: any): string => {
+  if (!agent) return '';
+  if (agent.password && typeof agent.password === 'string' && !agent.password.startsWith('$2b$') && !agent.password.startsWith('$2a$') && agent.password !== '[protected]') {
+    return agent.password;
+  }
+  if (agent.plainPassword) return agent.plainPassword;
+  if (agent.plain_password) return agent.plain_password;
+  try {
+    const raw = localStorage.getItem('agent_saved_passwords_cache');
+    if (raw) {
+      const map = JSON.parse(raw);
+      const keys = [
+        agent._id,
+        agent.id,
+        agent.userId,
+        agent.email?.toLowerCase().trim(),
+        agent.phone?.replace(/\D/g, ''),
+        agent.employeeCode,
+        agent.agentId
+      ].filter(Boolean);
+      for (const k of keys) {
+        if (map[k]) return map[k];
+      }
+    }
+  } catch (e) {}
+  return agent.password || '';
+};
+
+const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) => {
+  if (!pass) return;
+  try {
+    const raw = localStorage.getItem('agent_saved_passwords_cache');
+    const map = raw ? JSON.parse(raw) : {};
+    const keys = [
+      newId,
+      agentData?._id,
+      agentData?.id,
+      agentData?.userId,
+      agentData?.email?.toLowerCase().trim(),
+      agentData?.phone?.replace(/\D/g, ''),
+      agentData?.employeeCode,
+      agentData?.agentId
+    ].filter(Boolean);
+    keys.forEach(k => {
+      map[k] = pass;
+    });
+    localStorage.setItem('agent_saved_passwords_cache', JSON.stringify(map));
+  } catch (e) {}
+};
+
   const handleCopyPassword = (e: React.MouseEvent, id: string, text: string) => {
     e.stopPropagation();
     if (!text) return;
@@ -69,7 +119,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       const rawAgents = Array.isArray(response.data.data) ? response.data.data : (response.data.data?.agents || []);
       setAgentsList(rawAgents.map((a: any, idx: number) => {
         const autoAgentId = a.agentId || a.employeeCode || `AGT-${1001 + idx}`;
-        const autoPassword = a.plainPassword || a.password || '';
+        const autoPassword = a.plainPassword || a.plain_password || getSavedAgentPassword(a) || a.password || '';
         const formattedRole = a.role === 'service_agent' ? 'Service Agent' : (a.role || 'Service Agent');
         return {
           ...a,
@@ -378,6 +428,9 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
         if (editingAgentId) {
           const response = await api.put(`/agent/agent/${editingAgentId}`, payload);
+          if (formData.password) {
+            saveAgentPasswordToCache(formData.password, payload, editingAgentId);
+          }
           toast.success(response.data?.message || 'Agent updated successfully');
         } else {
           if (!payload.password) payload.password = "Agent@123";
@@ -390,6 +443,10 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
             } else {
               throw e;
             }
+          }
+          const createdId = response.data?.data?._id || response.data?.data?.id || response.data?._id;
+          if (formData.password) {
+            saveAgentPasswordToCache(formData.password, payload, createdId);
           }
           toast.success(response.data?.message || 'Agent registered successfully');
         }
@@ -427,6 +484,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       const defaultEmirate = agent.emirate || agent.state || 'Dubai';
       const defaultCity = agent.city || 'Dubai';
       const defaultGender = agent.gender || 'Male';
+      const agentPass = getSavedAgentPassword(agent) || agent.password || agent.plainPassword || '';
       setFormData({
           fullName: agent.name || '',
           firstName: editFirstName,
@@ -437,7 +495,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           role: agent.role || 'service_agent',
           gender: defaultGender,
           userId: agent.userId || '',
-          password: '',
+          password: agentPass,
           confirmPassword: '',
           emirate: defaultEmirate,
           city: defaultCity,
@@ -457,6 +515,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       setEditingAgentId(agent.id);
       const viewFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
       const viewLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
+      const agentPass = getSavedAgentPassword(agent) || agent.password || agent.plainPassword || '';
       setFormData({
           fullName: agent.name || '',
           firstName: viewFirstName,
@@ -467,7 +526,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           role: agent.role || 'service_agent',
           gender: agent.gender || '',
           userId: agent.userId || '',
-          password: agent.password || '',
+          password: agentPass,
           confirmPassword: '',
           emirate: agent.emirate || agent.state || 'Dubai',
           city: agent.city || 'Dubai',
@@ -1049,7 +1108,18 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                     </div>
 
                     <div className="relative">
-                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Password {drawerMode === "register" && <span className="text-red-500">*</span>}</label>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <label className="block text-[11px] font-medium text-slate-700">Password {drawerMode === "register" && <span className="text-red-500">*</span>}</label>
+                        {formData.password && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleCopyPassword(e, 'drawer-pass', formData.password)}
+                            className="text-[10px] text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3" /> Copy
+                          </button>
+                        )}
+                      </div>
                       <div className="relative">
                         <input 
                           type={showPassword ? "text" : "password"} 
@@ -1057,12 +1127,13 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                           value={formData.password || ''} 
                           onChange={(e) => drawerMode !== "view" && setFormData({...formData, password: e.target.value})} 
                           disabled={drawerMode === "view"}
-                          className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 transition-all pr-8 shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : 'focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500'}`} 
+                          className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 transition-all pr-8 shadow-2xs ${drawerMode === "view" ? 'opacity-90 bg-slate-50 cursor-default font-medium' : 'focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500'}`} 
                         />
                         <button 
                           type="button" 
                           onClick={() => setShowPassword(!showPassword)} 
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-0.5"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-0.5 cursor-pointer"
+                          title={showPassword ? "Hide password" : "Show password"}
                         >
                           {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>

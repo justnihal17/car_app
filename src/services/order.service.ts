@@ -16,7 +16,11 @@ export const OrderService = {
     if (filters.status) params.append('status', filters.status);
     if (filters.payment) params.append('payment_status', filters.payment);
     if (filters.agent) params.append('agent_id', filters.agent);
-    if (filters.search) params.append('search', filters.search);
+    if (filters.search) {
+      params.append('search', filters.search);
+      params.append('order_number', filters.search);
+      params.append('orderNumber', filters.search);
+    }
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.limit) params.append('limit', filters.limit.toString());
     
@@ -36,6 +40,18 @@ export const OrderService = {
 
   getOrderById: async (id: string) => {
     const response = await api.get(`/admin/order/${id}`);
+    return response.data;
+  },
+
+  getOrderByNumber: async (orderNumber: string) => {
+    try {
+      const response = await api.get(`/admin/order/${orderNumber}`);
+      if (response.data?.success && response.data?.data) return response.data;
+    } catch (e) {}
+
+    const response = await api.get('/admin/order', {
+      params: { search: orderNumber, order_number: orderNumber, orderNumber, limit: 10 }
+    });
     return response.data;
   },
 

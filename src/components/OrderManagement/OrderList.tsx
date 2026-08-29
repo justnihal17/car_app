@@ -131,6 +131,11 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
       const timeA = getOrderTimestamp(a);
       const timeB = getOrderTimestamp(b);
       if (timeB !== timeA) return timeB - timeA;
+
+      const numA = parseInt(String(a.order_number || a.orderNumber || '').replace(/\D/g, ''), 10) || 0;
+      const numB = parseInt(String(b.order_number || b.orderNumber || '').replace(/\D/g, ''), 10) || 0;
+      if (numB !== numA) return numB - numA;
+
       const idA = String(a.order_number || a._id || a.id || '');
       const idB = String(b.order_number || b._id || b.id || '');
       return idB.localeCompare(idA, undefined, { numeric: true });

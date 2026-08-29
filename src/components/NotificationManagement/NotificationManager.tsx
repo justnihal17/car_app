@@ -45,22 +45,34 @@ export function NotificationManager() {
       dispatch(markAsRead(notif.id));
     }
 
-    if (notif.actionUrl) {
-      if (notif.actionUrl === '/orders' || notif.actionUrl === '/order' || notif.actionUrl?.includes('orders') || notif.actionUrl?.includes('order')) {
-        window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: 'order' } }));
-        let payloadData: any = {};
-        try {
-          payloadData = typeof notif.payload === 'string' ? JSON.parse(notif.payload) : (notif.payload || {});
-        } catch (e) {}
-        const targetId = notif.entityId || notif.referenceId || payloadData.orderId || payloadData.order_id || (notif.actionUrl?.includes('orders/') ? notif.actionUrl.split('orders/')[1] : (notif.actionUrl?.includes('order/') ? notif.actionUrl.split('order/')[1] : null));
-        if (targetId) {
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));
-          }, 100);
-        }
-      } else {
-        window.dispatchEvent(new CustomEvent('navigate_view', { detail: { view: notif.actionUrl } }));
-      }
+    let payloadData: any = {};
+    try {
+      payloadData = typeof notif.payload === 'string' ? JSON.parse(notif.payload) : (notif.payload || {});
+    } catch (e) {}
+
+    const extractOrd = (txt: any) => (typeof txt === 'string' ? (txt.match(/ORD\d{4,10}/i)?.[0] || '') : '');
+
+    const targetId =
+      notif.order_number ||
+      notif.orderNumber ||
+      payloadData.order_number ||
+      payloadData.orderNumber ||
+      notif.entityId ||
+      notif.referenceId ||
+      payloadData.orderId ||
+      payloadData.order_id ||
+      payloadData._id ||
+      (notif.actionUrl?.includes('orders/') ? notif.actionUrl.split('orders/')[1] : (notif.actionUrl?.includes('order/') ? notif.actionUrl.split('order/')[1] : null)) ||
+      extractOrd(notif.title) ||
+      extractOrd(notif.message);
+
+    if (targetId) {
+      window.dispatchEvent(new CustomEvent('navigate_view', { detail: `/order/${targetId}` }));
+      window.dispatchEvent(new CustomEvent('select_order', { detail: targetId }));
+    } else if (notif.actionUrl) {
+      window.dispatchEvent(new CustomEvent('navigate_view', { detail: notif.actionUrl }));
+    } else {
+      window.dispatchEvent(new CustomEvent('navigate_view', { detail: '/order' }));
     }
   };
 

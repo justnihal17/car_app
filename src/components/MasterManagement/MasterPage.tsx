@@ -843,16 +843,22 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       if (mode === 'add') {
         let endpoint = isSubService 
           ? '/master/subservice' 
-          : (isVehicleType ? '/master/vehicletype' : (isFuelType ? '/master/fuelType' : `/master/${moduleName.toLowerCase()}`));
-        if (moduleName.toLowerCase() === 'banner') {
-          endpoint = '/master/banner/admin';
-        }
+          : (isVehicleType ? '/master/vehicletype' : (isFuelType ? '/master/fuelType' : (moduleName.toLowerCase() === 'banner' ? '/master/banner' : `/master/${moduleName.toLowerCase()}`)));
+        
         let response;
         try {
           response = await api.post(endpoint, payload);
         } catch (err: any) {
-          if (isVehicleType && err.response?.status === 404) {
-            response = await api.post('/master/vehicletype/admin', payload);
+          if (err.response?.status === 404) {
+            try {
+              response = await api.post(`/master/${moduleName.toLowerCase()}/admin`, payload);
+            } catch (err2: any) {
+              if (err2.response?.status === 404) {
+                response = await api.post(`/admin/${moduleName.toLowerCase()}`, payload);
+              } else {
+                throw err2;
+              }
+            }
           } else {
             throw err;
           }
@@ -864,16 +870,22 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       } else {
         let endpoint = isSubService 
           ? `/master/subservice/${editingItem.id}` 
-          : (isVehicleType ? `/master/vehicletype/${editingItem.id}` : (isFuelType ? `/master/fuelType/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`));
-        if (moduleName.toLowerCase() === 'banner') {
-          endpoint = `/master/banner/${editingItem.id}`;
-        }
+          : (isVehicleType ? `/master/vehicletype/${editingItem.id}` : (isFuelType ? `/master/fuelType/${editingItem.id}` : (moduleName.toLowerCase() === 'banner' ? `/master/banner/${editingItem.id}` : `/master/${moduleName.toLowerCase()}/${editingItem.id}`)));
+        
         let response;
         try {
           response = await api.put(endpoint, payload);
         } catch (err: any) {
-          if (isVehicleType && err.response?.status === 404) {
-            response = await api.put(`/master/vehicleType/${editingItem.id}`, payload);
+          if (err.response?.status === 404) {
+            try {
+              response = await api.put(`/master/${moduleName.toLowerCase()}/admin/${editingItem.id}`, payload);
+            } catch (err2: any) {
+              if (err2.response?.status === 404) {
+                response = await api.put(`/admin/${moduleName.toLowerCase()}/${editingItem.id}`, payload);
+              } else {
+                throw err2;
+              }
+            }
           } else {
             throw err;
           }

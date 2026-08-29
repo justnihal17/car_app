@@ -152,38 +152,158 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       return arr.filter(Boolean);
     };
 
+    const titleVal = formData.title || 'Untitled Promotion';
+    const codeVal = formData.promoType === 'COUPON' ? (formData.code?.toUpperCase() || 'OFFER') : (formData.code || '');
+    const discountNum = Math.max(0, Number(formData.discountValue || 0));
+    const minOrderNum = Math.max(0, Number(formData.minimumOrderAmount || 0));
+    const maxDiscountNum = Math.max(0, Number(formData.maximumDiscountAmount || 0));
+    const startIso = formatISO(formData.startDate);
+    const endIso = formData.endDate ? formatISO(formData.endDate) : undefined;
+    const usageLimitVal = Math.max(0, Number(formData.usageLimit || 100));
+    const perUserLimitVal = Math.max(1, Number(formData.perUserLimit || 1));
+    const statusVal = formData.status ? String(formData.status).toUpperCase() : 'ACTIVE';
+    const discountTypeVal = (formData.discountType || 'PERCENTAGE').toUpperCase();
+    const promoTypeVal = (formData.promoType || 'COUPON').toUpperCase();
+
+    const ALL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const daysMap: Record<string, number> = { 
+      Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6,
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+      Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+      sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6
+    };
+
+    let selectedDaysStrings: string[] = [];
+    if (!formData.validDays || formData.validDays.length === 0 || formData.validDays.includes('ALL')) {
+      selectedDaysStrings = ALL_DAYS;
+    } else {
+      selectedDaysStrings = formData.validDays.map(d => {
+        if (typeof d === 'number') {
+          const numMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          return numMap[d] || String(d);
+        }
+        return String(d);
+      });
+    }
+
+    const selectedDaysNumbers: number[] = selectedDaysStrings.map(d => daysMap[d] ?? -1).filter(n => n !== -1);
+
+    const rawPayments = formData.paymentMethods || [];
+    let resolvedPaymentMethods: string[] = ['ONLINE', 'COD'];
+    if (rawPayments.length > 0 && !rawPayments.includes('ALL')) {
+      resolvedPaymentMethods = rawPayments.map(p => String(p).toUpperCase());
+    }
+
     const finalPromo: any = {
-      ...(formData.id ? { id: formData.id } : {}),
-      title: formData.title || 'Untitled Promotion',
+      ...(formData.id ? { id: formData.id, _id: formData.id } : {}),
+      
+      // Name & Title aliases
+      title: titleVal,
+      name: titleVal,
+      offerName: titleVal,
+      offerTitle: titleVal,
+
+      // Code aliases
+      code: codeVal,
+      couponCode: codeVal,
+      promoCode: codeVal,
+      offerCode: codeVal,
+
       description: formData.description || '',
-      code: formData.promoType === 'COUPON' ? (formData.code?.toUpperCase() || 'OFFER') : undefined,
-      promoType: formData.promoType || 'COUPON',
-      discountType: formData.discountType || 'PERCENTAGE',
-      discountValue: Math.max(0, Number(formData.discountValue || 0)),
-      minimumOrderAmount: Math.max(0, Number(formData.minimumOrderAmount || 0)),
-      maximumDiscountAmount: Math.max(0, Number(formData.maximumDiscountAmount || 0)),
-      startDate: formatISO(formData.startDate),
-      endDate: formatISO(formData.endDate),
-      status: formData.status || 'ACTIVE',
-      usageLimit: Math.max(0, Number(formData.usageLimit || 100)),
+      promoType: promoTypeVal,
+      type: promoTypeVal.toLowerCase(),
+      offerType: promoTypeVal,
+
+      discountType: discountTypeVal,
+      discount_type: discountTypeVal.toLowerCase(),
+
+      // Discount amount/value aliases
+      discountValue: discountNum,
+      discount: discountNum,
+      discountAmount: discountNum,
+      value: discountNum,
+      percentage: discountNum,
+
+      // Minimum and Maximum thresholds
+      minimumOrderAmount: minOrderNum,
+      minOrderValue: minOrderNum,
+      minAmount: minOrderNum,
+      minOrderAmount: minOrderNum,
+
+      maximumDiscountAmount: maxDiscountNum,
+      maxDiscount: maxDiscountNum,
+      maxDiscountAmount: maxDiscountNum,
+
+      // Validity / Dates aliases
+      startDate: startIso,
+      validFrom: startIso,
+      valid_from: startIso,
+      start_date: startIso,
+      fromDate: startIso,
+
+      endDate: endIso,
+      validTill: endIso,
+      validTo: endIso,
+      valid_till: endIso,
+      end_date: endIso,
+      expiryDate: endIso,
+
+      // Status & Activity aliases
+      status: formData.status ? String(formData.status).toUpperCase() : 'ACTIVE',
+      active: formData.status ? formData.status === 'ACTIVE' : true,
+      isActive: formData.status ? formData.status === 'ACTIVE' : true,
+
+      // Usage & Limit aliases
+      usageLimit: usageLimitVal,
+      totalUsageLimit: usageLimitVal,
+      limit: usageLimitVal,
+      maxUsage: usageLimitVal,
       usedCount: Math.max(0, Number(formData.usedCount || 0)),
-      perUserLimit: Math.max(1, Number(formData.perUserLimit || 1)),
+      perUserLimit: perUserLimitVal,
+      userLimit: perUserLimitVal,
+      usagePerUser: perUserLimitVal,
+
       stackable: !!formData.stackable,
       priority: Math.max(1, Math.abs(Number(formData.priority !== undefined ? formData.priority : 10))),
+
+      // Applicability & Entity lists
       applicableServices: normalizeAll(formData.applicableServices),
+      services: normalizeAll(formData.applicableServices),
+      serviceIds: normalizeAll(formData.applicableServices),
+
       applicableVehicleBrands: normalizeAll(formData.applicableVehicleBrands),
+      brands: normalizeAll(formData.applicableVehicleBrands),
+      vehicleBrands: normalizeAll(formData.applicableVehicleBrands),
+
       applicableVehicleTypes: normalizeAll(formData.applicableVehicleTypes),
+      vehicleTypes: normalizeAll(formData.applicableVehicleTypes),
+
       applicableCities: normalizeAll(formData.applicableCities),
+      cities: normalizeAll(formData.applicableCities),
+
       applicableUserType: formData.applicableUserType ? (formData.applicableUserType.toUpperCase() as any) : 'ALL',
+      userType: formData.applicableUserType || 'ALL',
       firstBookingOnly: !!formData.firstBookingOnly,
-      paymentMethods: formData.paymentMethods && formData.paymentMethods.length > 0 ? formData.paymentMethods : ['ONLINE', 'COD'],
-      validDays: formData.validDays ? formData.validDays.map(day => {
-        if (typeof day === 'number') return day;
-        const daysMap: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
-        return daysMap[day.toString()] ?? -1;
-      }).filter(d => d !== -1) : [0, 1, 2, 3, 4, 5, 6],
+
+      // Payment Methods aliases
+      paymentMethods: resolvedPaymentMethods,
+      payment_methods: resolvedPaymentMethods,
+      paymentMethod: resolvedPaymentMethods,
+      payment_method: resolvedPaymentMethods,
+      applicablePaymentMethods: resolvedPaymentMethods,
+
+      // Valid Days aliases (numeric [0..6] for Number schemas, string names for string schemas)
+      validDays: selectedDaysNumbers.length > 0 ? selectedDaysNumbers : [0, 1, 2, 3, 4, 5, 6],
+      valid_days: selectedDaysNumbers.length > 0 ? selectedDaysNumbers : [0, 1, 2, 3, 4, 5, 6],
+      daysOfWeek: selectedDaysNumbers.length > 0 ? selectedDaysNumbers : [0, 1, 2, 3, 4, 5, 6],
+      days: selectedDaysStrings,
+      applicableDays: selectedDaysStrings,
+      validDaysStrings: selectedDaysStrings,
+      validDaysNumbers: selectedDaysNumbers,
+
       validTimeFrom: formData.validTimeFrom || '00:00',
       validTimeTo: formData.validTimeTo || '23:59',
+
       walletCashback: Math.max(0, Number(formData.walletCashback || 0)),
       referralReward: Math.max(0, Number(formData.referralReward || 0)),
       isDeleted: false,

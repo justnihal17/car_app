@@ -20,18 +20,14 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
     );
 
   const toggleDay = (day: string) => {
-    const isAll = (formData.validDays || []).includes('ALL') || (formData.validDays || []).length === 0;
-    if (isAll) {
-      onChange({ validDays: [day] });
-    } else {
-      const current = (formData.validDays || []).filter((d) => d !== 'ALL');
-      const updated = current.includes(day)
-        ? current.filter((d) => d !== day)
-        : [...current, day];
-      onChange({
-        validDays: updated.length === 0 || updated.length === DAYS_OF_WEEK.length ? ['ALL'] : updated,
-      });
-    }
+    const isAll = (formData.validDays || []).includes('ALL');
+    const current = isAll ? [...DAYS_OF_WEEK] : (formData.validDays || []);
+    const updated = current.includes(day)
+      ? current.filter((d) => d !== day)
+      : [...current, day];
+    onChange({
+      validDays: updated.length === DAYS_OF_WEEK.length ? ['ALL'] : updated,
+    });
   };
 
   const selectDayGroup = (type: 'weekdays' | 'weekends') => {
@@ -97,6 +93,20 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
           <div className="flex items-center gap-2 text-xs font-medium">
             <button
               type="button"
+              onClick={() => {
+                if (isAllDaysSelected) {
+                  onChange({ validDays: [] });
+                } else {
+                  onChange({ validDays: ['ALL'] });
+                }
+              }}
+              className="font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
+            >
+              {isAllDaysSelected ? 'Unselect All' : 'Select All'}
+            </button>
+            <span className="text-slate-300">|</span>
+            <button
+              type="button"
               onClick={() => selectDayGroup('weekdays')}
               className="text-slate-600 hover:text-red-600 hover:underline cursor-pointer"
             >
@@ -116,7 +126,7 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
               onClick={() => onChange({ validDays: ['ALL'] })}
               className="text-slate-600 hover:text-red-600 hover:underline cursor-pointer"
             >
-              Set All
+              All Days
             </button>
           </div>
         </div>
@@ -125,7 +135,6 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
           {DAYS_OF_WEEK.map((day) => {
             const isSelected =
               (formData.validDays || []).includes('ALL') ||
-              (formData.validDays || []).length === 0 ||
               (formData.validDays || []).includes(day);
             return (
               <div
@@ -151,8 +160,12 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
             );
           })}
         </div>
-        {((formData.validDays || []).includes('ALL') || (formData.validDays || []).length === 0) && (
+        {(formData.validDays?.includes('ALL') || (formData.validDays && formData.validDays.length === DAYS_OF_WEEK.length)) ? (
           <p className="text-[10.5px] font-medium text-emerald-600">Valid every day of the week (default)</p>
+        ) : formData.validDays && formData.validDays.length === 0 ? (
+          <p className="text-[10.5px] font-medium text-amber-600">No days selected</p>
+        ) : (
+          <p className="text-[10.5px] font-medium text-slate-600">Valid on: {formData.validDays?.join(', ')}</p>
         )}
       </div>
 
