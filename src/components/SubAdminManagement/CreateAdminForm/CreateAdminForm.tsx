@@ -379,17 +379,17 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
   });
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-6 transition-opacity duration-200 ease-out">
-      <div className="bg-[#F8FAFC] w-full max-w-full md:max-w-2xl rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 ease-out">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 transition-opacity duration-200 ease-out">
+      <div className="bg-[#F8FAFC] w-full max-w-lg md:max-w-xl rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden flex flex-col max-h-[88vh] animate-in fade-in zoom-in-95 duration-200 ease-out">
         {/* Header - White, minimal, top accent */}
-        <div className="px-6 py-4 bg-white flex items-center justify-between border-b border-slate-200 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 shadow-sm">
-              <Shield className="w-5 h-5" />
+        <div className="px-4 py-2.5 bg-white flex items-center justify-between border-b border-slate-200 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 shadow-2xs">
+              <Shield className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold tracking-tight text-slate-900 capitalize leading-tight">
+                <h3 className="text-sm font-bold tracking-tight text-slate-900 capitalize leading-tight">
                   {currentMode === 'view'
                     ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || admin?.name || 'View Admin')
                     : currentMode === 'edit'
@@ -397,32 +397,32 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
                     : 'Create Admin'}
                 </h3>
                 {formData.adminId && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                  <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
                     ID: {formData.adminId}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-[11px] text-slate-500 mt-0.5">
                 {isView ? 'View admin details and permissions.' : (isEdit ? 'Manage admin details and permissions.' : 'Add a new sub-admin to the system.')}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Close modal">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" aria-label="Close modal">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Content */}
         <form className="flex-1 flex flex-col justify-between overflow-hidden" onSubmit={handleSubmit}>
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar relative pb-10">
+          <div className="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar relative pb-6">
             {apiSuccess && (
-              <div className="p-4 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
+              <div className="p-2.5 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/80 rounded-lg flex items-center gap-2 shadow-2xs">
                 <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 {apiSuccess}
               </div>
             )}
             {apiError && (
-              <div className="p-4 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/80 rounded-xl flex items-center gap-2 shadow-2xs">
+              <div className="p-2.5 text-xs font-semibold text-rose-800 bg-rose-50 border border-rose-200/80 rounded-lg flex items-center gap-2 shadow-2xs">
                 <X className="w-4 h-4 text-rose-600 shrink-0" />
                 {apiError}
               </div>
@@ -455,11 +455,11 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
           </div>
 
           {/* Form Actions Footer - Fixed at the bottom */}
-          <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-end gap-3 shrink-0">
+          <div className="px-4 py-2.5 border-t border-slate-200 bg-white flex items-center justify-end gap-2 shrink-0">
             <button 
               type="button" 
               onClick={onClose} 
-              className="px-6 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-sm shadow-sm"
+              className="h-8 px-3.5 border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors text-xs shadow-2xs cursor-pointer"
             >
               {isView ? 'Close' : 'Cancel'}
             </button>
@@ -467,20 +467,20 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
               <button 
                 type="button"
                 onClick={() => setCurrentMode('edit')}
-                className="flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm"
+                className="flex items-center gap-1.5 h-8 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-2xs transition-colors text-xs cursor-pointer"
               >
-                <Edit2 className="w-4 h-4" /> Edit Admin
+                <Edit2 className="w-3.5 h-3.5" /> Edit Admin
               </button>
             )}
             {!isView && (
               <button 
                 type="submit" 
                 disabled={loading || !isFormValid} 
-                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                className="flex items-center justify-center gap-1.5 h-8 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-2xs transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none cursor-pointer"
               >
                 {loading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-1.5 h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -488,7 +488,7 @@ export function CreateSubAdminDrawer({ mode, admin, onSave, onClose }: CreateSub
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4" /> 
+                    <Save className="w-3.5 h-3.5" /> 
                     {currentMode === 'edit' ? 'Update Admin' : 'Register Admin'}
                   </>
                 )}

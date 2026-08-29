@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Promotion, PromotionFilterState, PromotionStats } from './types/promotion.types';
 import { PromotionsHeader } from './components/PromotionsHeader';
 import { PromotionsFilters } from './components/PromotionsFilters';
@@ -192,7 +193,7 @@ export default function PromotionsModule() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
+    <div className="p-3.5 sm:p-4 lg:p-5 space-y-3.5 sm:space-y-4 w-full bg-slate-50/60 min-h-screen">
       {/* View Switcher */}
       {viewMode === 'list' && (
         <>
@@ -227,34 +228,64 @@ export default function PromotionsModule() {
             onRestore={(p) => setRestoreTarget(p)}
           />
 
-          {!loading && pagination.total > pagination.limit && (
-            <div className="flex items-center justify-between bg-white px-4 py-3 sm:px-6 rounded-2xl border border-slate-200 shadow-sm mt-4">
-              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{((pagination.page - 1) * pagination.limit) + 1}</span> to <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span className="font-medium">{pagination.total}</span> results
-                  </p>
+          {!loading && pagination.total > 0 && (
+            <div className="flex items-center justify-between px-5 py-3 border border-slate-200/90 bg-slate-50/50 rounded-xl mt-3.5 shadow-2xs">
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 font-normal">
+                <span>Showing</span>
+                <span className="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                  {((pagination.page - 1) * pagination.limit) + 1} – {Math.min(pagination.page * pagination.limit, pagination.total)}
+                </span>
+                <span>of</span>
+                <span className="font-semibold text-slate-800">{pagination.total}</span>
+                <span>results</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                  disabled={pagination.page === 1}
+                  className="w-7 h-7 flex items-center justify-center border border-slate-200 bg-white rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <div className="flex items-center gap-1">
+                  {[...Array(Math.ceil(pagination.total / pagination.limit))].map((_, idx) => {
+                    const page = idx + 1;
+                    const totalPages = Math.ceil(pagination.total / pagination.limit);
+                    const isCurrent = page === pagination.page;
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= pagination.page - 1 && page <= pagination.page + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setPagination(prev => ({ ...prev, page }))}
+                          className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            isCurrent
+                              ? 'bg-red-600 text-white shadow-xs'
+                              : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 shadow-2xs'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      page === pagination.page - 2 ||
+                      page === pagination.page + 2
+                    ) {
+                      return <span key={page} className="text-slate-400 text-xs px-0.5">...</span>;
+                    }
+                    return null;
+                  })}
                 </div>
-                <div>
-                  <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                    <button
-                      onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-                      disabled={pagination.page === 1}
-                      className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                    >
-                      <span className="sr-only">Previous</span>
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                      disabled={pagination.page * pagination.limit >= pagination.total}
-                      className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                    >
-                      <span className="sr-only">Next</span>
-                      Next
-                    </button>
-                  </nav>
-                </div>
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                  disabled={pagination.page * pagination.limit >= pagination.total}
+                  className="w-7 h-7 flex items-center justify-center border border-slate-200 bg-white rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           )}

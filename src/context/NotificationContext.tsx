@@ -515,7 +515,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       if (!document.hidden) {
         fetchBackendNotifications();
       }
-    }, 15000); // 15 seconds fallback polling (FCM push handles instant notifications)
+    }, 45000); // 45 seconds fallback polling (FCM push handles instant notifications)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);

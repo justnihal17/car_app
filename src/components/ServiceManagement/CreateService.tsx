@@ -631,6 +631,9 @@ export function CreateService({
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      </div>
 
       <ImageCropModal
         isOpen={cropModalOpen}

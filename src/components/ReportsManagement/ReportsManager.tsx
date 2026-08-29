@@ -56,7 +56,7 @@ export function ReportsManager({ currentView }: { currentView?: string }) {
   };
 
   return (
-    <div className="p-4 md:px-8 md:pb-8 md:pt-2 max-w-7xl mx-auto space-y-4">
+    <div className="p-3.5 sm:p-4 lg:p-5 space-y-3.5 sm:space-y-4 w-full bg-slate-50/60 min-h-screen animate-in fade-in duration-200">
       {/* Content Area */}
       <Suspense fallback={<StatsShimmer />}>
         {renderContent()}

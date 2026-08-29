@@ -98,45 +98,47 @@ export function ConfirmationModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center animate-in fade-in duration-200"
+      className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={(e) => { if (e.target === e.currentTarget && !isExecuting) onCancel(); }}
     >
-      <div className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-200 border border-slate-100" role="dialog" aria-modal="true">
+      <div className="bg-white rounded-2xl p-5 max-w-[320px] w-full shadow-xl flex flex-col items-center text-center animate-in zoom-in-95 duration-150 border border-slate-100" role="dialog" aria-modal="true">
         {actionType === 'logout' ? (
-          <div className="mb-6 flex items-center justify-center w-full">
+          <div className="mb-4 flex items-center justify-center w-full">
             <SafeImage 
               src="/logo.png" 
               alt="Logo" 
-              className="h-20 object-contain mix-blend-multiply [filter:contrast(130%)_brightness(110%)] mx-auto" 
+              className="h-14 object-contain mix-blend-multiply [filter:contrast(130%)_brightness(110%)] mx-auto" 
             />
           </div>
         ) : (
           <>
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 shadow-inner border ${style.iconWrapper}`}>
-              <Icon className="w-8 h-8" />
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 shadow-2xs border ${style.iconWrapper}`}>
+              <Icon className="w-5 h-5 stroke-[2.2]" />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">{modalTitle}</h3>
+            <h3 className="text-sm font-bold text-slate-900 mb-1 tracking-tight">{modalTitle}</h3>
             {finalMessage ? (
-              <p className="text-slate-500 font-medium text-sm mb-8 px-4 leading-relaxed">{finalMessage}</p>
+              <p className="text-slate-500 font-normal text-xs mb-4 px-1 leading-relaxed">{finalMessage}</p>
             ) : (
-              <div className="mb-6" />
+              <div className="mb-3" />
             )}
           </>
         )}
-        <div className="flex items-center gap-3 w-full">
+        <div className="flex items-center gap-2 w-full">
           <button 
+            type="button"
             onClick={onCancel}
             disabled={isExecuting}
-            className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 hover:text-slate-900 transition-colors disabled:opacity-50 cursor-pointer"
+            className="flex-1 h-8 py-1 px-3 rounded-lg border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 hover:text-slate-900 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
           >
             {cancelText}
           </button>
           <button 
+            type="button"
             onClick={handleConfirm}
             disabled={isExecuting}
-            className={`flex-1 py-3 px-4 rounded-xl text-white font-bold shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer ${style.button}`}
+            className={`flex-1 h-8 py-1 px-3 rounded-lg text-white text-xs font-semibold shadow-2xs transition-all active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer ${style.button}`}
           >
-            {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {isExecuting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
             {finalConfirmText}
           </button>
         </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Tag, CheckCircle2, XCircle, RefreshCw, BadgePercent } from 'lucide-react';
+import { Plus, Tag, CheckCircle2, XCircle, RefreshCw, BadgePercent, ChevronRight } from 'lucide-react';
 import { Promotion, PromotionStats } from '../types/promotion.types';
 
 interface PromotionsHeaderProps {
@@ -22,35 +22,47 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
   }, 0);
 
   return (
-    <div className="space-y-6 mb-6">
+    <div className="space-y-3.5 sm:space-y-4 mb-4">
       {/* Breadcrumb & Header Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Offer Management</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+          <button 
+            type="button"
+            className="cursor-pointer hover:text-red-600 transition-colors font-medium uppercase tracking-wider"
+            onClick={() => window.dispatchEvent(new CustomEvent('navigate_view', { detail: 'dashboard' }))}
+          >
+            Dashboard
+          </button> 
+          <ChevronRight className="w-3 h-3 text-slate-400" /> 
+          <span className="text-red-600 font-semibold">
+            Offer Management
+          </span>
         </div>
-        <button
-          onClick={onCreateClick}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-linear-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all active:scale-95 text-xs self-start sm:self-auto cursor-pointer"
-        >
-          <Plus className="w-4 h-4" /> Create Promotion
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onCreateClick}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-semibold rounded-lg shadow-xs transition-all active:scale-95 text-xs cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 stroke-[2]" /> Create Promotion
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards Grid */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-3.5 w-full">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-22.5 bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
+            <div key={i} className="h-[90px] bg-slate-200/70 animate-pulse rounded-xl p-3.5 border border-slate-200/50 flex flex-col justify-between">
               <div className="flex justify-between items-center">
-                <div className="h-3 w-16 bg-slate-300 rounded" />
-                <div className="w-8 h-8 bg-slate-300 rounded-xl" />
+                <div className="h-2.5 w-16 bg-slate-300 rounded" />
+                <div className="w-6 h-6 bg-slate-300 rounded-lg" />
               </div>
-              <div className="h-6 w-12 bg-slate-300 rounded mt-1" />
+              <div className="h-5 w-12 bg-slate-300 rounded mt-1" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-3.5 w-full">
           {[
             { label: 'Total Promos', value: totalPromotions, icon: Tag, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Configured campaigns' },
             { label: 'Active', value: activeCount, icon: CheckCircle2, color: 'text-slate-600 bg-[#F8FAFC] border-slate-200', sub: 'Currently live' },
@@ -62,17 +74,17 @@ export function PromotionsHeader({ promotions, loading, stats, onCreateClick }: 
             return (
               <div 
                 key={i} 
-                className={`bg-white p-4 rounded-2xl transition-all duration-300 flex flex-col justify-between group border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 hover:-translate-y-1`}
+                className="bg-white p-3.5 sm:p-4 rounded-xl transition-all duration-200 flex flex-col justify-between group cursor-pointer hover:-translate-y-0.5 min-h-[88px] sm:min-h-[92px] border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-xs font-bold tracking-tight transition-colors uppercase text-slate-500 group-hover:text-slate-800`}>{card.label}</span>
-                  <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
-                    <Icon className="w-4 h-4 text-slate-600" />
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[10.5px] font-semibold tracking-wider transition-colors uppercase leading-none text-slate-500 group-hover:text-slate-800">{card.label}</span>
+                  <div className={`p-1.5 rounded-lg border ${card.color} transition-all duration-200 group-hover:scale-105 shadow-2xs`}>
+                    <Icon className="w-3.5 h-3.5 text-slate-500" />
                   </div>
                 </div>
-                <div className="flex flex-col mt-1">
-                  <span className="text-3xl font-bold text-slate-900 tracking-tight leading-none">{card.value}</span>
-                  <span className="text-[9px] 2xl:text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-1.5 whitespace-nowrap overflow-hidden text-ellipsis" title={card.sub}>{card.sub}</span>
+                <div className="flex flex-col w-full mt-3">
+                  <span className="text-xl sm:text-2xl font-semibold text-slate-800 tracking-tight leading-none">{card.value}</span>
+                  <span className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mt-1.5 whitespace-nowrap overflow-hidden text-ellipsis" title={card.sub}>{card.sub}</span>
                 </div>
               </div>
             );

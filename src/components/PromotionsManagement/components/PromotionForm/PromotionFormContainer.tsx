@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Promotion } from '../../types/promotion.types';
 import { FormStepper } from './FormStepper';
 import { Step1BasicInfo } from './Step1BasicInfo';
@@ -8,6 +8,7 @@ import { Step4ScheduleRules } from './Step4ScheduleRules';
 import { Step5Review } from './Step5Review';
 import { ArrowLeft, Save, ArrowRight, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getPromotionMasterData } from '../../services/promotionMasterCache';
 
 interface PromotionFormContainerProps {
   initialData?: Promotion | null;
@@ -18,6 +19,11 @@ interface PromotionFormContainerProps {
 export function PromotionFormContainer({ initialData, onSubmit, onCancel }: PromotionFormContainerProps) {
   const isEditMode = !!initialData;
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Preload master data in the background so step 3 and 5 are instant
+  useEffect(() => {
+    getPromotionMasterData();
+  }, []);
 
   const [formData, setFormData] = useState<Partial<Promotion>>(() => {
     if (initialData) return { ...initialData };
@@ -34,20 +40,23 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       perUserLimit: 1,
       stackable: false,
       priority: 1,
-      applicableServices: [],
+      applicableServices: ['ALL'],
       applicableVehicleBrands: [],
       applicableVehicleTypes: [],
       applicableCities: [],
       applicableUserType: 'ALL',
       firstBookingOnly: false,
-      paymentMethods: [],
-      validDays: [],
+      paymentMethods: ['ALL'],
+      validDays: ['ALL'],
       isDeleted: false,
       applicableFuelType: [],
       applicableTransmission: [],
       applicableCarModels: [],
       applicableAmirates: [],
       excludedServices: [],
+      excludedVehicleBrands: [],
+      excludedCarModels: [],
+      includedUsers: ['ALL'],
       excludedUsers: [],
       includeTaxes: true,
       autoApply: false,
@@ -84,8 +93,6 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
         } else if (formData.discountType === 'PERCENTAGE' && formData.discountValue > 100) {
           errs.discountValue = 'Percentage discount cannot exceed 100%.';
         }
-      } else if (!formData.freeServiceId) {
-        errs.freeServiceId = 'Please select a free service item.';
       }
     }
 
@@ -139,6 +146,12 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       }
     };
 
+    const normalizeAll = (arr?: any[]) => {
+      if (!arr || arr.length === 0) return [];
+      if (arr.includes('ALL')) return ['ALL'];
+      return arr.filter(Boolean);
+    };
+
     const finalPromo: any = {
       ...(formData.id ? { id: formData.id } : {}),
       title: formData.title || 'Untitled Promotion',
@@ -157,10 +170,10 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       perUserLimit: Math.max(1, Number(formData.perUserLimit || 1)),
       stackable: !!formData.stackable,
       priority: Math.max(1, Math.abs(Number(formData.priority !== undefined ? formData.priority : 10))),
-      applicableServices: formData.applicableServices?.filter(Boolean) || [],
-      applicableVehicleBrands: formData.applicableVehicleBrands?.filter(Boolean) || [],
-      applicableVehicleTypes: formData.applicableVehicleTypes?.filter(Boolean) || [],
-      applicableCities: formData.applicableCities?.filter(Boolean) || [],
+      applicableServices: normalizeAll(formData.applicableServices),
+      applicableVehicleBrands: normalizeAll(formData.applicableVehicleBrands),
+      applicableVehicleTypes: normalizeAll(formData.applicableVehicleTypes),
+      applicableCities: normalizeAll(formData.applicableCities),
       applicableUserType: formData.applicableUserType ? (formData.applicableUserType.toUpperCase() as any) : 'ALL',
       firstBookingOnly: !!formData.firstBookingOnly,
       paymentMethods: formData.paymentMethods && formData.paymentMethods.length > 0 ? formData.paymentMethods : ['ONLINE', 'COD'],
@@ -174,13 +187,15 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       walletCashback: Math.max(0, Number(formData.walletCashback || 0)),
       referralReward: Math.max(0, Number(formData.referralReward || 0)),
       isDeleted: false,
-      applicableFuelType: formData.applicableFuelType?.filter(Boolean) || [],
-      applicableTransmission: formData.applicableTransmission?.filter(Boolean) || [],
-      applicableCarModels: formData.applicableCarModels?.filter(Boolean) || [],
-      applicableAmirates: formData.applicableAmirates?.filter(Boolean) || [],
-      excludedServices: formData.excludedServices?.filter(Boolean) || [],
-      excludedUsers: formData.excludedUsers?.filter(Boolean) || [],
-      includedUsers: (formData as any).includedUsers?.filter(Boolean) || [],
+      applicableFuelType: normalizeAll(formData.applicableFuelType),
+      applicableTransmission: normalizeAll(formData.applicableTransmission),
+      applicableCarModels: normalizeAll(formData.applicableCarModels),
+      applicableAmirates: normalizeAll(formData.applicableAmirates),
+      excludedServices: normalizeAll(formData.excludedServices),
+      excludedVehicleBrands: normalizeAll(formData.excludedVehicleBrands),
+      excludedCarModels: normalizeAll(formData.excludedCarModels),
+      excludedUsers: normalizeAll(formData.excludedUsers),
+      includedUsers: normalizeAll((formData as any).includedUsers),
       includeTaxes: formData.includeTaxes !== false,
       autoApply: formData.promoType === 'AUTOMATIC' ? true : !!formData.autoApply,
     };
@@ -196,27 +211,27 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+    <div className="space-y-3.5 max-w-4xl mx-auto pb-8 animate-in fade-in duration-200">
       {/* Header bar */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={onCancel}
-            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+            className="w-7.5 h-7.5 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-lg font-black text-slate-900">
+            <h1 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight leading-none">
               {isEditMode ? `Edit Promotion: ${initialData?.title}` : 'Create New Promotion'}
             </h1>
-            <p className="text-xs text-slate-500">Step {currentStep} of 5</p>
+            <p className="text-[11px] text-slate-400 font-normal mt-1">Step {currentStep} of 5</p>
           </div>
         </div>
 
         <button
           onClick={handleSaveDraft}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-slate-700 bg-slate-100 hover:bg-slate-200 font-medium rounded-lg text-xs transition-colors cursor-pointer h-7.5"
         >
           <Save className="w-3.5 h-3.5" /> Save Draft
         </button>
@@ -233,11 +248,11 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
       {currentStep === 5 && <Step5Review formData={formData} onGoToStep={(s) => setCurrentStep(s)} />}
 
       {/* Footer Navigation Buttons */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-200/80">
+      <div className="flex items-center justify-between pt-3 border-t border-slate-200/80">
         <button
           type="button"
           onClick={currentStep === 1 ? onCancel : () => setCurrentStep((prev) => prev - 1)}
-          className="px-5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors"
+          className="h-8 px-4 text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shadow-2xs"
         >
           {currentStep === 1 ? 'Cancel' : 'Back'}
         </button>
@@ -246,15 +261,15 @@ export function PromotionFormContainer({ initialData, onSubmit, onCancel }: Prom
           <button
             type="button"
             onClick={handleNext}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-linear-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 text-xs transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-8 px-5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-semibold rounded-lg shadow-2xs text-xs transition-all active:scale-95 cursor-pointer"
           >
             {currentStep === 5 ? (
               <>
-                <Check className="w-4 h-4" /> {isEditMode ? 'Update Promotion' : 'Create Promotion'}
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" /> {isEditMode ? 'Update Promotion' : 'Create Promotion'}
               </>
             ) : (
               <>
-                Continue <ArrowRight className="w-4 h-4" />
+                Continue <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
           </button>

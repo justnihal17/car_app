@@ -20,15 +20,15 @@ const formatRole = (role: string) => {
 const getRoleBadgeStyle = (role: string) => {
   switch (role?.toLowerCase()) {
     case 'super_admin':
-      return 'bg-gradient-to-r from-red-600 to-red-600 text-white border-transparent shadow-xs shadow-red-500/20 font-extrabold';
+      return 'bg-gradient-to-r from-red-600 to-red-600 text-white border-transparent shadow-xs shadow-red-500/20 font-semibold';
     case 'admin':
-      return 'bg-red-50 text-red-700 border-indigo-200/80 font-bold';
+      return 'bg-red-50 text-red-700 border-red-200/80 font-medium';
     case 'staff':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200/80 font-bold';
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200/80 font-medium';
     case 'manager':
-      return 'bg-purple-50 text-purple-700 border-purple-200/80 font-bold';
+      return 'bg-purple-50 text-purple-700 border-purple-200/80 font-medium';
     default:
-      return 'bg-slate-100 text-slate-700 border-slate-200 font-bold';
+      return 'bg-slate-100 text-slate-700 border-slate-200 font-medium';
   }
 };
 
@@ -352,39 +352,38 @@ export function SubAdminManagement() {
   const paginatedAdmins = filteredAdmins.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
+    <div className="p-3.5 sm:p-4 lg:p-5 space-y-3.5 sm:space-y-4 w-full bg-slate-50/60 min-h-screen">
       {/* Breadcrumb & Top Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">
           <span>Dashboard</span> 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
+          <ChevronRight className="w-3 h-3 text-slate-400" /> 
           <span>Profile Management</span> 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
-          <span className="text-red-600 font-bold">
+          <ChevronRight className="w-3 h-3 text-slate-400" /> 
+          <span className="text-red-600 font-semibold">
             Sub Admin
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button 
             onClick={handleCreate} 
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-semibold rounded-lg shadow-xs transition-all active:scale-95 text-xs cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" /> Create
+            <Plus className="w-3.5 h-3.5 stroke-[2]" /> Create
           </button>
-
         </div>
       </div>
 
       {/* Analytics Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-3.5 w-full">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[90px] bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
+            <div key={i} className="h-[90px] bg-slate-200/70 animate-pulse rounded-xl p-3.5 border border-slate-200/50 flex flex-col justify-between">
               <div className="flex justify-between items-center">
-                <div className="h-3 w-16 bg-slate-300 rounded" />
-                <div className="w-8 h-8 bg-slate-300 rounded-xl" />
+                <div className="h-2.5 w-12 bg-slate-300 rounded" />
+                <div className="w-6 h-6 bg-slate-300 rounded-lg" />
               </div>
-              <div className="h-6 w-12 bg-slate-300 rounded mt-1" />
+              <div className="h-5 w-8 bg-slate-300 rounded mt-2" />
             </div>
           ))
         ) : (
@@ -402,21 +401,21 @@ export function SubAdminManagement() {
               <div 
                 key={i} 
                 onClick={() => setSelectedCard(prev => prev === card.label ? null : card.label)}
-                className={`bg-white p-4 rounded-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
+                className={`bg-white p-3.5 sm:p-4 rounded-xl transition-all duration-200 flex flex-col justify-between group cursor-pointer hover:-translate-y-0.5 min-h-[88px] sm:min-h-[92px] ${
                   isFocused 
-                    ? `border border-slate-300 bg-white shadow-md` 
-                    : 'border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300'
+                    ? `border border-slate-300 bg-white shadow-xs` 
+                    : 'border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-xs font-semibold tracking-tight transition-colors uppercase ${isFocused ? `text-slate-800 font-bold` : 'text-slate-500 group-hover:text-slate-800'}`}>{card.label}</span>
-                  <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
-                    <Icon className="w-4 h-4" />
+                <div className="flex items-center justify-between w-full">
+                  <span className={`text-[10.5px] font-semibold tracking-wider transition-colors uppercase leading-none ${isFocused ? `text-slate-800` : 'text-slate-500 group-hover:text-slate-800'}`}>{card.label}</span>
+                  <div className={`p-1.5 rounded-lg border ${card.color} transition-all duration-200 group-hover:scale-105 shadow-2xs`}>
+                    <Icon className="w-3.5 h-3.5 text-slate-500" />
                   </div>
                 </div>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</span>
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
+                <div className="flex items-baseline justify-between w-full mt-3">
+                  <span className="text-xl sm:text-2xl font-semibold text-slate-800 tracking-tight leading-none">{card.value}</span>
+                  <span className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">{card.sub}</span>
                 </div>
               </div>
             );
@@ -425,58 +424,56 @@ export function SubAdminManagement() {
       </div>
 
       {/* Main Content */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* Search Bar */}
         <div className="flex justify-end">
-          <div className="flex items-center gap-2 w-full md:w-[400px]">
+          <div className="flex items-center gap-1.5 w-full md:w-[320px]">
             <div className="relative flex-1 group">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors" />
               <input 
                 type="text" 
                 placeholder="Search by name..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-lg text-sm font-medium placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-sm" 
+                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200/90 rounded-lg text-xs font-normal placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs h-8" 
               />
             </div>
-            <button className="px-6 py-2.5 bg-red-600 text-white hover:bg-red-700 font-medium rounded-lg shadow-sm transition-all text-sm shrink-0">
+            <button className="px-4 py-1.5 bg-red-600 text-white hover:bg-red-700 font-medium rounded-lg shadow-2xs transition-all text-xs shrink-0 h-8 cursor-pointer">
               Search
             </button>
           </div>
         </div>
 
         {/* Table Container */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-visible">
-            <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-[#FFF] backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
-                <tr className="bg-slate-50/50 border-b border-slate-200">
-                    <th className="px-4 py-4 pl-6 text-left text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-xl w-[300px]">Admin Name</th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Role</th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Phone</th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Status</th>
-                    <th className="px-4 py-4 pr-6 text-right text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tr-xl w-[120px]">Actions</th>
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-visible">
+            <table className="w-full text-xs text-left border-collapse">
+            <thead className="bg-[#FFF] text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
+                <tr className="bg-slate-50/70 border-b border-slate-200/80">
+                    <th className="px-4 py-3 pl-5 text-left text-[11px] font-semibold text-slate-600 uppercase tracking-wider rounded-tl-xl w-[45%]">Admin Name</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-slate-600 uppercase tracking-wider w-[25%]">Role</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-slate-600 uppercase tracking-wider w-[20%]">Status</th>
+                    <th className="px-4 py-3 pr-5 text-right text-[11px] font-semibold text-slate-600 uppercase tracking-wider rounded-tr-xl w-[10%]">Actions</th>
                 </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="animate-pulse">
-                      <td className="px-4 py-4 pl-6"><div className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
-                      <td className="px-4 py-4"><div className="h-4 w-24 bg-slate-200 rounded" /></td>
-                      <td className="px-4 py-4"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
-                      <td className="px-4 py-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
-                      <td className="px-4 py-4 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
+                      <td className="px-4 py-2.5 pl-5"><div className="flex items-center gap-2.5"><div className="w-7.5 h-7.5 rounded-full bg-slate-200" /><div className="h-3.5 w-28 bg-slate-200 rounded" /></div></td>
+                      <td className="px-4 py-2.5"><div className="h-3.5 w-20 bg-slate-200 rounded" /></td>
+                      <td className="px-4 py-2.5"><div className="h-3.5 w-16 bg-slate-200 rounded" /></td>
+                      <td className="px-4 py-2.5 pr-5"><div className="h-3.5 w-8 bg-slate-200 rounded ml-auto" /></td>
                     </tr>
                   ))
                 ) : filteredAdmins.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold">No admin accounts found</td>
+                    <td colSpan={4} className="p-8 text-center text-slate-400 font-medium text-xs">No admin accounts found</td>
                   </tr>
                 ) : paginatedAdmins.map((admin, index) => (
-                <tr key={admin.id} onClick={() => handleView(admin)} className="hover:bg-[#FEFEFE] transition-all duration-150 group cursor-pointer border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-4 pl-6 whitespace-nowrap">
-                       <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(admin.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
+                <tr key={admin.id} onClick={() => handleView(admin)} className="hover:bg-slate-50/70 transition-colors duration-150 group cursor-pointer border-b border-slate-100 last:border-0">
+                    <td className="px-4 py-2.5 pl-5 whitespace-nowrap">
+                       <div className="flex items-center gap-3">
+                        <div className={`w-7.5 h-7.5 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(admin.name)} flex items-center justify-center text-white text-[11px] font-semibold shadow-2xs ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
                           {(admin.profileUrl || admin.imageUrl) ? (
                             <SafeImage 
                               src={admin.profileUrl || admin.imageUrl} 
@@ -490,75 +487,74 @@ export function SubAdminManagement() {
                           <span>{getInitials(admin.name)}</span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-medium text-slate-800 text-[15px] tracking-tight whitespace-nowrap leading-tight">{admin.name}</span>
-                          <span className="text-sm text-slate-400 mt-0.5">{admin.email}</span>
+                          <span className="font-medium text-slate-900 text-[13px] tracking-tight whitespace-nowrap leading-tight">{admin.name}</span>
+                          <span className="text-xs text-slate-400 font-normal mt-0.5">{admin.email}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${getRoleBadgeStyle(admin.role)}`}>
+                    <td className="px-4 py-2.5 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeStyle(admin.role)}`}>
                         <Shield className="w-3 h-3" />
                         {formatRole(admin.role)}
                       </span>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm font-mono">{admin.phone || '-'}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">
+                    <td className="px-4 py-2.5 whitespace-nowrap">
                       <StatusBadge status={admin.status || (admin.active ? 'Active' : 'Inactive')} />
                     </td>
-                    <td className="px-4 py-4 pr-6 text-right whitespace-nowrap">
+                    <td className="px-4 py-2.5 pr-5 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end relative action-menu-container">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setOpenActionMenuId(openActionMenuId === admin.id ? null : admin.id);
                           }}
-                          className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+                          className="w-7.5 h-7.5 flex items-center justify-center text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
                         >
-                          <MoreHorizontal className="w-5 h-5" />
+                          <MoreHorizontal className="w-4 h-4" />
                         </button>
 
                         {openActionMenuId === admin.id && (
-                          <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-[99] animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedAdmins.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
+                          <div className={`absolute right-0 w-40 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-[99] animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedAdmins.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-8 origin-top-right'}`}>
                           <button 
                             onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleView(admin); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                           >
-                            <Eye className="w-4 h-4 text-slate-500" /> View Details
+                            <Eye className="w-3.5 h-3.5 text-slate-500" /> View Details
                           </button>
                           <button 
                             onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleEdit(admin); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                           >
-                            <Edit2 className="w-4 h-4 text-slate-500" /> Edit
+                            <Edit2 className="w-3.5 h-3.5 text-slate-500" /> Edit
                           </button>
                           <button 
                             onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleToggleStatus(admin); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                           >
-                            {admin.status === 'Active' ? <UserX className="w-4 h-4 text-slate-500" /> : <UserCheck className="w-4 h-4 text-slate-500" />} 
+                            {admin.status === 'Active' ? <UserX className="w-3.5 h-3.5 text-slate-500" /> : <UserCheck className="w-3.5 h-3.5 text-slate-500" />} 
                             {admin.status === 'Active' ? 'Deactivate' : 'Activate'}
                           </button>
                           <div className="border-t border-slate-100 my-1"></div>
                           {admin.status === 'Blocked' ? (
                             <button 
                               onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'unblock', admin }); }} 
-                              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors"
+                              className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
                             >
-                              <UserCheck className="w-4 h-4" /> Unblock
+                              <UserCheck className="w-3.5 h-3.5" /> Unblock
                             </button>
                           ) : (
                             <button 
                               onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'block', admin }); }} 
-                              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 transition-colors"
+                              className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                             >
-                              <UserX className="w-4 h-4" /> Block
+                              <UserX className="w-3.5 h-3.5" /> Block
                             </button>
                           )}
                           <button 
                             onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'delete', admin }); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                           >
-                            <Trash2 className="w-4 h-4" /> Delete
+                            <Trash2 className="w-3.5 h-3.5" /> Delete
                           </button>
                         </div>
                       )}
@@ -571,24 +567,30 @@ export function SubAdminManagement() {
             
             {/* Pagination Controls */}
             {totalPages > 0 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
-                <div className="text-sm text-slate-500 font-medium">
-                  Showing <span className="text-slate-900 font-semibold">{filteredAdmins.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="text-slate-900 font-semibold">{Math.min(currentPage * ITEMS_PER_PAGE, filteredAdmins.length)}</span> of <span className="text-slate-900 font-semibold">{filteredAdmins.length}</span> results
+              <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/50 rounded-b-xl">
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 font-normal">
+                  <span>Showing</span>
+                  <span className="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                    {filteredAdmins.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} – {Math.min(currentPage * ITEMS_PER_PAGE, filteredAdmins.length)}
+                  </span>
+                  <span>of</span>
+                  <span className="font-semibold text-slate-800">{filteredAdmins.length}</span>
+                  <span>results</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-7 h-7 flex items-center justify-center border border-slate-200 bg-white rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === page ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+                        className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all cursor-pointer ${currentPage === page ? 'bg-red-600 text-white shadow-xs' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 shadow-2xs'}`}
                       >
                         {page}
                       </button>
@@ -597,9 +599,9 @@ export function SubAdminManagement() {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-7 h-7 flex items-center justify-center border border-slate-200 bg-white rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>

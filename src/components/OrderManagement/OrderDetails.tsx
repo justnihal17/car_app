@@ -81,169 +81,169 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
         : (Math.max(0, subtotalAmount - totalDiscounts) * (vatRate / 100)));
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-3.5 sm:p-4 lg:p-5 space-y-3.5 sm:space-y-4 w-full bg-slate-50/60 min-h-screen animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-4 border-b border-slate-200/60">
-        <div className="flex items-center gap-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/60">
+        <div className="flex items-center gap-3">
           <button 
             onClick={onBack}
-            className="flex items-center justify-center w-10 h-10 bg-white border border-slate-200 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-slate-50 transition-all shadow-sm hover:shadow"
+            className="flex items-center justify-center w-8 h-8 bg-white border border-slate-200 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{order.order_number}</h1>
-              <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border shadow-sm ${STATUS_COLORS[orderStatus] || 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight">{order.order_number}</h1>
+              <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border shadow-2xs ${STATUS_COLORS[orderStatus] || 'bg-slate-100 text-slate-500 border-slate-200'}`}>
                 {capitalize(orderStatus)}
               </span>
             </div>
-            <p className="text-sm text-slate-500 mt-1.5 flex items-center gap-2 font-medium">
-              <Clock className="w-4 h-4 text-slate-400" /> Order Placed: {new Date(order.order_date || order.createdAt).toLocaleString()}
+            <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 font-normal">
+              <Clock className="w-3 h-3 text-slate-400" /> Order Placed: {new Date(order.order_date || order.createdAt).toLocaleString()}
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={() => setIsEditModalOpen(true)}
-            className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:text-slate-950 transition-all text-sm shadow-sm hover:shadow flex items-center gap-2"
+            className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-all text-xs shadow-2xs flex items-center gap-1.5 h-8 cursor-pointer"
           >
-            <Edit2 className="w-4 h-4 text-slate-500" /> Edit Order
+            <Edit2 className="w-3.5 h-3.5 text-slate-500" /> Edit Order
           </button>
           {orderStatus === 'pending' && (
             <button 
               onClick={() => setIsAssignModalOpen(true)}
-              className="px-5 py-2.5 bg-linear-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold rounded-xl text-sm shadow-lg shadow-red-500/25 transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
+              className="px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-semibold rounded-lg text-xs shadow-xs transition-all flex items-center gap-1.5 h-8 cursor-pointer"
             >
-              <User className="w-4 h-4" /> Assign Agent
+              <User className="w-3.5 h-3.5" /> Assign Agent
             </button>
           )}
 
           {orderStatus !== 'cancelled' && orderStatus !== 'completed' && (
             <button 
               onClick={() => setIsCancelModalOpen(true)}
-              className="px-4 py-2.5 bg-red-50 border border-red-100 text-red-600 font-semibold rounded-xl hover:bg-red-100/80 transition-all text-sm shadow-sm flex items-center gap-2"
+              className="px-3 py-1.5 bg-red-50 border border-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-100/80 transition-all text-xs shadow-2xs flex items-center gap-1.5 h-8 cursor-pointer"
             >
-              <XCircle className="w-4 h-4 text-red-500" /> Cancel
+              <XCircle className="w-3.5 h-3.5 text-red-500" /> Cancel
             </button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
         
         {/* Main Content - Left/Center Column */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-3.5">
           
           {/* Service & Payment Details */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
-              <h3 className="text-sm font-extrabold text-slate-800 tracking-wider mb-6 flex items-center gap-2.5">
-                <div className="p-1.5 bg-slate-100 rounded-lg"><Car className="w-4 h-4 text-slate-600" /></div> Service Details
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5">
+            <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 transition-all">
+              <h3 className="text-xs font-semibold text-slate-800 tracking-wider mb-3.5 flex items-center gap-2">
+                <div className="p-1 bg-slate-100 rounded-md"><Car className="w-3.5 h-3.5 text-slate-600" /></div> Service Details
               </h3>
-              <div className="flex items-start gap-4 mb-7">
+              <div className="flex items-start gap-3 mb-4">
                 {(srv?.serviceId?.image || srv?.image || srv?.serviceId?.icon || srv?.serviceId?.imageUrl) ? (
                   <SafeImage 
                     src={srv?.serviceId?.image || srv?.image || srv?.serviceId?.icon || srv?.serviceId?.imageUrl} 
                     alt={srv?.serviceId?.name || 'Service'} 
-                    className="w-16 h-16 rounded-2xl border border-slate-100 shadow-sm object-cover" 
+                    className="w-12 h-12 rounded-xl border border-slate-100 shadow-2xs object-cover shrink-0" 
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 text-xs font-medium shadow-inner">IMG</div>
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 text-[10px] font-medium shadow-inner shrink-0">IMG</div>
                 )}
                 <div>
-                  <div className="font-extrabold text-slate-900 text-lg tracking-tight">{capitalize(srv?.serviceId?.name || 'Unknown')}</div>
+                  <div className="font-semibold text-slate-900 text-sm">{capitalize(srv?.serviceId?.name || 'Unknown')}</div>
                   {(srv?.subServiceId?.name || (srv?.duration && Number(srv.duration) > 0)) ? (
-                    <div className="text-sm text-slate-500 font-medium">
+                    <div className="text-xs text-slate-500 font-normal mt-0.5">
                       {capitalize(srv?.subServiceId?.name)}
                       {srv?.subServiceId?.name && srv?.duration && Number(srv.duration) > 0 ? ' • ' : ''}
                       {srv?.duration && Number(srv.duration) > 0 ? <span className="text-slate-700">{srv.duration} mins</span> : null}
                     </div>
                   ) : null}
                   {order.vehicle_id && (
-                    <div className="text-xs font-bold text-slate-600 mt-2.5 bg-slate-100/80 inline-block px-3 py-1.5 rounded-lg border border-slate-200/60">
+                    <div className="text-[10px] font-medium text-slate-600 mt-1.5 bg-slate-100/80 inline-block px-2 py-0.5 rounded-md border border-slate-200/60">
                       Vehicle ID: {order.vehicle_id.substring(order.vehicle_id.length - 6).toUpperCase()}
                     </div>
                   )}
                 </div>
               </div>
-              <div className="space-y-3.5 pt-5 border-t border-slate-100/80">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">Scheduled Date</span>
-                  <span className="text-slate-900 font-bold">
+              <div className="space-y-2 pt-3 border-t border-slate-100">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-500 font-normal">Scheduled Date</span>
+                  <span className="text-slate-800 font-medium">
                     {order.scheduled_at ? new Date(order.scheduled_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : (order.order_date ? new Date(order.order_date).toLocaleDateString() : (order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'))}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">Appointment Time</span>
-                  <span className="text-slate-900 font-bold">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-500 font-normal">Appointment Time</span>
+                  <span className="text-slate-800 font-medium">
                     {order.time_slot?.from && order.time_slot?.to 
                       ? `${order.time_slot.from} - ${order.time_slot.to}` 
                       : (order.scheduled_at ? new Date(order.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A')}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">Order Date</span>
-                  <span className="text-slate-700 font-semibold">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-500 font-normal">Order Date</span>
+                  <span className="text-slate-700 font-normal">
                     {order.order_date ? new Date(order.order_date).toLocaleString() : (order.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A')}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium shrink-0">Location</span>
-                  <span className="text-slate-900 font-bold text-right truncate max-w-50" title={order.pickup_location?.address}>{order.pickup_location?.address || 'N/A'}</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-500 font-normal shrink-0">Location</span>
+                  <span className="text-slate-800 font-medium text-right truncate max-w-45" title={order.pickup_location?.address}>{order.pickup_location?.address || 'N/A'}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 flex flex-col justify-between hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
+            <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 flex flex-col justify-between transition-all">
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-extrabold text-slate-800 tracking-wider flex items-center gap-2.5">
-                    <div className="p-1.5 bg-slate-100 rounded-lg"><CreditCard className="w-4 h-4 text-slate-600" /></div> Payment Summary
+                <div className="flex items-center justify-between mb-3.5">
+                  <h3 className="text-xs font-semibold text-slate-800 tracking-wider flex items-center gap-2">
+                    <div className="p-1 bg-slate-100 rounded-md"><CreditCard className="w-3.5 h-3.5 text-slate-600" /></div> Payment Summary
                   </h3>
                   <button 
                     onClick={() => setIsPaymentModalOpen(true)}
-                    className="p-1.5 hover:bg-slate-50 text-slate-400 hover:text-slate-700 rounded-lg transition-colors"
+                    className="p-1 hover:bg-slate-50 text-slate-400 hover:text-slate-700 rounded-md transition-colors cursor-pointer"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 font-medium">Subtotal</span>
-                    <span className="text-slate-700 font-bold">AED {subtotalAmount.toFixed(2)}</span>
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500 font-normal">Subtotal</span>
+                    <span className="text-slate-700 font-medium">AED {subtotalAmount.toFixed(2)}</span>
                   </div>
                   {additionalAmount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Additional Services</span>
-                      <span className="text-slate-700 font-bold">+ AED {additionalAmount.toFixed(2)}</span>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500 font-normal">Additional Services</span>
+                      <span className="text-slate-700 font-medium">+ AED {additionalAmount.toFixed(2)}</span>
                     </div>
                   )}
                   {couponDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-emerald-600">
-                      <span className="font-medium">Coupon Discount</span>
-                      <span className="font-bold">- AED {couponDiscount.toFixed(2)}</span>
+                    <div className="flex justify-between text-xs text-emerald-600">
+                      <span className="font-normal">Coupon Discount</span>
+                      <span className="font-medium">- AED {couponDiscount.toFixed(2)}</span>
                     </div>
                   )}
                   {subscriptionDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-emerald-600">
-                      <span className="font-medium">Subscription Discount</span>
-                      <span className="font-bold">- AED {subscriptionDiscount.toFixed(2)}</span>
+                    <div className="flex justify-between text-xs text-emerald-600">
+                      <span className="font-normal">Subscription Discount</span>
+                      <span className="font-medium">- AED {subscriptionDiscount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 font-medium">VAT ({vatRate}%)</span>
-                    <span className="text-slate-700 font-bold">AED {vatAmount.toFixed(2)}</span>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500 font-normal">VAT ({vatRate}%)</span>
+                    <span className="text-slate-700 font-medium">AED {vatAmount.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
               
-              <div className="pt-5 border-t border-slate-100/80 mt-4 flex items-end justify-between">
+              <div className="pt-3 border-t border-slate-100 mt-2 flex items-end justify-between">
                 <div>
-                  <div className="text-slate-900 font-extrabold text-xl">AED {order.final_amount}</div>
-                  <div className="text-xs text-slate-500 font-medium mt-1">Via {capitalize(order.payment?.method) || 'Cash'}</div>
+                  <div className="text-slate-900 font-bold text-base">AED {order.final_amount}</div>
+                  <div className="text-[11px] text-slate-500 font-normal mt-0.5">Via {capitalize(order.payment?.method) || 'Cash'}</div>
                 </div>
-                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm border ${
+                <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider shadow-2xs border ${
                   paymentStatus === 'Paid' ? 'bg-[#DCFCE7] text-[#16A34A] border-[#DCFCE7]' :
                   paymentStatus === 'Refunded' ? 'bg-[#F1F5F9] text-[#64748B] border-[#F1F5F9]' :
                   'bg-[#FEF3C7] text-[#B45309] border-[#FEF3C7]'
@@ -256,26 +256,26 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
           
           {/* Notes */}
           {(order.customer_note || order.agent_notes?.length > 0) && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
-              <h3 className="text-sm font-extrabold text-slate-800 tracking-wider mb-5 flex items-center gap-2.5">
-                <div className="p-1.5 bg-slate-100 rounded-lg"><FileText className="w-4 h-4 text-slate-600" /></div> Notes
+            <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 transition-all">
+              <h3 className="text-xs font-semibold text-slate-800 tracking-wider mb-3 flex items-center gap-2">
+                <div className="p-1 bg-slate-100 rounded-md"><FileText className="w-3.5 h-3.5 text-slate-600" /></div> Notes
               </h3>
               {order.customer_note && (
-                <div className="mb-5">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Customer Note</span>
-                  <div className="bg-slate-50/80 p-4 rounded-xl text-sm text-slate-700 border border-slate-100 leading-relaxed font-medium">
+                <div className="mb-3">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Customer Note</span>
+                  <div className="bg-slate-50 p-2.5 rounded-lg text-xs text-slate-700 border border-slate-100 leading-relaxed font-normal">
                     {order.customer_note}
                   </div>
                 </div>
               )}
               {order.agent_notes?.length > 0 && (
                 <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Agent Notes</span>
-                  <div className="space-y-3">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Agent Notes</span>
+                  <div className="space-y-2">
                     {order.agent_notes.map((note: any, idx: number) => (
-                      <div key={idx} className="text-sm text-slate-700 bg-slate-50/80 p-4 rounded-xl border border-slate-100 flex justify-between gap-4 font-medium">
+                      <div key={idx} className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex justify-between gap-3 font-normal">
                         <span>{note.note}</span>
-                        <span className="text-xs text-slate-400 shrink-0 font-semibold">{new Date(note.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <span className="text-[10px] text-slate-400 shrink-0 font-medium">{new Date(note.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                       </div>
                     ))}
                   </div>
@@ -286,18 +286,18 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
 
           {/* Service Completion Photos */}
           {order.completionPhotos?.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
-              <h3 className="text-sm font-extrabold text-slate-800 tracking-wider mb-5 flex items-center gap-2.5">
-                <div className="p-1.5 bg-emerald-50 rounded-lg"><Camera className="w-4 h-4 text-emerald-600" /></div>
+            <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 transition-all">
+              <h3 className="text-xs font-semibold text-slate-800 tracking-wider mb-3 flex items-center gap-2">
+                <div className="p-1 bg-emerald-50 rounded-md"><Camera className="w-3.5 h-3.5 text-emerald-600" /></div>
                 Service Completion Photos
-                <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">{order.completionPhotos.length} Photo{order.completionPhotos.length > 1 ? 's' : ''}</span>
+                <span className="ml-auto text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{order.completionPhotos.length} Photo{order.completionPhotos.length > 1 ? 's' : ''}</span>
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                 {order.completionPhotos.map((photo: any, idx: number) => (
                   <button
                     key={photo.public_id || idx}
                     onClick={() => setLightboxIndex(idx)}
-                    className="relative group aspect-square rounded-xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-200 cursor-pointer"
+                    className="relative group aspect-square rounded-lg overflow-hidden border border-slate-100 shadow-2xs hover:shadow-sm hover:border-emerald-200 transition-all duration-200 cursor-pointer"
                   >
                     <SafeImage
                       src={photo.url}
@@ -305,19 +305,19 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-all duration-200 flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 rounded-full p-1.5 shadow">
-                        <Camera className="w-3.5 h-3.5 text-slate-700" />
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/90 rounded-full p-1 shadow-2xs">
+                        <Camera className="w-3 h-3 text-slate-700" />
                       </div>
                     </div>
-                    <div className="absolute bottom-1.5 right-1.5 bg-slate-900/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                    <div className="absolute bottom-1 right-1 bg-slate-900/60 text-white text-[9px] font-semibold px-1 py-0.5 rounded backdrop-blur-xs">
                       {idx + 1}/{order.completionPhotos.length}
                     </div>
                   </button>
                 ))}
               </div>
               {order.completionPhotos[0]?.uploadedAt && (
-                <p className="text-xs text-slate-400 font-medium mt-4 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
+                <p className="text-[11px] text-slate-400 font-normal mt-2.5 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
                   Uploaded on {new Date(order.completionPhotos[order.completionPhotos.length - 1]?.uploadedAt).toLocaleString()}
                 </p>
               )}
@@ -326,41 +326,41 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
         </div>
 
         {/* Right Sidebar - Timeline & Profiles */}
-        <div className="space-y-6">
+        <div className="space-y-3.5">
           
           {/* Order Timeline */}
           {history.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 max-h-150 overflow-y-auto custom-scrollbar hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
-              <h3 className="text-sm font-extrabold text-slate-800 tracking-wider mb-7 flex items-center gap-2.5">
-                <div className="p-1.5 bg-slate-100 rounded-lg"><Activity className="w-4 h-4 text-slate-600" /></div> Timeline
+            <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 max-h-96 overflow-y-auto custom-scrollbar transition-all">
+              <h3 className="text-xs font-semibold text-slate-800 tracking-wider mb-4 flex items-center gap-2">
+                <div className="p-1 bg-slate-100 rounded-md"><Activity className="w-3.5 h-3.5 text-slate-600" /></div> Timeline
               </h3>
               <div className="space-y-0">
                 {history.map((step: any, idx: number) => {
                   const isLast = idx === history.length - 1;
                   return (
-                    <div key={step._id} className="flex gap-4 relative">
+                    <div key={step._id} className="flex gap-3 relative">
                       {!isLast && (
-                        <div className="absolute left-3.5 top-9 w-px h-[calc(100%-10px)] bg-slate-100"></div>
+                        <div className="absolute left-2.5 top-6 w-px h-[calc(100%-8px)] bg-slate-100"></div>
                       )}
-                      <div className="relative z-10 flex flex-col items-center mt-1">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center border-[3px] bg-white ${idx === 0 ? 'border-red-500 text-red-500 shadow-sm' : 'border-slate-200 text-slate-300'}`}>
-                          <CheckCircle className={`w-4 h-4 ${idx === 0 ? 'text-red-500' : 'text-slate-300'}`} />
+                      <div className="relative z-10 flex flex-col items-center mt-0.5">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 bg-white ${idx === 0 ? 'border-red-500 text-red-500 shadow-2xs' : 'border-slate-200 text-slate-300'}`}>
+                          <CheckCircle className={`w-3 h-3 ${idx === 0 ? 'text-red-500' : 'text-slate-300'}`} />
                         </div>
                       </div>
-                      <div className="pb-7">
-                        <div className={`text-sm font-bold ${idx === 0 ? 'text-slate-900' : 'text-slate-600'}`}>
+                      <div className="pb-4">
+                        <div className={`text-xs font-semibold ${idx === 0 ? 'text-slate-900' : 'text-slate-600'}`}>
                           {capitalize(step.action.replace(/_/g, ' '))}
                         </div>
-                        <div className="text-xs text-slate-400 mt-1 font-medium">
+                        <div className="text-[10px] text-slate-400 mt-0.5 font-normal">
                           {new Date(step.createdAt).toLocaleString()}
                         </div>
                         {step.meta?.status && (
-                          <div className="text-[10px] mt-2.5 font-bold text-slate-500 uppercase tracking-wider bg-slate-50 inline-block px-2.5 py-1 rounded-md border border-slate-100">
+                          <div className="text-[9px] mt-1.5 font-medium text-slate-500 uppercase tracking-wider bg-slate-50 inline-block px-1.5 py-0.5 rounded border border-slate-100">
                             Status: {step.meta.status}
                           </div>
                         )}
                         {step.meta?.note && (
-                          <div className="text-[11px] mt-2 font-medium text-slate-500 italic bg-slate-50/80 p-2.5 rounded-lg border border-slate-100/50 leading-relaxed">
+                          <div className="text-[10px] mt-1 font-normal text-slate-500 italic bg-slate-50 p-1.5 rounded border border-slate-100/50 leading-relaxed">
                             "{step.meta.note}"
                           </div>
                         )}
@@ -373,68 +373,68 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
           )}
 
           {/* Customer Card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
-            <h3 className="text-sm font-extrabold text-slate-800 tracking-wider mb-5 flex items-center gap-2.5">
-              <div className="p-1.5 bg-slate-100 rounded-lg"><User className="w-4 h-4 text-slate-600" /></div> Customer Details
+          <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 transition-all">
+            <h3 className="text-xs font-semibold text-slate-800 tracking-wider mb-3 flex items-center gap-2">
+              <div className="p-1 bg-slate-100 rounded-md"><User className="w-3.5 h-3.5 text-slate-600" /></div> Customer Details
             </h3>
-            <div className="flex items-center gap-4 mb-5">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600 font-extrabold text-lg shrink-0 shadow-inner">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 font-semibold text-sm shrink-0 shadow-inner">
                 {order.customer_id?.fullName?.[0] || 'C'}
               </div>
               <div>
-                <div className="font-extrabold text-slate-900 tracking-tight">{order.customer_id?.fullName || 'Unknown Customer'}</div>
-                <div className="text-xs text-red-600 font-bold flex items-center gap-1.5 mt-1">
-                  <Award className="w-3.5 h-3.5 text-red-500" /> Member
+                <div className="font-semibold text-slate-900 text-xs">{order.customer_id?.fullName || 'Unknown Customer'}</div>
+                <div className="text-[10px] text-red-600 font-semibold flex items-center gap-1 mt-0.5">
+                  <Award className="w-3 h-3 text-red-500" /> Member
                 </div>
               </div>
             </div>
-            <div className="space-y-3.5 text-sm pt-4 border-t border-slate-100/80">
-              <div className="flex items-center gap-3 text-slate-500">
-                <Phone className="w-4 h-4 text-slate-400" />
-                <span className="text-slate-700 font-bold">{order.customer_id?.phone || 'N/A'}</span>
+            <div className="space-y-2 text-xs pt-2.5 border-t border-slate-100">
+              <div className="flex items-center gap-2 text-slate-500">
+                <Phone className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-slate-700 font-medium">{order.customer_id?.phone || 'N/A'}</span>
               </div>
-              <div className="flex items-center gap-3 text-slate-500">
-                <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="text-slate-700 font-bold truncate" title={order.customer_id?.email}>{order.customer_id?.email || 'N/A'}</span>
+              <div className="flex items-center gap-2 text-slate-500">
+                <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="text-slate-700 font-medium truncate" title={order.customer_id?.email}>{order.customer_id?.email || 'N/A'}</span>
               </div>
             </div>
           </div>
 
           {/* Agent Card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-7 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300">
-            <h3 className="text-sm font-extrabold text-slate-800 tracking-wider mb-5 flex items-center gap-2.5">
-              <div className="p-1.5 bg-slate-100 rounded-lg"><Car className="w-4 h-4 text-slate-600" /></div> Assigned Agent
+          <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 transition-all">
+            <h3 className="text-xs font-semibold text-slate-800 tracking-wider mb-3 flex items-center gap-2">
+              <div className="p-1 bg-slate-100 rounded-md"><Car className="w-3.5 h-3.5 text-slate-600" /></div> Assigned Agent
             </h3>
             {order.agent_id ? (
               <>
-                <div className="flex items-center gap-4 mb-5">
-                  <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 font-extrabold text-lg shrink-0 border border-red-100 shadow-inner">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center text-red-600 font-semibold text-sm shrink-0 border border-red-100 shadow-inner">
                     {order.agent_id.firstName?.[0] || 'A'}
                   </div>
                   <div>
-                    <div className="font-extrabold text-slate-900 tracking-tight">{order.agent_id.firstName} {order.agent_id.lastName}</div>
-                    <div className="text-xs text-slate-500 font-bold mt-1 tracking-wider uppercase">ID: {order.agent_id.agentId || 'N/A'}</div>
+                    <div className="font-semibold text-slate-900 text-xs">{order.agent_id.firstName} {order.agent_id.lastName}</div>
+                    <div className="text-[10px] text-slate-500 font-medium mt-0.5 tracking-wider uppercase">ID: {order.agent_id.agentId || 'N/A'}</div>
                   </div>
                 </div>
-                <div className="space-y-3.5 text-sm pt-4 border-t border-slate-100/80">
-                  <div className="flex items-center gap-3 text-slate-500">
-                    <Phone className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-700 font-bold">{order.agent_id.phone || 'N/A'}</span>
+                <div className="space-y-2 text-xs pt-2.5 border-t border-slate-100">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-slate-700 font-medium">{order.agent_id.phone || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-500">
-                    <Car className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-700 font-bold">Assigned Vehicle</span>
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Car className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-slate-700 font-medium">Assigned Vehicle</span>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="text-center py-8 bg-slate-50/80 rounded-2xl border border-slate-100 p-5">
-                <div className="w-14 h-14 rounded-full bg-white border border-slate-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <User className="w-6 h-6 text-slate-300" />
+              <div className="text-center py-4 bg-slate-50 rounded-xl border border-slate-100 p-3">
+                <div className="w-9 h-9 rounded-full bg-white border border-slate-100 flex items-center justify-center mx-auto mb-2 shadow-2xs">
+                  <User className="w-4 h-4 text-slate-300" />
                 </div>
-                <div className="text-sm font-extrabold text-slate-800 mb-1.5">No Agent Assigned</div>
-                <div className="text-xs text-slate-500 mb-5 font-medium">This order requires dispatch</div>
-                <button onClick={() => setIsAssignModalOpen(true)} className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white shadow-md font-bold rounded-xl transition-all text-sm w-full">
+                <div className="text-xs font-semibold text-slate-800 mb-0.5">No Agent Assigned</div>
+                <div className="text-[11px] text-slate-500 mb-3 font-normal">This order requires dispatch</div>
+                <button onClick={() => setIsAssignModalOpen(true)} className="h-8 px-4 bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold rounded-lg transition-all text-xs w-full cursor-pointer">
                   Assign Manually
                 </button>
               </div>

@@ -78,43 +78,43 @@ export function AssignAgentModal({ order, isOpen, onClose }: AssignAgentModalPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-visible">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-slate-500" /> Assign Agent
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-3 animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm border border-slate-200/90 overflow-visible">
+        <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+          <h2 className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+            <UserPlus className="w-3.5 h-3.5 text-slate-700" /> Assign Agent
           </h2>
-          <button type="button" onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
-            <X className="w-5 h-5" />
+          <button type="button" onClick={onClose} className="p-1 text-slate-400 hover:text-slate-700 rounded-md transition-colors cursor-pointer">
+            <X className="w-4 h-4" />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <p className="text-sm text-slate-600 mb-4">
-            Assign an agent to order <span className="font-bold text-slate-900">{order.order_number}</span>.
+        <form onSubmit={handleSubmit} className="p-3.5 space-y-3">
+          <p className="text-xs text-slate-600">
+            Assign an agent to order <span className="font-semibold text-slate-900">{order.order_number}</span>.
           </p>
 
-          {error && <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">{error}</div>}
+          {error && <div className="p-2 bg-red-50 text-red-700 text-xs rounded-md border border-red-100">{error}</div>}
           
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Select Agent <span className="text-red-500">*</span></label>
+            <label className="block text-[11px] font-semibold text-slate-700 mb-1">Select Agent <span className="text-red-500">*</span></label>
             {loadingAgents ? (
-              <div className="w-full bg-slate-50 border border-slate-200 text-slate-500 rounded-lg px-4 py-3 text-sm animate-pulse">Loading agents...</div>
+              <div className="w-full bg-slate-50 border border-slate-200 text-slate-500 rounded-lg px-3 py-2 text-xs animate-pulse">Loading agents...</div>
             ) : (
               <CustomSelect
                 value={agentId}
                 onChange={setAgentId}
                 options={agents}
                 placeholder="Select an agent"
-                className="bg-white border-slate-200"
+                className="bg-white border-slate-200 text-xs"
                 searchable
               />
             )}
           </div>
 
-          <div className="pt-4 flex items-center gap-3 justify-end mt-4">
-            <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Cancel</button>
-            <button type="submit" disabled={loading || loadingAgents || !agentId} className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-lg transition-all shadow-sm disabled:opacity-50">
+          <div className="pt-2 flex items-center gap-2 justify-end">
+            <button type="button" onClick={onClose} className="h-8 px-3 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer">Cancel</button>
+            <button type="submit" disabled={loading || loadingAgents || !agentId} className="h-8 px-3.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-all shadow-2xs disabled:opacity-50 cursor-pointer">
               {loading ? 'Assigning...' : 'Assign Agent'}
             </button>
           </div>

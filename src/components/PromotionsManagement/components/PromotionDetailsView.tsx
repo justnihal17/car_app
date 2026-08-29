@@ -18,13 +18,13 @@ export function PromotionDetailsView({ promotion, onBack, onEdit }: PromotionDet
   const discountVal = promotion.discountValue || promotion.walletCashback || promotion.referralReward || 150;
   const totalDiscountGiven = promotion.usedCount * discountVal;
 
-  const getServiceNames = (items: any[]) => {
-    if (!items || items.length === 0) return 'Applicable to all services';
+  const getServiceNames = (items?: any[]) => {
+    if (!items || items.length === 0 || items.includes('ALL')) return 'All Services';
     return items.map(item => typeof item === 'object' && item !== null ? item.name || item.title || item._id : item).filter(Boolean).join(', ');
   };
 
-  const getBrandNames = (items: any[]) => {
-    if (!items || items.length === 0) return 'Applicable to all vehicle brands';
+  const getBrandNames = (items?: any[]) => {
+    if (!items || items.length === 0 || items.includes('ALL')) return 'All Vehicle Brands';
     return items.map(item => typeof item === 'object' && item !== null ? item.name || item.title || item._id : item).filter(Boolean).join(', ');
   };
 

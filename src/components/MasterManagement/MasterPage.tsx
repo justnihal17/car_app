@@ -101,7 +101,11 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       try {
         response = await api.get(endpoint);
       } catch (err: any) {
-        throw err;
+        if (err.response?.status === 404) {
+          response = await api.get(`/master/${baseEndpoint}`);
+        } else {
+          throw err;
+        }
       }
 
       if (response && response.data) {
@@ -901,14 +905,17 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
     }
 
     if (total === 2) {
+      if (cLower.includes('name') || cLower.includes('title')) return 'w-[60%]';
+      if (cLower === 'status') return 'w-[25%]';
       return 'w-[40%]';
     }
     if (total === 3) {
-      if (cLower.includes('name')) return 'w-[40%]';
+      if (cLower.includes('name')) return 'w-[45%]';
+      if (cLower === 'status') return 'w-[25%]';
       return 'w-[30%]';
     }
     if (total === 4) {
-      if (cLower.includes('name')) return 'w-[30%]';
+      if (cLower.includes('name')) return 'w-[35%]';
       if (cLower === 'category' || cLower.includes('code') || cLower.includes('make') || cLower.includes('brand')) return 'w-[25%]';
       if (cLower === 'price' || cLower.includes('image')) return 'w-[20%]';
       if (cLower === 'status') return 'w-[15%]';
@@ -926,8 +933,8 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
   };
 
   const getActionsColWidth = (total: number) => {
-    if (total === 2) return 'w-[20%]';
-    if (total === 3) return 'w-[20%]';
+    if (total === 2) return 'w-[15%]';
+    if (total === 3) return 'w-[15%]';
     if (total === 4) return 'w-[15%]';
     if (total === 6) return 'w-[10%]';
     return 'w-[15%]';
@@ -939,44 +946,48 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
       return 'text-center';
     }
     if (cLower.includes('name') || cLower === 'title') {
-      return 'text-left px-6';
+      return 'text-left px-4 pl-5';
     }
-    return 'text-center';
+    if (cLower === 'status') {
+      return 'text-left px-4';
+    }
+    return 'text-left px-4';
   };
 
   return (
-    <div className="p-4 sm:p-6 xl:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
+    <div className="p-3.5 sm:p-4 lg:p-5 space-y-3.5 sm:space-y-4 w-full bg-slate-50/60 min-h-screen">
       {/* Breadcrumb & Top Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">
           <button 
             type="button"
-            className="cursor-pointer hover:text-red-600 transition-colors font-semibold uppercase tracking-wider"
+            className="cursor-pointer hover:text-red-600 transition-colors font-medium uppercase tracking-wider"
             onClick={() => window.dispatchEvent(new CustomEvent('navigate_view', { detail: 'dashboard' }))}
           >
             Dashboard
           </button> 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
+          <ChevronRight className="w-3 h-3 text-slate-400" /> 
           <button 
             type="button"
-            className="cursor-pointer hover:text-red-600 transition-colors font-semibold uppercase tracking-wider"
+            className="cursor-pointer hover:text-red-600 transition-colors font-medium uppercase tracking-wider"
             onClick={() => window.dispatchEvent(new CustomEvent('navigate_view', { detail: 'master-role' }))}
           >
             Master Management
           </button> 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
-          <span className="text-red-600 font-bold">
+          <ChevronRight className="w-3 h-3 text-slate-400" /> 
+          <span className="text-red-600 font-semibold">
             {displayName}
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleAdd} className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm lg:text-base">
-            <Plus className="w-4 h-4 stroke-[2.5]" /> Create
+        <div className="flex items-center gap-2">
+          <button onClick={handleAdd} className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-semibold rounded-lg shadow-xs transition-all active:scale-95 text-xs cursor-pointer">
+            <Plus className="w-3.5 h-3.5 stroke-[2]" /> Create
           </button>
         </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+      {/* Analytics Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-3.5 w-full">
         {loading ? (
           <StatsShimmer count={3} />
         ) : (
@@ -985,17 +996,17 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
             return (
               <div 
                 key={i} 
-                className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1"
+                className="bg-white p-3.5 sm:p-4 rounded-xl transition-all duration-200 flex flex-col justify-between group cursor-pointer hover:-translate-y-0.5 min-h-[88px] sm:min-h-[92px] border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold tracking-tight transition-colors uppercase text-slate-500 group-hover:text-slate-800">{card.label}</span>
-                  <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
-                    <Icon className="w-4 h-4" />
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[10.5px] font-semibold tracking-wider transition-colors uppercase leading-none text-slate-500 group-hover:text-slate-800">{card.label}</span>
+                  <div className={`p-1.5 rounded-lg border ${card.color} transition-all duration-200 group-hover:scale-105 shadow-2xs`}>
+                    <Icon className="w-3.5 h-3.5 text-slate-500" />
                   </div>
                 </div>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</span>
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
+                <div className="flex items-baseline justify-between w-full mt-3">
+                  <span className="text-xl sm:text-2xl font-semibold text-slate-800 tracking-tight leading-none">{card.value}</span>
+                  <span className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">{card.sub}</span>
                 </div>
               </div>
             );
@@ -1003,325 +1014,334 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
         )}
       </div>
 
-      <div className="flex justify-end">
-        <div className="flex items-center gap-2.5 w-full md:w-auto">
-          {(moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service') && (
-            <div className="w-56">
-              <CustomSelect
-                value={serviceFilter}
-                onChange={setServiceFilter}
-                options={[
-                  { label: 'All Services', value: 'all' },
-                  ...serviceOptions
-                ]}
-                className="bg-white border-slate-200 hover:border-slate-300 rounded-xl"
+      {/* Main Content */}
+      <div className="space-y-3">
+        <div className="flex justify-end">
+          <div className="flex items-center gap-1.5 w-full md:w-[320px]">
+            {(moduleName.toLowerCase() === 'subservice' || moduleName.toLowerCase() === 'sub-service') && (
+              <div className="w-48">
+                <CustomSelect
+                  value={serviceFilter}
+                  onChange={setServiceFilter}
+                  options={[
+                    { label: 'All Services', value: 'all' },
+                    ...serviceOptions
+                  ]}
+                  className="bg-white border-slate-200 hover:border-slate-300 rounded-lg text-xs"
+                />
+              </div>
+            )}
+            <div className="relative flex-1 group">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search by name..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200/90 rounded-lg text-xs font-normal placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs h-8" 
               />
             </div>
-          )}
-          <div className="relative w-full md:w-80 group">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search by name..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-lg text-sm font-medium placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-sm" 
-            />
+            <button className="px-4 py-1.5 bg-red-600 text-white hover:bg-red-700 font-medium rounded-lg shadow-2xs transition-all text-xs shrink-0 h-8 cursor-pointer">
+              Search
+            </button>
           </div>
-          <button className="px-6 py-2.5 bg-red-600 text-white hover:bg-red-700 font-medium rounded-lg shadow-sm transition-all text-sm shrink-0">
-            Search
-          </button>
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible">
-        <table className="w-full text-left table-fixed">
-          <thead className="bg-slate-100 border-b border-slate-200">
-            <tr>
-              {columns.map(col => (
-                <th key={col} className={`px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs ${getColWidthClass(col, columns.length)} ${getColAlignClass(col)}`}>
-                  {col}
+        {/* Table Container */}
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-visible">
+          <table className="w-full text-xs text-left border-collapse table-fixed">
+            <thead className="bg-[#FFF] text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
+              <tr className="bg-slate-50/70 border-b border-slate-200/80">
+                {columns.map(col => (
+                  <th key={col} className={`px-4 py-3 font-semibold text-slate-600 uppercase tracking-wider text-[11px] ${getColWidthClass(col, columns.length)} ${getColAlignClass(col)}`}>
+                    {col}
+                  </th>
+                ))}
+                <th className={`px-4 py-3 pr-5 font-semibold text-slate-600 uppercase tracking-wider text-[11px] text-right ${getActionsColWidth(columns.length)}`}>
+                  Actions
                 </th>
-              ))}
-              <th className={`px-6 py-5 font-semibold text-slate-700 uppercase tracking-wider text-xs text-right ${getActionsColWidth(columns.length)}`}>
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? (
-              <TableShimmer rows={5} columns={columns.length + 1} />
-            ) : paginatedData.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length + 1} className="p-8 text-center text-slate-400 font-semibold">
-                  No {displayName.toLowerCase()} found
-                </td>
               </tr>
-            ) : (
-              paginatedData.map((row, index) => (
-              <React.Fragment key={row.id || Math.random()}>
-              <tr 
-                key={row.id} 
-                className={`hover:bg-slate-50 transition-colors group`}
-              >
-                {columns.map(col => {
-                  const cUpper = col.toUpperCase();
-                  const widthClass = getColWidthClass(col, columns.length);
-                  const alignClass = getColAlignClass(col);
-                  if (cUpper === 'ID') {
-                    return <td key={col} className={`px-6 py-5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{row.id}</td>;
-                  }
-                  if (cUpper === 'S.NO' || cUpper === 'S.NO.' || col.toLowerCase() === 'order' || col.toLowerCase() === 'sequence' || col.toLowerCase() === 'displayorder') {
-                    if (moduleName.toLowerCase() === 'service') {
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <TableShimmer rows={5} columns={columns.length + 1} />
+              ) : paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length + 1} className="p-8 text-center text-slate-400 font-medium text-xs">
+                    No {displayName.toLowerCase()} found
+                  </td>
+                </tr>
+              ) : (
+                paginatedData.map((row, index) => (
+                <React.Fragment key={row.id || Math.random()}>
+                <tr 
+                  key={row.id} 
+                  className={`hover:bg-slate-50/70 transition-colors duration-150 group cursor-pointer border-b border-slate-100 last:border-0`}
+                  onClick={() => handleView(row)}
+                >
+                  {columns.map(col => {
+                    const cUpper = col.toUpperCase();
+                    const widthClass = getColWidthClass(col, columns.length);
+                    const alignClass = getColAlignClass(col);
+                    if (cUpper === 'ID') {
+                      return <td key={col} className={`px-4 py-2.5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{row.id}</td>;
+                    }
+                    if (cUpper === 'S.NO' || cUpper === 'S.NO.' || col.toLowerCase() === 'order' || col.toLowerCase() === 'sequence' || col.toLowerCase() === 'displayorder') {
+                      if (moduleName.toLowerCase() === 'service') {
+                        return (
+                          <td key={col} className={`px-4 py-2.5 text-center ${widthClass}`} onClick={(e) => e.stopPropagation()}>
+                            <div className="inline-flex items-center justify-center bg-slate-50 border border-slate-200 hover:border-slate-300 focus-within:border-red-500 rounded-lg px-2 py-0.5 shadow-2xs transition-colors">
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                defaultValue={row.displayOrder !== undefined && row.displayOrder !== null && row.displayOrder !== 9999 ? row.displayOrder : ''}
+                                placeholder="9999"
+                                key={`displayOrder-${row.id}-${row.displayOrder}`}
+                                onBlur={(e) => {
+                                  const val = parseInt(e.target.value);
+                                  if (!isNaN(val) && val > 0 && val !== row.displayOrder) {
+                                    handleUpdateDisplayOrder(row, val);
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.currentTarget.blur();
+                                  }
+                                }}
+                                className="w-10 text-center bg-transparent border-0 font-semibold text-xs text-slate-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none cursor-pointer placeholder:text-slate-300"
+                                title="Change sequence order number and press Enter to save"
+                              />
+                            </div>
+                          </td>
+                        );
+                      }
+                      return <td key={col} className={`px-4 py-2.5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{index + 1}</td>;
+                    }
+                    if (col.toLowerCase() === 'status') {
                       return (
-                        <td key={col} className={`px-4 py-5 text-center ${widthClass}`} onClick={(e) => e.stopPropagation()}>
-                          <div className="inline-flex items-center justify-center bg-slate-50 border border-slate-200 hover:border-slate-300 focus-within:border-red-500 rounded-xl px-2 py-1 shadow-xs transition-colors">
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              defaultValue={row.displayOrder !== undefined && row.displayOrder !== null && row.displayOrder !== 9999 ? row.displayOrder : ''}
-                              placeholder="9999"
-                              key={`displayOrder-${row.id}-${row.displayOrder}`}
-                              onBlur={(e) => {
-                                const val = parseInt(e.target.value);
-                                if (!isNaN(val) && val > 0 && val !== row.displayOrder) {
-                                  handleUpdateDisplayOrder(row, val);
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.currentTarget.blur();
-                                }
-                              }}
-                              className="w-12 text-center bg-transparent border-0 font-extrabold text-xs text-slate-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none cursor-pointer placeholder:text-slate-300"
-                              title="Change sequence order number and press Enter to save"
-                            />
-                          </div>
+                        <td key={col} className={`px-4 py-2.5 ${widthClass} ${alignClass}`}>
+                          <StatusBadge status={row.status || 'Active'} />
                         </td>
                       );
                     }
-                    return <td key={col} className={`px-6 py-5 font-medium text-slate-900 ${widthClass} ${alignClass}`}>{index + 1}</td>;
-                  }
-                  if (col.toLowerCase() === 'status') {
-                    return (
-                      <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
-                        <StatusBadge status={row.status || 'Active'} />
-                      </td>
-                    );
-                  }
-                  if (col.toLowerCase().includes('name') || col.toLowerCase() === 'title') {
-                    const rawVal = row.title || row.name || '-';
-                    const formattedVal = typeof rawVal === 'string' && rawVal.includes('_')
-                      ? rawVal.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
-                      : rawVal;
-                    return <td key={col} className={`px-6 py-5 text-slate-800 font-medium ${widthClass} ${alignClass}`}>{formattedVal}</td>;
-                  }
-                  if (col.toLowerCase() === 'make' || col.toLowerCase() === 'make / brand' || col.toLowerCase() === 'brand') {
-                    let makeVal = row.makeId || row.make;
-                    if (makeVal && typeof makeVal === 'object') {
-                      makeVal = makeVal.name || makeVal.title || '-';
-                    } else if (makeVal) {
-                      const found = makeOptions.find(m => m.value === makeVal);
-                      if (found) makeVal = found.label;
+                    if (col.toLowerCase().includes('name') || col.toLowerCase() === 'title') {
+                      const rawVal = row.title || row.name || '-';
+                      const formattedVal = typeof rawVal === 'string' && rawVal.includes('_')
+                        ? rawVal.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+                        : rawVal;
+                      return <td key={col} className={`px-4 py-2.5 pl-5 text-slate-900 font-medium text-[13px] tracking-tight ${widthClass} ${alignClass}`}>{formattedVal}</td>;
                     }
-                    return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{makeVal || '-'}</td>;
-                  }
-                  if (col.toLowerCase() === 'service' || col.toLowerCase() === 'parent service') {
-                    let serviceVal = row.serviceId || row.service;
-                    if (serviceVal && typeof serviceVal === 'object') {
-                      serviceVal = serviceVal.name || serviceVal.title || '-';
-                    } else if (serviceVal) {
-                      const found = serviceOptions.find(s => s.value === serviceVal);
-                      if (found) serviceVal = found.label;
+                    if (col.toLowerCase() === 'make' || col.toLowerCase() === 'make / brand' || col.toLowerCase() === 'brand') {
+                      let makeVal = row.makeId || row.make;
+                      if (makeVal && typeof makeVal === 'object') {
+                        makeVal = makeVal.name || makeVal.title || '-';
+                      } else if (makeVal) {
+                        const found = makeOptions.find(m => m.value === makeVal);
+                        if (found) makeVal = found.label;
+                      }
+                      return <td key={col} className={`px-4 py-2.5 text-slate-600 text-xs ${widthClass} ${alignClass}`}>{makeVal || '-'}</td>;
                     }
-                    return <td key={col} className={`px-6 py-5 text-slate-600 whitespace-nowrap ${widthClass} ${alignClass}`}>{serviceVal || '-'}</td>;
-                  }
-                  if (col.toLowerCase() === 'emirate' || col.toLowerCase() === 'state') {
-                    let stateVal = row.stateId || row.emirateId || row.state || row.emirate;
-                    if (stateVal && typeof stateVal === 'object') {
-                      stateVal = stateVal.name || stateVal.title || '-';
-                    } else if (stateVal) {
-                      const found = stateOptions.find(s => s.value === stateVal);
-                      if (found) stateVal = found.label;
+                    if (col.toLowerCase() === 'service' || col.toLowerCase() === 'parent service') {
+                      let serviceVal = row.serviceId || row.service;
+                      if (serviceVal && typeof serviceVal === 'object') {
+                        serviceVal = serviceVal.name || serviceVal.title || '-';
+                      } else if (serviceVal) {
+                        const found = serviceOptions.find(s => s.value === serviceVal);
+                        if (found) serviceVal = found.label;
+                      }
+                      return <td key={col} className={`px-4 py-2.5 text-slate-600 whitespace-nowrap text-xs ${widthClass} ${alignClass}`}>{serviceVal || '-'}</td>;
                     }
-                    return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{stateVal || '-'}</td>;
-                  }
-                  if (col.toLowerCase() === 'image') {
-                    const hasError = imgErrors[row.id];
-                    return (
-                      <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
-                        {row.image && !hasError ? (
-                          <div className="w-14 aspect-video rounded-md overflow-hidden border border-slate-200 shadow-2xs mx-auto flex items-center justify-center bg-slate-50 relative">
-                            <SafeImage 
-                              src={row.image} 
-                              alt={row.name} 
-                              className="w-full h-full object-cover" 
-                              onError={() => setImgErrors(prev => ({ ...prev, [row.id]: true }))}
+                    if (col.toLowerCase() === 'emirate' || col.toLowerCase() === 'state') {
+                      let stateVal = row.stateId || row.emirateId || row.state || row.emirate;
+                      if (stateVal && typeof stateVal === 'object') {
+                        stateVal = stateVal.name || stateVal.title || '-';
+                      } else if (stateVal) {
+                        const found = stateOptions.find(s => s.value === stateVal);
+                        if (found) stateVal = found.label;
+                      }
+                      return <td key={col} className={`px-4 py-2.5 text-slate-600 text-xs ${widthClass} ${alignClass}`}>{stateVal || '-'}</td>;
+                    }
+                    if (col.toLowerCase() === 'image') {
+                      const hasError = imgErrors[row.id];
+                      return (
+                        <td key={col} className={`px-4 py-2.5 ${widthClass} ${alignClass}`}>
+                          {row.image && !hasError ? (
+                            <div className="w-12 aspect-video rounded-md overflow-hidden border border-slate-200 shadow-2xs mx-auto flex items-center justify-center bg-slate-50 relative">
+                              <SafeImage 
+                                src={row.image} 
+                                alt={row.name} 
+                                className="w-full h-full object-cover" 
+                                onError={() => setImgErrors(prev => ({ ...prev, [row.id]: true }))}
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 font-mono text-xs">-</span>
+                          )}
+                        </td>
+                      );
+                    }
+                    if (col.toLowerCase() === 'instant') {
+                      const isInstant = row.isInstant === true || row.isInstant === 'true';
+                      return (
+                        <td key={col} className={`px-4 py-2.5 ${widthClass} ${alignClass}`}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleInstant(row);
+                            }}
+                            className={`relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                              isInstant ? 'bg-emerald-500' : 'bg-slate-300'
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-2xs ring-0 transition duration-200 ease-in-out ${
+                                isInstant ? 'translate-x-3.5' : 'translate-x-0'
+                              }`}
                             />
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 font-mono text-xs">-</span>
-                        )}
-                      </td>
-                    );
-                  }
-                  if (col.toLowerCase() === 'instant') {
-                    const isInstant = row.isInstant === true || row.isInstant === 'true';
-                    return (
-                      <td key={col} className={`px-6 py-5 ${widthClass} ${alignClass}`}>
+                          </button>
+                        </td>
+                      );
+                    }
+                    const fieldKey = col.toLowerCase().replace(' ', '');
+                    let cellValue = row[fieldKey];
+                    if (cellValue && typeof cellValue === 'object') {
+                      cellValue = cellValue.name || cellValue.type || cellValue.title || JSON.stringify(cellValue);
+                    }
+                    return <td key={col} className={`px-4 py-2.5 text-slate-600 text-xs ${widthClass} ${alignClass}`}>{cellValue || '-'}</td>;
+                  })}
+                  <td className="px-4 py-2.5 pr-5 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end relative action-menu-container">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenActionMenuId(openActionMenuId === (row.id || row._id) ? null : (row.id || row._id));
+                        }}
+                        className="w-7.5 h-7.5 flex items-center justify-center text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+
+                      {openActionMenuId === (row.id || row._id) && (
+                        <div className={`absolute right-0 w-40 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-[99] animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedData.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-8 origin-top-right'}`}>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleView(row); }} 
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-slate-500" /> View Details
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleEdit(row); }} 
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 text-slate-500" /> Edit
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleToggleStatus(row); }} 
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                          >
+                            {row.status === 'Active' ? <UserX className="w-3.5 h-3.5 text-slate-500" /> : <UserCheck className="w-3.5 h-3.5 text-slate-500" />} 
+                            {row.status === 'Active' ? 'Deactivate' : 'Activate'}
+                          </button>
+                          <div className="border-t border-slate-100 my-1"></div>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleDeleteClick(row.id || row._id, row.name || row.title); }} 
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+
+                </React.Fragment>
+              )))}
+            </tbody>
+          </table>
+
+          {/* Pagination Controls */}
+          {totalPages > 0 && (
+            <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/50 rounded-b-xl">
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 font-normal">
+                <span>Showing</span>
+                <span className="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                  {filteredData.length === 0 ? 0 : startIndex + 1} – {Math.min(startIndex + ITEMS_PER_PAGE, filteredData.length)}
+                </span>
+                <span>of</span>
+                <span className="font-semibold text-slate-800">{filteredData.length}</span>
+                <span>results</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="w-7 h-7 flex items-center justify-center border border-slate-200 bg-white rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {[...Array(totalPages)].map((_, idx) => {
+                    const page = idx + 1;
+                    const isCurrent = page === currentPage;
+                    if (
+                      page === 1 || 
+                      page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
                         <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleInstant(row);
-                          }}
-                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                            isInstant ? 'bg-emerald-500' : 'bg-slate-300'
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            isCurrent 
+                              ? 'bg-red-600 text-white shadow-xs' 
+                              : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 shadow-2xs'
                           }`}
                         >
-                          <span
-                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                              isInstant ? 'translate-x-4' : 'translate-x-0'
-                            }`}
-                          />
+                          {page}
                         </button>
-                      </td>
-                    );
-                  }
-                  const fieldKey = col.toLowerCase().replace(' ', '');
-                  let cellValue = row[fieldKey];
-                  if (cellValue && typeof cellValue === 'object') {
-                    cellValue = cellValue.name || cellValue.type || cellValue.title || JSON.stringify(cellValue);
-                  }
-                  return <td key={col} className={`px-6 py-5 text-slate-600 ${widthClass} ${alignClass}`}>{cellValue || '-'}</td>;
-                })}
-                <td className="px-4 py-4 pr-6 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end relative action-menu-container">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenActionMenuId(openActionMenuId === (row.id || row._id) ? null : (row.id || row._id));
-                      }}
-                      className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
-                    >
-                      <MoreHorizontal className="w-5 h-5" />
-                    </button>
+                      );
+                    } else if (
+                      page === currentPage - 2 || 
+                      page === currentPage + 2
+                    ) {
+                      return <span key={page} className="text-slate-400 text-xs px-0.5">...</span>;
+                    }
+                    return null;
+                  })}
+                </div>
 
-                    {openActionMenuId === (row.id || row._id) && (
-                      <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-99 animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedData.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleView(row); }} 
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                        >
-                          <Eye className="w-4 h-4 text-slate-500" /> View Details
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleEdit(row); }} 
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4 text-slate-500" /> Edit
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleToggleStatus(row); }} 
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                        >
-                          {row.status === 'Active' ? <UserX className="w-4 h-4 text-slate-500" /> : <UserCheck className="w-4 h-4 text-slate-500" />} 
-                          {row.status === 'Active' ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <div className="border-t border-slate-100 my-1"></div>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleDeleteClick(row.id || row._id, row.name || row.title); }} 
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" /> Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </td>
-              </tr>
-
-              </React.Fragment>
-            )))}
-          </tbody>
-        </table>
-
-        {/* Pagination Controls */}
-        {totalPages > 0 && (
-          <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-slate-100 rounded-b-2xl">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500 font-medium">
-                Showing <span className="text-slate-900 font-bold">{startIndex + 1}</span> to <span className="text-slate-900 font-bold">{Math.min(startIndex + ITEMS_PER_PAGE, filteredData.length)}</span> of <span className="text-slate-900 font-bold">{filteredData.length}</span> results
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              
-              <div className="flex items-center gap-1.5 px-2">
-                {[...Array(totalPages)].map((_, idx) => {
-                  const page = idx + 1;
-                  const isCurrent = page === currentPage;
-                  if (
-                    page === 1 || 
-                    page === totalPages || 
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
-                          isCurrent 
-                            ? 'bg-red-600 text-white shadow-sm' 
-                            : 'text-slate-600 hover:bg-slate-100'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (
-                    page === currentPage - 2 || 
-                    page === currentPage + 2
-                  ) {
-                    return <span key={page} className="text-slate-400">...</span>;
-                  }
-                  return null;
-                })}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-7 h-7 flex items-center justify-center border border-slate-200 bg-white rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
-
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <SlidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} title={mode === 'add' ? 'Add' : ((editingItem?.name || editingItem?.title) ? `${mode === 'view' ? 'View' : 'Edit'} ${editingItem.name || editingItem.title}` : displayName)}>
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between h-full space-y-4">
-          <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between h-full space-y-3">
+          <div className="space-y-3">
             {/* Information Section Card */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-visible">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-xl">
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-600 shadow-sm">
-                    <Layers className="w-4 h-4" />
+            <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-visible">
+              <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 rounded-t-lg">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 bg-white border border-slate-200 rounded-md text-slate-600 shadow-2xs">
+                    <Layers className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-900">{moduleName} Information</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Basic details and configuration.</p>
+                    <h4 className="text-xs font-bold text-slate-900">{moduleName} Information</h4>
+                    <p className="text-[10px] text-slate-500">Basic details and configuration.</p>
                   </div>
                 </div>
                 <SectionActiveToggle 
@@ -1331,10 +1351,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                 />
               </div>
 
-              <div className="p-5 space-y-5">
+              <div className="p-3 space-y-3">
                 {/* Horizontal Profile / Logo Photo Row inside Card */}
                 {fields.some(f => f.name === 'image') && (
-                  <div className="flex items-center gap-5 pb-2">
+                  <div className="flex items-center gap-3.5 pb-1">
                     <div 
                       onClick={() => {
                         if (photo || editingItem.image) {
@@ -1343,7 +1363,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                           fileInputRef.current?.click();
                         }
                       }}
-                      className={`shrink-0 bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${moduleName.toLowerCase() === 'banner' ? 'h-9 w-23.4 rounded-md' : 'w-24 aspect-video rounded-lg'} ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
+                      className={`shrink-0 bg-slate-50 flex items-center justify-center border border-slate-200 shadow-2xs overflow-hidden transition-all relative ${moduleName.toLowerCase() === 'banner' ? 'h-8 w-20 rounded-md' : 'w-16 aspect-video rounded-md'} ${(photo || editingItem.image) ? 'cursor-pointer hover:scale-105' : (mode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')}`}
                     >
                       {(photo || editingItem.image) ? (
                         <div className="relative w-full h-full overflow-hidden flex items-center justify-center bg-slate-50">
@@ -1354,23 +1374,23 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                           />
                         </div>
                       ) : ['vehicletype', 'vehicle-type', 'make', 'model', 'brand'].includes(moduleName.toLowerCase()) ? (
-                        <Car className="w-6 h-6 text-slate-400" />
+                        <Car className="w-5 h-5 text-slate-400" />
                       ) : ['service', 'subservice', 'sub-service'].includes(moduleName.toLowerCase()) ? (
-                        <Wrench className="w-6 h-6 text-slate-400" />
+                        <Wrench className="w-5 h-5 text-slate-400" />
                       ) : (
-                        <ImageIcon className="w-6 h-6 text-slate-400" />
+                        <ImageIcon className="w-5 h-5 text-slate-400" />
                       )}
                     </div>
                     {mode !== "view" && (
-                      <div className="flex flex-col gap-1.5">
+                      <div className="flex flex-col gap-1">
                         <button 
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors w-fit flex items-center gap-1.5 shadow-sm"
+                          className="px-2.5 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors w-fit flex items-center gap-1 shadow-2xs cursor-pointer"
                         >
-                          <Upload className="w-3.5 h-3.5 text-slate-500" /> Change Photo
+                          <Upload className="w-3 h-3 text-slate-500" /> Change Photo
                         </button>
-                        <span className="text-[11px] text-slate-400 font-medium">PNG, JPG or WEBP up to 5MB</span>
+                        <span className="text-[10px] text-slate-400">PNG, JPG or WEBP up to 5MB</span>
                       </div>
                     )}
                     <input 
@@ -1395,10 +1415,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {fields.filter(f => f.name !== 'image' && f.name !== 'status').map(f => (
                       <div key={f.name}>
-                          <label className="block text-xs font-semibold text-slate-700 mb-1.5">{f.label}</label>
+                          <label className="block text-[11px] font-medium text-slate-700 mb-0.5">{f.label}</label>
                           {f.type === 'dropdown' ? (() => {
                               const rawOptions = (f.name === 'state' || f.name === 'emirate') && moduleName.toLowerCase() === 'city' ? stateOptions :
                                                (f.name === 'makeId' && moduleName.toLowerCase() === 'model' ? makeOptions :
@@ -1420,12 +1440,13 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                                   options={formattedOptions}
                                   placeholder={`Select ${f.label}`}
                                   className="w-full bg-[#F8FAFC]"
+                                  size="sm"
                                   placement="auto"
                                 />
                               );
                           })() : f.type === 'toggle' ? (
-                              <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg h-9.5">
-                                <span className="text-sm text-slate-700">
+                              <div className="flex items-center justify-between p-2 bg-white border border-slate-200 rounded-lg h-8 shadow-2xs">
+                                <span className="text-xs text-slate-700">
                                   {f.name === 'isInstant' ? (editingItem[f.name] ? 'Yes' : 'No') : (editingItem[f.name] || 'Inactive')}
                                 </span>
                                 <button 
@@ -1438,21 +1459,21 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                                       setEditingItem({...editingItem, [f.name]: editingItem[f.name] === 'Active' ? 'Inactive' : 'Active'});
                                     }
                                   }}
-                                  className={`w-11 h-6 rounded-full transition-colors relative disabled:opacity-50 ${(f.name === 'isInstant' ? editingItem[f.name] : editingItem[f.name] === 'Active') ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                  className={`w-9 h-5 rounded-full transition-colors relative disabled:opacity-50 cursor-pointer ${(f.name === 'isInstant' ? editingItem[f.name] : editingItem[f.name] === 'Active') ? 'bg-emerald-500' : 'bg-slate-300'}`}
                                 >
-                                  <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${(f.name === 'isInstant' ? editingItem[f.name] : editingItem[f.name] === 'Active') ? 'translate-x-6' : 'translate-x-1'}`} />
+                                  <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform ${(f.name === 'isInstant' ? editingItem[f.name] : editingItem[f.name] === 'Active') ? 'translate-x-4.5' : 'translate-x-0.75'}`} />
                                 </button>
                               </div>
                           ) : f.type === 'string_array' ? (
-                              <div className="space-y-2">
+                              <div className="space-y-1.5">
                                 {mode !== 'view' && (
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1.5">
                                     <input 
-                                      type="text"
-                                      value={arrayInputs[f.name] || ''}
-                                      onChange={(e) => setArrayInputs({...arrayInputs, [f.name]: e.target.value})}
-                                      placeholder={`Enter ${f.label.toLowerCase()} point`}
-                                      className="w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all"
+                                      type="text" 
+                                      value={arrayInputs[f.name] || ''} 
+                                      onChange={(e) => setArrayInputs({...arrayInputs, [f.name]: e.target.value})} 
+                                      placeholder={`Enter ${f.label.toLowerCase()} point`} 
+                                      className="w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs" 
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                           e.preventDefault();
@@ -1466,9 +1487,9 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                                         }
                                       }}
                                     />
-                                    <button
-                                      type="button"
-                                      disabled={!arrayInputs[f.name]?.trim()}
+                                    <button 
+                                      type="button" 
+                                      disabled={!arrayInputs[f.name]?.trim()} 
                                       onClick={() => {
                                         let val = arrayInputs[f.name]?.trim();
                                         if (val) {
@@ -1477,10 +1498,10 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                                           setEditingItem({...editingItem, [f.name]: [...currentList, val]});
                                           setArrayInputs({...arrayInputs, [f.name]: ''});
                                         }
-                                      }}
-                                      className="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100 flex items-center justify-center gap-1 font-medium text-sm whitespace-nowrap disabled:opacity-50"
+                                      }} 
+                                      className="h-8 px-2.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100 flex items-center justify-center gap-1 font-semibold text-xs whitespace-nowrap disabled:opacity-50 cursor-pointer shadow-2xs"
                                     >
-                                      <Plus className="w-4 h-4" /> Add
+                                      <Plus className="w-3.5 h-3.5" /> Add
                                     </button>
                                   </div>
                                 )}
@@ -1488,21 +1509,21 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                                   const list = Array.isArray(editingItem[f.name]) ? editingItem[f.name] : (typeof editingItem[f.name] === 'string' && editingItem[f.name] ? [editingItem[f.name]] : []);
                                   if (list.length === 0) return null;
                                   return (
-                                    <ul className="space-y-1.5 mt-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                    <ul className="space-y-1 mt-1.5 max-h-36 overflow-y-auto custom-scrollbar">
                                       {list.map((val: string, idx: number) => (
-                                        <li key={idx} className="flex items-start justify-between gap-2 bg-slate-50 border border-slate-100 p-2.5 rounded-lg group">
-                                          <span className="text-xs text-slate-700 leading-snug flex-1 wrap-break-words">{val}</span>
+                                        <li key={idx} className="flex items-start justify-between gap-1.5 bg-slate-50 border border-slate-100 p-1.5 rounded-lg group">
+                                          <span className="text-[11px] text-slate-700 leading-snug flex-1 wrap-break-words">{val}</span>
                                           {mode !== 'view' && (
-                                            <button
-                                              type="button"
+                                            <button 
+                                              type="button" 
                                               onClick={() => {
                                                 const newList = [...list];
                                                 newList.splice(idx, 1);
                                                 setEditingItem({...editingItem, [f.name]: newList});
-                                              }}
-                                              className="text-slate-400 hover:text-red-500 transition-all p-1 mt-0.5 shrink-0"
+                                              }} 
+                                              className="text-slate-400 hover:text-red-500 transition-all p-0.5 shrink-0 cursor-pointer"
                                             >
-                                              <X className="w-3.5 h-3.5" />
+                                              <X className="w-3 h-3" />
                                             </button>
                                           )}
                                         </li>
@@ -1514,11 +1535,11 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                           ) : f.type === 'textarea' ? (
                               <textarea 
                                   disabled={mode === 'view'} 
-                                  rows={3} 
+                                  rows={2} 
                                   value={editingItem[f.name] || ''} 
                                   onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} 
                                   placeholder={f.label} 
-                                  className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all resize-none ${mode === 'view' ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                                  className={`w-full px-2.5 py-1.5 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all resize-none shadow-2xs ${mode === 'view' ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                               />
                           ) : (
                               <input 
@@ -1528,7 +1549,7 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
                                 value={editingItem[f.name] || ''} 
                                 onChange={(e) => setEditingItem({...editingItem, [f.name]: e.target.value})} 
                                 placeholder={f.label} 
-                                className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${mode === 'view' ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                                className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs ${mode === 'view' ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                               />
                           )}
                       </div>
@@ -1539,18 +1560,18 @@ export function MasterPage({ moduleName, columns, fields }: MasterPageProps) {
           </div>
 
           {/* Form Actions Footer - Exact styling matching SubAdmin drawer */}
-          <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-end gap-3 shrink-0 mt-auto">
+          <div className="px-4 py-2.5 border-t border-slate-200 bg-white flex items-center justify-end gap-2 shrink-0 mt-auto">
             <button 
               type="button" 
               onClick={() => setIsPanelOpen(false)} 
-              className="px-6 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-sm shadow-sm"
+              className="h-8 px-3.5 border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors text-xs shadow-2xs cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               disabled={mode === 'view' || !isFormValid} 
-              className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-all text-sm shrink-0 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-8 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-2xs transition-all text-xs shrink-0 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {mode === 'edit' ? `Update ${moduleName}` : (mode === 'view' ? 'Save' : `Save ${moduleName}`)}
             </button>

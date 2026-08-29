@@ -92,6 +92,12 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
           if (normalized.length > 0) {
             cachedServiceTree = normalized;
             setServices(normalized);
+            // Auto expand all services so user sees all subservices immediately
+            const autoExpanded: Record<string, boolean> = {};
+            normalized.forEach(s => {
+              autoExpanded[s._id] = true;
+            });
+            setExpandedServices(autoExpanded);
             success = true;
             break;
           }
@@ -240,8 +246,43 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
     return value.reduce((sum, item) => sum + (item.subServiceIds?.length || 0), 0);
   }, [value]);
 
+  const handleSelectAll = () => {
+    const allSelected: ApplicableService[] = services.map(s => {
+      const sId = getServiceId(s);
+      const subIds = (s.subServices || []).map(sub => getSubServiceId(sub)).filter(Boolean);
+      return {
+        serviceId: sId,
+        subServiceIds: subIds
+      };
+    });
+    onChange(allSelected);
+  };
+
+  const handleDeselectAll = () => {
+    onChange([]);
+  };
+
+  const handleToggleAllSubServicesForParent = (service: ServiceTreeNode, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const sId = getServiceId(service);
+    const subServices = service.subServices || [];
+    const allSubIds = subServices.map(sub => getSubServiceId(sub)).filter(Boolean);
+    const entry = getSelectedEntry(sId);
+    const isAllSelected = entry && allSubIds.length > 0 && entry.subServiceIds?.length === allSubIds.length;
+
+    if (isAllSelected) {
+      // Remove this service
+      const updated = value.filter(item => extractMongoId(item.serviceId) !== sId);
+      onChange(updated);
+    } else {
+      // Select all sub-services for this parent
+      const filtered = value.filter(item => extractMongoId(item.serviceId) !== sId);
+      onChange([...filtered, { serviceId: sId, subServiceIds: allSubIds }]);
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Header with Title and Selected Count Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-slate-100">
         <div className="flex items-center gap-2">
@@ -249,43 +290,57 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
             <Layers className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-slate-900 tracking-tight">Applicable Services</h4>
+            <h4 className="text-sm font-bold text-slate-900 tracking-tight">Applicable Services <span className="text-red-500">*</span></h4>
             <p className="text-xs text-slate-500">Select services and sub-services covered by this plan</p>
           </div>
         </div>
 
-        {/* Selected Count Indicator */}
+        {/* Selected Count Indicator & Action Buttons */}
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
+          <button
+            type="button"
+            onClick={handleSelectAll}
+            className="text-[11px] font-bold text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded border border-red-200 transition-colors cursor-pointer"
+          >
+            Select All
+          </button>
+          {totalSelectedCount > 0 && (
+            <button
+              type="button"
+              onClick={handleDeselectAll}
+              className="text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 px-2 py-0.5 rounded border border-slate-200 transition-colors cursor-pointer"
+            >
+              Clear
+            </button>
+          )}
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold transition-all ${
             totalSelectedCount > 0 
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs' 
               : 'bg-slate-100 text-slate-500 border border-slate-200'
           }`}>
             <Crown className="w-3.5 h-3.5" />
             {totalSelectedCount === 0
-              ? '0 Services Selected'
-              : `${totalSelectedCount} Service${totalSelectedCount > 1 ? 's' : ''} Selected ${
-                  totalSubServicesSelectedCount > 0 ? `(${totalSubServicesSelectedCount} Sub-Services)` : ''
-                }`}
+              ? '0 Selected'
+              : `${totalSelectedCount} Service${totalSelectedCount > 1 ? 's' : ''} (${totalSubServicesSelectedCount} Sub)`}
           </span>
         </div>
       </div>
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         <input
           type="text"
           placeholder="Search services or sub-services..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all shadow-2xs"
+          className="w-full h-8 pl-8 pr-12 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all shadow-2xs"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold bg-slate-200/60 rounded-md px-1.5 py-0.5"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 hover:text-slate-600 font-bold bg-slate-200/60 rounded px-1.5 py-0.5 cursor-pointer"
           >
             Clear
           </button>
@@ -294,26 +349,26 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
 
       {/* Loading State */}
       {loading && (
-        <div className="p-8 border border-slate-100 rounded-2xl bg-slate-50/60 flex flex-col items-center justify-center text-center space-y-3">
-          <div className="w-8 h-8 border-3 border-slate-200 border-t-red-500 rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-slate-500">Loading service tree hierarchy...</p>
+        <div className="p-4 border border-slate-100 rounded-lg bg-slate-50/60 flex flex-col items-center justify-center text-center space-y-2">
+          <div className="w-5 h-5 border-2 border-slate-200 border-t-red-500 rounded-full animate-spin"></div>
+          <p className="text-xs font-medium text-slate-500">Loading service tree...</p>
         </div>
       )}
 
       {/* Error State */}
       {!loading && fetchError && (
-        <div className="p-6 border border-red-100 bg-red-50/40 rounded-2xl flex flex-col items-center justify-center text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-red-500" />
-          <div className="space-y-1">
-            <p className="text-sm font-bold text-slate-900">{fetchError}</p>
-            <p className="text-xs text-slate-500">Could not retrieve available services from the server.</p>
+        <div className="p-4 border border-red-100 bg-red-50/40 rounded-lg flex flex-col items-center justify-center text-center space-y-2">
+          <AlertCircle className="w-5 h-5 text-red-500" />
+          <div className="space-y-0.5">
+            <p className="text-xs font-bold text-slate-900">{fetchError}</p>
+            <p className="text-[10px] text-slate-500">Could not retrieve services from server.</p>
           </div>
           <button
             type="button"
             onClick={() => fetchServiceTree(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-all shadow-2xs cursor-pointer"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-3 h-3" />
             Try Again
           </button>
         </div>
@@ -321,18 +376,18 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
 
       {/* Empty State */}
       {!loading && !fetchError && filteredServices.length === 0 && (
-        <div className="p-8 border border-dashed border-slate-200 rounded-2xl bg-slate-50/40 text-center space-y-2">
-          <Wrench className="w-8 h-8 text-slate-300 mx-auto" />
-          <p className="text-sm font-bold text-slate-700">No Services Found</p>
-          <p className="text-xs text-slate-400">
-            {searchQuery ? `No services or sub-services match "${searchQuery}"` : 'No services are currently configured in Master Management.'}
+        <div className="p-5 border border-dashed border-slate-200 rounded-lg bg-slate-50/40 text-center space-y-1">
+          <Wrench className="w-5 h-5 text-slate-300 mx-auto" />
+          <p className="text-xs font-bold text-slate-700">No Services Found</p>
+          <p className="text-[10px] text-slate-400">
+            {searchQuery ? `No services match "${searchQuery}"` : 'No services configured.'}
           </p>
         </div>
       )}
 
       {/* Hierarchical Service Tree Container */}
       {!loading && !fetchError && filteredServices.length > 0 && (
-        <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
+        <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
           {filteredServices.map(service => {
             const sId = getServiceId(service);
             const subServices = service.subServices || [];
@@ -350,60 +405,71 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
               return (
                 <div
                   key={sId}
-                  className={`rounded-xl border transition-all duration-200 overflow-hidden ${
+                  className={`rounded-lg border transition-all duration-200 overflow-hidden ${
                     selectedSubCount > 0
-                      ? 'border-red-200 bg-white shadow-xs'
+                      ? 'border-red-200 bg-white shadow-2xs'
                       : 'border-slate-200/80 bg-white hover:border-slate-300'
                   }`}
                 >
                   {/* Parent Service Accordion Header */}
                   <div
                     onClick={() => toggleAccordion(sId)}
-                    className="w-full flex items-center justify-between p-3.5 cursor-pointer select-none hover:bg-slate-50/80 transition-colors"
+                    className="w-full flex items-center justify-between p-2.5 cursor-pointer select-none hover:bg-slate-50/80 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+                        className="p-0.5 rounded text-slate-400 hover:text-slate-700 transition-colors"
                         aria-label="Toggle Sub-services"
                       >
                         {isExpanded ? (
-                          <ChevronDown className="w-4 h-4 text-slate-600" />
+                          <ChevronDown className="w-3.5 h-3.5 text-slate-600" />
                         ) : (
-                          <ChevronRight className="w-4 h-4 text-slate-400" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
                         )}
                       </button>
                       <div>
-                        <span className="text-sm font-bold text-slate-900">{service.name}</span>
+                        <span className="text-xs font-bold text-slate-900">{service.name}</span>
                         {service.category && (
-                          <span className="ml-2 text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-500">
+                          <span className="ml-1.5 text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
                             {service.category}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Sub-services Selection Counter Badge */}
-                    <div className="flex items-center gap-2">
+                    {/* Sub-services Selection Counter Badge & Quick Toggle */}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleAllSubServicesForParent(service, e)}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                          selectedSubCount === totalSubCount
+                            ? 'bg-red-600 text-white border-red-600 hover:bg-red-700'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-red-50 hover:text-red-600'
+                        }`}
+                      >
+                        {selectedSubCount === totalSubCount ? 'Deselect All' : 'Select All'}
+                      </button>
                       <span
-                        className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md border transition-all ${
                           selectedSubCount > 0
                             ? 'bg-red-50 text-red-700 border-red-200 font-extrabold'
                             : 'bg-slate-50 text-slate-500 border-slate-200/80'
                         }`}
                       >
-                        {selectedSubCount} / {totalSubCount} Selected
+                        {selectedSubCount} / {totalSubCount}
                       </span>
                     </div>
                   </div>
 
                   {/* Accordion Content: Child Sub-Services List */}
                   {isExpanded && (
-                    <div className="px-3.5 pb-3.5 pt-1 space-y-1.5 border-t border-slate-100 bg-slate-50/50">
-                      <div className="text-[11px] font-semibold text-slate-400 px-2 py-1 uppercase tracking-wider">
+                    <div className="px-2.5 pb-2.5 pt-1 space-y-1 border-t border-slate-100 bg-slate-50/50">
+                      <div className="text-[10px] font-semibold text-slate-400 px-1 py-0.5 uppercase tracking-wider">
                         Select Sub-Services:
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                         {subServices.map(sub => {
                           const subId = getSubServiceId(sub);
                           const isChecked = isSubServiceSelected(sId, subId);
@@ -412,28 +478,28 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
                             <div
                               key={subId}
                               onClick={() => handleToggleSubService(sId, subId)}
-                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer select-none transition-all ${
+                              className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer select-none transition-all ${
                                 isChecked
                                   ? 'bg-red-50/50 border-red-500 text-slate-900 shadow-2xs ring-1 ring-red-500/20'
                                   : 'bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                               }`}
                             >
                               <div
-                                className={`w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all ${
+                                className={`w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 transition-all ${
                                   isChecked
                                     ? 'bg-red-600 text-white shadow-2xs'
                                     : 'border border-slate-300 bg-white hover:border-slate-400'
                                 }`}
                               >
-                                {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                                {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                               </div>
 
                               <div className="flex-1 min-w-0">
-                                <p className={`text-xs leading-tight ${isChecked ? 'font-black text-slate-900' : 'font-bold text-slate-700'}`}>
+                                <p className={`text-[11px] leading-tight ${isChecked ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
                                   {sub.name}
                                 </p>
                                 {sub.price !== undefined && sub.price !== null && (
-                                  <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                                  <p className="text-[10px] text-slate-400 mt-0.5">
                                     AED {sub.price}
                                   </p>
                                 )}
@@ -454,21 +520,21 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
                 <div
                   key={sId}
                   onClick={() => handleToggleServiceWithoutChildren(sId)}
-                  className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer select-none transition-all ${
+                  className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer select-none transition-all ${
                     isSelectedNoChildren
                       ? 'bg-white border-red-500 text-slate-900 shadow-2xs ring-1 ring-red-500/20'
                       : 'bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <div
-                      className={`w-4 h-4 rounded flex items-center justify-center transition-all ${
+                      className={`w-3.5 h-3.5 rounded flex items-center justify-center transition-all ${
                         isSelectedNoChildren
                           ? 'bg-red-600 text-white'
                           : 'border border-slate-300 bg-white hover:border-slate-400'
                       }`}
                     >
-                      {isSelectedNoChildren && <Check className="w-3 h-3 stroke-[3]" />}
+                      {isSelectedNoChildren && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                     </div>
 
                     <input
@@ -479,9 +545,9 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
                     />
 
                     <div>
-                      <span className="text-sm font-bold text-slate-900">{service.name}</span>
+                      <span className="text-xs font-bold text-slate-900">{service.name}</span>
                       {service.category && (
-                        <span className="ml-2 text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-500">
+                        <span className="ml-1.5 text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
                           {service.category}
                         </span>
                       )}
@@ -491,13 +557,13 @@ export function ApplicableServicesTree({ value = [], onChange, error }: Applicab
                   {/* Selected Badge */}
                   <div>
                     {isSelectedNoChildren ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-extrabold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <Check className="w-3.5 h-3.5" />
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <Check className="w-3 h-3" />
                         Selected
                       </span>
                     ) : (
-                      <span className="text-xs font-semibold text-slate-400 px-2 py-1">
-                        Click to select
+                      <span className="text-[10px] font-semibold text-slate-400 px-1.5 py-0.5">
+                        Select
                       </span>
                     )}
                   </div>

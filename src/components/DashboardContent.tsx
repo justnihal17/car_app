@@ -87,10 +87,10 @@ export function DashboardContent({ currentView, onViewChange }: { currentView: s
     switch (currentView) {
       case 'dashboard':
         return (
-          <div className="flex-1 p-4 lg:p-6 2xl:p-content space-y-4 lg:space-y-6 max-w-[1600px] mx-auto">
+          <div className="flex-1 p-3.5 sm:p-4 space-y-3 sm:space-y-3.5 max-w-[1500px] mx-auto">
             {permission === 'denied' && <NotificationDeniedBanner />}
             <KpiCards onViewChange={onViewChange} />
-            <div className="space-y-4 lg:space-y-6">
+            <div className="space-y-3 sm:space-y-3.5">
               <LiveOrderOverview />
             </div>
           </div>

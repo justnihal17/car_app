@@ -40,6 +40,9 @@ export interface Promotion {
   applicableCarModels: string[];
   applicableAmirates: string[];
   excludedServices: string[];
+  excludedVehicleBrands?: string[];
+  excludedCarModels?: string[];
+  includedUsers?: string[];
   excludedUsers: string[];
   includeTaxes: boolean;
   autoApply: boolean;

@@ -27,7 +27,7 @@ export function AnalyticsCard({ title, value, icon: Icon, trend, trendUp }: Prop
         )}
       </div>
       <p className="text-sm text-slate-500 font-medium">{title}</p>
-      <p className="text-3xl font-bold text-slate-900 mt-1">{value}</p>
+      <p className="text-2xl font-semibold text-slate-800 mt-1">{value}</p>
     </motion.div>
   );
 }

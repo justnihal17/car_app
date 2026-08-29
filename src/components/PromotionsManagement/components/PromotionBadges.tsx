@@ -1,31 +1,31 @@
 import React from 'react';
 import { PromoType, DiscountType, PromotionStatus } from '../types/promotion.types';
-import { Tag, Zap, Share2, Wallet, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Tag, Zap, Share2, Wallet, Clock } from 'lucide-react';
 
 export function PromoTypeBadge({ type }: { type: PromoType }) {
   switch (type) {
     case 'COUPON':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/60 shadow-2xs">
-          <Tag className="w-3.5 h-3.5" /> Coupon
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 shadow-2xs">
+          <Tag className="w-3 h-3 text-blue-600" /> Coupon
         </span>
       );
     case 'AUTOMATIC':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200/60 shadow-2xs">
-          <Zap className="w-3.5 h-3.5 text-purple-600" /> Automatic
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200/60 shadow-2xs">
+          <Zap className="w-3 h-3 text-purple-600" /> Automatic
         </span>
       );
     case 'REFERRAL':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/60 shadow-2xs">
-          <Share2 className="w-3.5 h-3.5 text-amber-600" /> Referral
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60 shadow-2xs">
+          <Share2 className="w-3 h-3 text-amber-600" /> Referral
         </span>
       );
     case 'CASHBACK':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
-          <Wallet className="w-3.5 h-3.5 text-emerald-600" /> Cashback
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+          <Wallet className="w-3 h-3 text-emerald-600" /> Cashback
         </span>
       );
     default:
@@ -44,23 +44,23 @@ export function PromotionStatusBadge({
 
   if (isExpired) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-        <Clock className="w-3.5 h-3.5" /> Expired
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+        Expired
       </span>
     );
   }
 
   if (status === 'ACTIVE') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-        <CheckCircle2 className="w-3.5 h-3.5" /> Active
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+        Active
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-      <XCircle className="w-3.5 h-3.5" /> Inactive
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/60">
+      Inactive
     </span>
   );
 }
@@ -92,7 +92,7 @@ export function DiscountBadge({
   }
 
   return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white shadow-2xs">
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-800 text-white shadow-2xs">
       {label}
     </span>
   );
@@ -101,7 +101,7 @@ export function DiscountBadge({
 export function PriorityBadge({ priority }: { priority?: number }) {
   if (priority === undefined || priority === null) return null;
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
       P{priority}
     </span>
   );

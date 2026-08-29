@@ -81,21 +81,21 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
   return (
     <>
       {/* 1. Personal Information Section */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-600 shadow-sm">
-              <User className="w-4 h-4" />
+      <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-white border border-slate-200 rounded-md text-slate-600 shadow-2xs">
+              <User className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-slate-900">Personal Information</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Basic contact and profile details.</p>
+              <h4 className="text-xs font-bold text-slate-900">Personal Information</h4>
+              <p className="text-[10px] text-slate-500">Basic contact and profile details.</p>
             </div>
           </div>
         </div>
-        <div className="p-5 space-y-5">
+        <div className="p-3 space-y-3">
           {/* Profile Photo Horizontal Row */}
-          <div className="flex items-center gap-5 pb-2">
+          <div className="flex items-center gap-3.5 pb-1">
             <div 
               onClick={() => {
                 if (previewUrl || (formData.imageUrl && !imgError)) {
@@ -104,7 +104,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                   fileInputRef.current?.click();
                 }
               }}
-              className={`w-16 h-16 shrink-0 bg-slate-50 rounded-full flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden transition-all relative ${previewUrl || formData.imageUrl ? 'cursor-pointer hover:scale-105' : (!isView ? 'cursor-pointer hover:bg-slate-100' : '')}`}
+              className={`w-12 h-12 shrink-0 bg-slate-50 rounded-full flex items-center justify-center border border-slate-200 shadow-2xs overflow-hidden transition-all relative ${previewUrl || formData.imageUrl ? 'cursor-pointer hover:scale-105' : (!isView ? 'cursor-pointer hover:bg-slate-100' : '')}`}
             >
               {(previewUrl || (formData.imageUrl && !imgError)) ? (
                 <SafeImage 
@@ -114,87 +114,87 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                   className="w-full h-full object-cover" 
                 />
               ) : (
-                <User className="w-6 h-6 text-slate-400" />
+                <User className="w-5 h-5 text-slate-400" />
               )}
             </div>
             {!isView && (
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1">
                 <button 
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors w-fit flex items-center gap-1.5 shadow-sm"
+                  className="px-2.5 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors w-fit flex items-center gap-1 shadow-2xs cursor-pointer"
                 >
-                  <Upload className="w-3.5 h-3.5 text-slate-500" /> Change Photo
+                  <Upload className="w-3 h-3 text-slate-500" /> Change Photo
                 </button>
-                <span className="text-[11px] text-slate-400">PNG, JPG or WEBP up to 5MB</span>
+                <span className="text-[10px] text-slate-400">PNG, JPG or WEBP up to 5MB</span>
               </div>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">First Name</label>
+              <label className="block text-[11px] font-medium text-slate-700 mb-0.5">First Name</label>
               <input 
                 disabled={isView} 
                 value={formData.firstName} 
                 onChange={e => setFormData({...formData, firstName: e.target.value})} 
                 type="text" 
                 placeholder="First name" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
+                className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors shadow-2xs" 
               />
-              {errors.firstName && <p className="text-rose-500 text-xs font-medium mt-1">{errors.firstName}</p>}
+              {errors.firstName && <p className="text-rose-500 text-[10px] font-medium mt-0.5">{errors.firstName}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
+              <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Last Name</label>
               <input 
                 disabled={isView} 
                 value={formData.lastName} 
                 onChange={e => setFormData({...formData, lastName: e.target.value})} 
                 type="text" 
                 placeholder="Last name" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
+                className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors shadow-2xs" 
               />
-              {errors.lastName && <p className="text-rose-500 text-xs font-medium mt-1">{errors.lastName}</p>}
+              {errors.lastName && <p className="text-rose-500 text-[10px] font-medium mt-0.5">{errors.lastName}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
+              <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Email Address</label>
               <input 
                 disabled={isView} 
                 value={formData.email} 
                 onChange={e => setFormData({...formData, email: e.target.value})} 
                 type="email" 
                 placeholder="Enter email" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
+                className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors shadow-2xs" 
               />
-              {errors.email && <p className="text-rose-500 text-xs font-medium mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-rose-500 text-[10px] font-medium mt-0.5">{errors.email}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Phone Number</label>
+              <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Phone Number</label>
               <input 
                 disabled={isView} 
                 value={formData.phone} 
                 onChange={e => setFormData({...formData, phone: e.target.value})} 
                 type="text" 
                 placeholder="Enter phone number" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors" 
+                className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 disabled:bg-slate-50 disabled:text-slate-500 transition-colors shadow-2xs" 
               />
-              {errors.phone && <p className="text-rose-500 text-xs font-medium mt-1">{errors.phone}</p>}
+              {errors.phone && <p className="text-rose-500 text-[10px] font-medium mt-0.5">{errors.phone}</p>}
             </div>
           </div>
         </div>
       </div>
 
       {/* 2. Account & Role Section */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-xl">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-600 shadow-sm">
-              <Shield className="w-4 h-4" />
+      <div className="bg-white rounded-lg border border-slate-200 shadow-2xs">
+        <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 rounded-t-lg">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-white border border-slate-200 rounded-md text-slate-600 shadow-2xs">
+              <Shield className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-slate-900">Account & Role</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Authentication and system role assignment.</p>
+              <h4 className="text-xs font-bold text-slate-900">Account & Role</h4>
+              <p className="text-[10px] text-slate-500">Authentication and system role assignment.</p>
             </div>
           </div>
           <SectionActiveToggle 
@@ -203,11 +203,11 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
             disabled={isView} 
           />
         </div>
-        <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-medium text-slate-700">Admin ID</label>
+              <div className="flex items-center justify-between mb-0.5">
+                <label className="block text-[11px] font-medium text-slate-700">Admin ID</label>
                 {formData.adminId && (
                   <button
                     type="button"
@@ -215,10 +215,10 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                       navigator.clipboard.writeText(formData.adminId || '');
                       toast.success('Admin ID copied to clipboard!');
                     }}
-                    className="text-[11px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                    className="text-[10px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
                     title="Copy Admin ID"
                   >
-                    <Copy className="w-3 h-3" /> Copy
+                    <Copy className="w-2.5 h-2.5" /> Copy
                   </button>
                 )}
               </div>
@@ -227,30 +227,30 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 value={formData.adminId || (isView ? 'N/A' : 'Auto-generated on creation')} 
                 type="text" 
                 placeholder="Auto-generated" 
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-700 font-mono font-medium disabled:bg-slate-50 disabled:text-slate-600 transition-colors select-all" 
+                className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-slate-50 text-slate-700 font-mono font-medium disabled:bg-slate-50 disabled:text-slate-600 transition-colors select-all shadow-2xs" 
               />
             </div>
 
             <div className="relative" ref={roleDropdownRef}>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Role</label>
+              <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Role</label>
               <button 
                 type="button"
                 onClick={() => !isView && setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                className={`w-full px-3 py-2 border rounded-lg text-sm flex items-center justify-between text-left transition-all ${
+                className={`w-full h-8 px-2.5 py-1 border rounded-lg text-xs flex items-center justify-between text-left transition-all shadow-2xs ${
                   isView ? 'bg-slate-50 text-slate-500 cursor-default' : 'bg-white cursor-pointer hover:bg-slate-50'
                 } ${isRoleDropdownOpen ? 'border-slate-300 ring-1 ring-slate-200' : 'border-slate-200'}`}
               >
                 <span className={formData.role ? 'text-slate-900' : 'text-slate-400'}>
                   {formData.role ? formatRoleName(formData.role) : 'Select Role'}
                 </span>
-                {!isView && <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180 text-red-600' : ''}`} />}
+                {!isView && <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180 text-red-600' : ''}`} />}
               </button>
 
               {isRoleDropdownOpen && !isView && (
                 <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                   <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
                     {roles.length === 0 ? (
-                      <div className="px-3 py-2 text-xs text-slate-400 text-center">No roles found</div>
+                      <div className="px-3 py-1.5 text-xs text-slate-400 text-center">No roles found</div>
                     ) : (
                       roles.map(r => {
                         const isSelected = formData.role?.toLowerCase() === r.name?.toLowerCase();
@@ -261,14 +261,14 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                               setFormData({ ...formData, role: r.name });
                               setIsRoleDropdownOpen(false);
                             }}
-                            className={`px-3 py-2 text-sm rounded-md flex items-center justify-between cursor-pointer transition-colors ${
+                            className={`px-2.5 py-1.5 text-xs rounded-md flex items-center justify-between cursor-pointer transition-colors ${
                               isSelected 
                                 ? 'bg-red-50 text-red-700 font-medium' 
                                 : 'text-slate-700 hover:bg-slate-100'
                             }`}
                           >
                             <span>{formatRoleName(r.name)}</span>
-                            {isSelected && <Check className="w-4 h-4 text-red-600" />}
+                            {isSelected && <Check className="w-3.5 h-3.5 text-red-600" />}
                           </div>
                         );
                       })
@@ -276,12 +276,12 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                   </div>
                 </div>
               )}
-              {errors.role && <p className="text-rose-500 text-xs font-medium mt-1">{errors.role}</p>}
+              {errors.role && <p className="text-rose-500 text-[10px] font-medium mt-0.5">{errors.role}</p>}
             </div>
 
-            <div className="relative md:col-span-2">
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-medium text-slate-700">Password</label>
+            <div className="relative sm:col-span-2">
+              <div className="flex items-center justify-between mb-0.5">
+                <label className="block text-[11px] font-medium text-slate-700">Password</label>
                 {isView && formData.password && (
                   <button
                     type="button"
@@ -289,10 +289,10 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                       navigator.clipboard.writeText(formData.password || '');
                       toast.success('Password copied to clipboard!');
                     }}
-                    className="text-[11px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                    className="text-[10px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
                     title="Copy Password"
                   >
-                    <Copy className="w-3 h-3" /> Copy
+                    <Copy className="w-2.5 h-2.5" /> Copy
                   </button>
                 )}
               </div>
@@ -303,7 +303,7 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                   onChange={e => !isView && setFormData({...formData, password: e.target.value})}
                   disabled={isView}
                   placeholder={isView ? "No password available" : "Enter password"} 
-                  className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm transition-colors pr-10 ${
+                  className={`w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs transition-colors pr-9 shadow-2xs ${
                     isView 
                       ? 'bg-slate-50 text-slate-700 font-normal select-all' 
                       : 'placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 font-normal'
@@ -312,28 +312,28 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 <button 
                   type="button" 
                   onClick={() => setShowPassword(!showPassword)} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors z-10 cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 transition-colors z-10 cursor-pointer"
                   title={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
-              {!isView && errors.password && <p className="text-rose-500 text-xs font-medium mt-1">{errors.password}</p>}
+              {!isView && errors.password && <p className="text-rose-500 text-[10px] font-medium mt-0.5">{errors.password}</p>}
             </div>
           </div>
         </div>
       </div>
 
       {/* 3. Access Permissions Section */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-xl">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-600 shadow-sm">
-              <Lock className="w-4 h-4" />
+      <div className="bg-white rounded-lg border border-slate-200 shadow-2xs">
+        <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 rounded-t-lg">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-white border border-slate-200 rounded-md text-slate-600 shadow-2xs">
+              <Lock className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-slate-900">Access Permissions</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Define which modules this admin can access.</p>
+              <h4 className="text-xs font-bold text-slate-900">Access Permissions</h4>
+              <p className="text-[10px] text-slate-500">Define which modules this admin can access.</p>
             </div>
           </div>
           {!isView && (
@@ -343,14 +343,14 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                 const allTrue = allAccessModules.reduce((acc, p) => ({ ...acc, [p.toLowerCase().replace(' ', '')]: true }), {});
                 setFormData({...formData, permissions: allTrue});
               }}
-              className="text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors border border-red-100"
+              className="text-[11px] font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded-md transition-colors border border-red-100 cursor-pointer"
             >
-              Grant All Access
+              Grant All
             </button>
           )}
         </div>
-        <div className="p-5">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="p-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {allAccessModules.map(moduleName => {
               const key = moduleName.toLowerCase().replace(' ', '');
               const isChecked = !!formData.permissions[key];
@@ -369,20 +369,20 @@ export const SubAdminFormFields: React.FC<SubAdminFormFieldsProps> = ({
                       });
                     }
                   }}
-                  className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                  className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${
                     isView ? 'cursor-default' : 'cursor-pointer'
                   } ${
                     isChecked 
-                      ? 'border-red-200 bg-red-50 text-red-900 shadow-sm' 
+                      ? 'border-red-200 bg-red-50 text-red-900 shadow-2xs' 
                       : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
-                  <div className={`w-4 h-4 rounded shrink-0 flex items-center justify-center border transition-colors ${
+                  <div className={`w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center border transition-colors ${
                     isChecked ? 'bg-red-600 border-red-600' : 'border-slate-300 bg-white'
                   }`}>
-                    {isChecked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                    {isChecked && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
                   </div>
-                  <span className={`text-sm font-medium ${isChecked ? 'text-red-800' : 'text-slate-700'}`}>
+                  <span className={`text-xs font-medium truncate ${isChecked ? 'text-red-800 font-semibold' : 'text-slate-700'}`}>
                     {moduleName}
                   </span>
                 </div>

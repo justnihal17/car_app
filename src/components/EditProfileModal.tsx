@@ -71,82 +71,82 @@ export function EditProfileModal() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 w-full max-w-lg shadow-xl space-y-6">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 w-full max-w-md shadow-xl space-y-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 font-sans">Edit Profile</h2>
-          <p className="text-sm text-slate-500 mt-1">Update your personal account information.</p>
+          <h2 className="text-base font-bold text-slate-900">Edit Profile</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Update your personal account information.</p>
         </div>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
+        <form className="space-y-3" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
+              <label className="block text-[11px] font-medium text-slate-700 mb-1">First Name</label>
               <input 
                 type="text" 
                 required 
                 value={formData.firstName} 
                 onChange={e => setFormData({ ...formData, firstName: e.target.value })} 
                 placeholder="First Name" 
-                className="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white" 
+                className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-300 shadow-2xs" 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Last Name</label>
+              <label className="block text-[11px] font-medium text-slate-700 mb-1">Last Name</label>
               <input 
                 type="text" 
                 required 
                 value={formData.lastName} 
                 onChange={e => setFormData({ ...formData, lastName: e.target.value })} 
                 placeholder="Last Name" 
-                className="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white" 
+                className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-300 shadow-2xs" 
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <label className="block text-[11px] font-medium text-slate-700 mb-1">Email</label>
             <input 
               type="email" 
               required 
               value={formData.email} 
               onChange={e => setFormData({ ...formData, email: e.target.value })} 
               placeholder="Email Address" 
-              className="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white" 
+              className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-300 shadow-2xs" 
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+            <label className="block text-[11px] font-medium text-slate-700 mb-1">Phone</label>
             <input 
               type="text" 
               required 
               value={formData.phone} 
               onChange={e => setFormData({ ...formData, phone: e.target.value })} 
               placeholder="Phone Number" 
-              className="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white" 
+              className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-300 shadow-2xs" 
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-[11px] font-medium text-slate-700 mb-1">Password</label>
             <input 
               type="password" 
               value={formData.password} 
               onChange={e => setFormData({ ...formData, password: e.target.value })} 
               placeholder="Enter password" 
-              className="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white" 
+              className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-300 shadow-2xs" 
             />
           </div>
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-2 pt-2 border-t border-slate-100">
             <button 
               type="button" 
               disabled={loading} 
               onClick={toggleEditProfile} 
-              className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm"
+              className="flex-1 h-8 px-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-semibold text-xs cursor-pointer shadow-2xs"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               disabled={loading} 
-              className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold text-sm shadow-md shadow-blue-200"
+              className="flex-1 h-8 px-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold text-xs shadow-2xs cursor-pointer"
             >
               {loading ? 'Saving...' : 'Save'}
             </button>

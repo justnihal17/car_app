@@ -69,7 +69,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       const rawAgents = Array.isArray(response.data.data) ? response.data.data : (response.data.data?.agents || []);
       setAgentsList(rawAgents.map((a: any, idx: number) => {
         const autoAgentId = a.agentId || a.employeeCode || `AGT-${1001 + idx}`;
-        const autoPassword = a.plainPassword || a.password || 'Agent@123';
+        const autoPassword = a.plainPassword || a.password || '';
         const formattedRole = a.role === 'service_agent' ? 'Service Agent' : (a.role || 'Service Agent');
         return {
           ...a,
@@ -78,17 +78,17 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
           name: a.name || `${a.firstName || ''} ${a.lastName || ''}`.trim() || 'Agent',
           phone: a.phone || '-',
           email: a.email || '-',
-          emirate: a.emirate || a.state || 'Dubai',
-          city: a.city || 'Dubai',
+          emirate: a.emirate || a.state || '-',
+          city: a.city || '-',
           password: autoPassword,
           role: formattedRole,
-          gender: a.gender || 'Male',
+          gender: a.gender || '-',
           joiningDate: a.joiningDate ? new Date(a.joiningDate).toISOString().split('T')[0] : (a.createdAt ? new Date(a.createdAt).toISOString().split('T')[0] : '-'),
-          skills: Array.isArray(a.skills) && a.skills.length > 0 ? a.skills.join(', ') : (typeof a.skills === 'string' ? a.skills : 'Car Wash'),
-          area: a.city || 'Delhi',
-          vehicle: a.vehicle || 'Service Van',
-          jobs: a.jobsCompleted || 0,
-          rating: a.rating || 4.5,
+          skills: Array.isArray(a.skills) && a.skills.length > 0 ? a.skills.join(', ') : (typeof a.skills === 'string' && a.skills ? a.skills : '-'),
+          area: a.city || a.area || a.state || '-',
+          vehicle: a.vehicle || a.vehicleType || '-',
+          jobs: a.jobsCompleted || a.jobs || 0,
+          rating: a.rating ?? 0,
           status: a.blocked ? 'Blocked' : (a.active ? 'Active' : 'Inactive')
         };
       }));
@@ -135,18 +135,41 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
     'Abu Dhabi', 'Ajman', 'Dubai', 'Fujairah', 'Ras Al Khaimah', 'Sharjah', 'Umm Al Quwain'
   ];
 
+  const DEFAULT_CITIES_LIST: { name: string; emirate: string }[] = [
+    { name: 'Al Ain', emirate: 'Abu Dhabi' },
+    { name: 'Al Aqah', emirate: 'Fujairah' },
+    { name: 'Al Bidyah', emirate: 'Fujairah' },
+    { name: 'Al Hamriyah', emirate: 'Sharjah' },
+    { name: 'Al Jazirah Al Hamra', emirate: 'Ras Al Khaimah' },
+    { name: 'Al Manama', emirate: 'Ajman' },
+    { name: 'Al Raas', emirate: 'Umm Al Quwain' },
+    { name: 'Al Rams', emirate: 'Ras Al Khaimah' },
+    { name: 'Al Salamah', emirate: 'Umm Al Quwain' },
+    { name: 'Dibba Al-fujairah', emirate: 'Fujairah' },
+    { name: 'Dibba Al-hisn', emirate: 'Sharjah' },
+    { name: 'Dubai City', emirate: 'Dubai' },
+    { name: 'Falaj Al Mualla', emirate: 'Umm Al Quwain' },
+    { name: 'Hatta', emirate: 'Dubai' },
+    { name: 'Jebel Ali', emirate: 'Dubai' },
+    { name: 'Khatt', emirate: 'Ras Al Khaimah' },
+    { name: 'Khor Fakkan', emirate: 'Sharjah' },
+    { name: 'Madinat Zayed', emirate: 'Abu Dhabi' },
+    { name: 'Masfout', emirate: 'Ajman' },
+    { name: 'Ruwais', emirate: 'Abu Dhabi' },
+  ];
+
   const EMIRATE_CITIES_MAP: Record<string, string[]> = {
-    'Abu Dhabi': ['Abu Dhabi', 'Al Ain', 'Al Dhafra', 'Ruwais'],
+    'Abu Dhabi': ['Abu Dhabi', 'Al Ain', 'Madinat Zayed', 'Ruwais', 'Al Dhafra'],
     'Ajman': ['Ajman', 'Al Manama', 'Masfout'],
-    'Dubai': ['Dubai', 'Jebel Ali', 'Hatta'],
-    'Fujairah': ['Fujairah', 'Al Aqah', 'Al Bidyah', 'Dibba Al-Fujairah'],
-    'Ras Al Khaimah': ['Ras Al Khaimah', 'Al Jazira Al Hamra', 'Al Rams', 'Digdaga'],
-    'Sharjah': ['Sharjah', 'Al Hamriyah', 'Khor Fakkan', 'Kalba', 'Diba Al Hisn'],
+    'Dubai': ['Dubai City', 'Dubai', 'Jebel Ali', 'Hatta'],
+    'Fujairah': ['Fujairah', 'Al Aqah', 'Al Bidyah', 'Dibba Al-fujairah'],
+    'Ras Al Khaimah': ['Ras Al Khaimah', 'Al Jazirah Al Hamra', 'Al Rams', 'Khatt', 'Digdaga'],
+    'Sharjah': ['Sharjah', 'Al Hamriyah', 'Dibba Al-hisn', 'Khor Fakkan', 'Kalba'],
     'Umm Al Quwain': ['Umm Al Quwain', 'Al Raas', 'Al Salamah', 'Falaj Al Mualla'],
   };
 
   const [availableEmirates, setAvailableEmirates] = useState<string[]>(DEFAULT_EMIRATES);
-  const [cityMasterList, setCityMasterList] = useState<{ name: string; emirate: string }[]>([]);
+  const [cityMasterList, setCityMasterList] = useState<{ name: string; emirate: string }[]>(DEFAULT_CITIES_LIST);
 
   const fetchSkills = async () => {
     try {
@@ -234,11 +257,25 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
   const [isGenderDropdownOpen, setIsGenderDropdownOpen] = useState(false);
   const genderDropdownRef = useRef<HTMLDivElement>(null);
+  const emirateDropdownRef = useRef<HTMLDivElement>(null);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+  const skillsDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (genderDropdownRef.current && !genderDropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (genderDropdownRef.current && !genderDropdownRef.current.contains(target)) {
         setIsGenderDropdownOpen(false);
+        setIsGenderOpen(false);
+      }
+      if (emirateDropdownRef.current && !emirateDropdownRef.current.contains(target)) {
+        setIsEmirateOpen(false);
+      }
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(target)) {
+        setIsCityOpen(false);
+      }
+      if (skillsDropdownRef.current && !skillsDropdownRef.current.contains(target)) {
+        setIsSkillsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -548,39 +585,38 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
   const paginatedAgents = filteredAgents.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
-    <div className="p-4 sm:p-6 xl:p-8 space-y-6 sm:space-y-8 w-full bg-slate-50/60 min-h-screen">
+    <div className="p-3.5 sm:p-4 lg:p-5 space-y-3.5 sm:space-y-4 w-full bg-slate-50/60 min-h-screen">
       {/* Breadcrumb & Top Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">
           <span>Dashboard</span> 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
+          <ChevronRight className="w-3 h-3 text-slate-400" /> 
           <span>Profile Management</span> 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" /> 
-          <span className="text-red-600 font-bold">
+          <ChevronRight className="w-3 h-3 text-slate-400" /> 
+          <span className="text-red-600 font-semibold">
             Agent Management
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button 
             onClick={openRegister} 
-            className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-bold rounded-xl shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 transition-all active:scale-95 text-sm"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-semibold rounded-lg shadow-xs transition-all active:scale-95 text-xs cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" /> Create
+            <Plus className="w-3.5 h-3.5 stroke-[2]" /> Create
           </button>
-
         </div>
       </div>
 
       {/* Analytics Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-3.5 w-full">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-22.5 bg-slate-200/70 animate-pulse rounded-2xl p-4 border border-slate-200/50 flex flex-col justify-between">
+            <div key={i} className="h-[90px] bg-slate-200/70 animate-pulse rounded-xl p-3.5 border border-slate-200/50 flex flex-col justify-between">
               <div className="flex justify-between items-center">
-                <div className="h-3 w-16 bg-slate-300 rounded" />
-                <div className="w-8 h-8 bg-slate-300 rounded-xl" />
+                <div className="h-2.5 w-12 bg-slate-300 rounded" />
+                <div className="w-6 h-6 bg-slate-300 rounded-lg" />
               </div>
-              <div className="h-6 w-12 bg-slate-300 rounded mt-1" />
+              <div className="h-5 w-8 bg-slate-300 rounded mt-2" />
             </div>
           ))
         ) : (
@@ -597,21 +633,21 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
               <div 
                 key={i} 
                 onClick={() => setSelectedCard(prev => prev === card.label ? null : card.label)}
-                className={`bg-white p-4 rounded-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 ${
+                className={`bg-white p-3.5 sm:p-4 rounded-xl transition-all duration-200 flex flex-col justify-between group cursor-pointer hover:-translate-y-0.5 min-h-[88px] sm:min-h-[92px] ${
                   isFocused 
-                    ? `border border-slate-300 bg-white shadow-md` 
-                    : 'border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300'
+                    ? `border border-slate-300 bg-white shadow-xs` 
+                    : 'border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-slate-300'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-xs font-bold tracking-tight transition-colors uppercase ${isFocused ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-800'}`}>{card.label}</span>
-                  <div className={`p-2 rounded-xl border ${card.color} transition-all duration-300 group-hover:scale-110 shadow-xs`}>
-                    <Icon className="w-4 h-4" />
+                <div className="flex items-center justify-between w-full">
+                  <span className={`text-[10.5px] font-semibold tracking-wider transition-colors uppercase leading-none ${isFocused ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-800'}`}>{card.label}</span>
+                  <div className={`p-1.5 rounded-lg border ${card.color} transition-all duration-200 group-hover:scale-105 shadow-2xs`}>
+                    <Icon className="w-3.5 h-3.5 text-slate-500" />
                   </div>
                 </div>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</span>
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{card.sub}</span>
+                <div className="flex items-baseline justify-between w-full mt-3">
+                  <span className="text-xl sm:text-2xl font-semibold text-slate-800 tracking-tight leading-none">{card.value}</span>
+                  <span className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">{card.sub}</span>
                 </div>
               </div>
             );
@@ -620,57 +656,54 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       </div>
 
       {/* Main Content */}
-      <div className="space-y-4">
-
-        {/* Title & Search Bar */}
+      <div className="space-y-3">
+        {/* Search Bar */}
         <div className="flex justify-end">
-          <div className="flex items-center gap-2.5 w-full md:w-auto">
-            <div className="relative w-full md:w-80 group">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
+          <div className="flex items-center gap-1.5 w-full md:w-[320px]">
+            <div className="relative flex-1 group">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors" />
               <input 
                 type="text" 
                 placeholder="Search by name..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-lg text-sm font-medium placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-sm" 
+                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200/90 rounded-lg text-xs font-normal placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs h-8" 
               />
             </div>
-            <button className="px-6 py-2.5 bg-red-600 text-white hover:bg-red-700 font-medium rounded-lg shadow-sm transition-all text-sm shrink-0">
+            <button className="px-4 py-1.5 bg-red-600 text-white hover:bg-red-700 font-medium rounded-lg shadow-2xs transition-all text-xs shrink-0 h-8 cursor-pointer">
               Search
             </button>
           </div>
         </div>
 
         {/* Table Container */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-visible">
-          <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-[#FFF] backdrop-blur-sm text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
-              <tr className="bg-slate-50/50 border-b border-slate-200">
-                <th className="px-4 py-4 pl-6 text-left text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-xl w-75">Agent Name</th>
-                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-37.5">Phone</th>
-                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-37.5">Status</th>
-                <th className="px-4 py-4 pr-6 text-right text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tr-xl w-30">Actions</th>
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-visible">
+          <table className="w-full text-xs text-left border-collapse">
+            <thead className="bg-[#FFF] text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-100">
+              <tr className="bg-slate-50/70 border-b border-slate-200/80">
+                <th className="px-4 py-3 pl-5 text-left text-[11px] font-semibold text-slate-600 uppercase tracking-wider rounded-tl-xl w-[60%]">Agent Name</th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold text-slate-600 uppercase tracking-wider w-[25%]">Status</th>
+                <th className="px-4 py-3 pr-5 text-right text-[11px] font-semibold text-slate-600 uppercase tracking-wider rounded-tr-xl w-[15%]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-4 pl-6"><div className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-full bg-slate-200" /><div className="h-4 w-28 bg-slate-200 rounded" /></div></td>
-                    <td className="px-4 py-4"><div className="h-4 w-36 bg-slate-200 rounded" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
-                    <td className="px-4 py-4 pr-6"><div className="h-4 w-12 bg-slate-200 rounded ml-auto" /></td>
+                    <td className="px-4 py-2.5 pl-5"><div className="flex items-center gap-2.5"><div className="w-7.5 h-7.5 rounded-full bg-slate-200" /><div className="h-3.5 w-28 bg-slate-200 rounded" /></div></td>
+                    <td className="px-4 py-2.5"><div className="h-3.5 w-16 bg-slate-200 rounded" /></td>
+                    <td className="px-4 py-2.5 pr-5"><div className="h-3.5 w-8 bg-slate-200 rounded ml-auto" /></td>
                   </tr>
                 ))
               ) : filteredAgents.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-slate-400 font-semibold">No service agents found</td>
+                  <td colSpan={3} className="p-8 text-center text-slate-400 font-medium text-xs">No service agents found</td>
                 </tr>
               ) : paginatedAgents.map((agent, index) => (
-                <tr key={agent.id} className="hover:bg-[#FEFEFE] transition-all duration-150 group cursor-pointer border-b border-slate-100 last:border-0" onClick={(e) => handleViewDrawer(e, agent)}>
-                  <td className="px-4 py-4 pl-6 whitespace-nowrap">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-8 h-8 shrink-0 rounded-full bg-linear-to-br ${getAvatarColor(agent.name)} flex items-center justify-center text-white text-[11px] font-bold shadow-sm ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
+                <tr key={agent.id} className="hover:bg-slate-50/70 transition-colors duration-150 group cursor-pointer border-b border-slate-100 last:border-0" onClick={(e) => handleViewDrawer(e, agent)}>
+                  <td className="px-4 py-2.5 pl-5 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-7.5 h-7.5 shrink-0 rounded-full bg-gradient-to-br ${getAvatarColor(agent.name)} flex items-center justify-center text-white text-[11px] font-semibold shadow-2xs ring-2 ring-slate-100 border border-white/50 overflow-hidden relative`}>
                         {(agent.profileImage || agent.profileUrl || agent.imageUrl) ? (
                           <SafeImage 
                             src={agent.profileImage || agent.profileUrl || agent.imageUrl} 
@@ -684,16 +717,15 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         <span>{getInitials(agent.name)}</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-medium text-slate-800 text-[15px] tracking-tight whitespace-nowrap leading-tight">{agent.name}</span>
-                        <span className="text-sm text-slate-400 mt-0.5">{agent.email || '-'}</span>
+                        <span className="font-medium text-slate-900 text-[13px] tracking-tight whitespace-nowrap leading-tight">{agent.name}</span>
+                        <span className="text-xs text-slate-400 font-normal mt-0.5">{agent.email || '-'}</span>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-slate-600 text-sm font-mono">{agent.phone || '-'}</td>
-                  <td className="px-4 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2.5 whitespace-nowrap">
                     <StatusBadge status={agent.blocked ? 'Blocked' : (agent.active !== false ? 'Active' : 'Inactive')} />
                   </td>
-                  <td className="px-4 py-4 pr-6 text-right whitespace-nowrap">
+                  <td className="px-4 py-2.5 pr-5 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end relative action-menu-container">
                       <button
                         type="button"
@@ -701,53 +733,53 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                           e.stopPropagation();
                           setOpenActionMenuId(openActionMenuId === agent.id ? null : agent.id);
                         }}
-                        className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+                        className="w-7.5 h-7.5 flex items-center justify-center text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
                       >
-                        <MoreHorizontal className="w-5 h-5" />
+                        <MoreHorizontal className="w-4 h-4" />
                       </button>
 
                     {openActionMenuId === agent.id && (
-                      <div className={`absolute right-0 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-99 animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedAgents.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-10 origin-top-right'}`}>
+                      <div className={`absolute right-0 w-40 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-[99] animate-in fade-in zoom-in-95 duration-100 text-left ${index >= Math.max(0, paginatedAgents.length - 3) ? 'bottom-full mb-1 origin-bottom-right' : 'top-8 origin-top-right'}`}>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleViewDrawer(e, agent); }} 
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                         >
-                          <Eye className="w-4 h-4 text-slate-500" /> View Details
+                          <Eye className="w-3.5 h-3.5 text-slate-500" /> View Details
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleEdit(e, agent); }} 
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                         >
-                          <Edit2 className="w-4 h-4 text-slate-500" /> Edit
+                          <Edit2 className="w-3.5 h-3.5 text-slate-500" /> Edit
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); handleToggleAgentStatus(agent); }} 
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                         >
-                          {agent.active !== false ? <UserX className="w-4 h-4 text-slate-500" /> : <UserCheck className="w-4 h-4 text-slate-500" />} 
+                          {agent.active !== false ? <UserX className="w-3.5 h-3.5 text-slate-500" /> : <UserCheck className="w-3.5 h-3.5 text-slate-500" />} 
                           {agent.active !== false ? 'Deactivate' : 'Activate'}
                         </button>
                         <div className="border-t border-slate-100 my-1"></div>
                         {agent.blocked ? (
                           <button 
                             onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'unblock', agent }); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
                           >
-                            <UserCheck className="w-4 h-4" /> Unblock
+                            <UserCheck className="w-3.5 h-3.5" /> Unblock
                           </button>
                         ) : (
                           <button 
                             onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'block', agent }); }} 
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                           >
-                            <UserX className="w-4 h-4" /> Block
+                            <UserX className="w-3.5 h-3.5" /> Block
                           </button>
                         )}
                         <button 
                           onClick={(e) => { e.stopPropagation(); setOpenActionMenuId(null); setActionModal({ isOpen: true, actionType: 'delete', agent }); }} 
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                         >
-                          <Trash2 className="w-4 h-4" /> Delete
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
                         </button>
                       </div>
                     )}
@@ -760,24 +792,30 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
           {/* Pagination Controls */}
           {totalPages > 0 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
-              <div className="text-sm text-slate-500 font-medium">
-                Showing <span className="text-slate-900 font-semibold">{filteredAgents.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="text-slate-900 font-semibold">{Math.min(currentPage * ITEMS_PER_PAGE, filteredAgents.length)}</span> of <span className="text-slate-900 font-semibold">{filteredAgents.length}</span> results
+            <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/50 rounded-b-xl">
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 font-normal">
+                <span>Showing</span>
+                <span className="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                  {filteredAgents.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} – {Math.min(currentPage * ITEMS_PER_PAGE, filteredAgents.length)}
+                </span>
+                <span>of</span>
+                <span className="font-semibold text-slate-800">{filteredAgents.length}</span>
+                <span>results</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-7 h-7 flex items-center justify-center border border-slate-200 bg-white rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === page ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
+                      className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all cursor-pointer ${currentPage === page ? 'bg-red-600 text-white shadow-xs' : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 shadow-2xs'}`}
                     >
                       {page}
                     </button>
@@ -786,9 +824,9 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-7 h-7 flex items-center justify-center border border-slate-200 bg-white rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -797,49 +835,49 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
       </div>
 
       {isDrawerOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-6 transition-opacity duration-200 ease-out">
-          <div className="bg-[#F8FAFC] w-full max-w-full md:max-w-2xl rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 ease-out">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 transition-opacity duration-200 ease-out">
+          <div className="bg-[#F8FAFC] w-full max-w-lg md:max-w-xl rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden flex flex-col max-h-[88vh] animate-in fade-in zoom-in-95 duration-200 ease-out">
             {/* Header - White, minimal, top accent */}
-            <div className="px-6 py-4 bg-white flex items-center justify-between border-b border-slate-200 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 shadow-sm">
-                  <Car className="w-5 h-5" />
+            <div className="px-4 py-2.5 bg-white flex items-center justify-between border-b border-slate-200 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 shadow-2xs">
+                  <Car className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold tracking-tight text-slate-900 capitalize leading-tight">
+                  <h3 className="text-sm font-bold tracking-tight text-slate-900 capitalize leading-tight">
                     {(drawerMode === "view" || drawerMode === "edit")
                       ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || "Edit Agent")
                       : "Create Agent"}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-[11px] text-slate-500 mt-0.5">
                     {drawerMode === "view" ? 'View agent details.' : (drawerMode === "edit" ? 'Manage agent details and skills.' : 'Add a new agent to the system.')}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setIsDrawerOpen(false)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Close modal">
-                <X className="w-5 h-5" />
+              <button onClick={() => setIsDrawerOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" aria-label="Close modal">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Form Content */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar relative pb-10">
+            <div className="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar relative pb-6">
               
               {/* Personal Information Section */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                  <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-600 shadow-sm">
-                      <User className="w-4 h-4" />
+              <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+                <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 bg-white border border-slate-200 rounded-md text-slate-600 shadow-2xs">
+                      <User className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-900">Personal Information</h4>
-                      <p className="text-xs text-slate-500 mt-0.5">Basic contact and profile details.</p>
+                      <h4 className="text-xs font-bold text-slate-900">Personal Information</h4>
+                      <p className="text-[10px] text-slate-500">Basic contact and profile details.</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 space-y-5">
+                <div className="p-3 space-y-3">
                   {/* Profile Photo Horizontal Row */}
-                  <div className="flex items-center gap-5 pb-2">
+                  <div className="flex items-center gap-3.5 pb-1">
                     <div 
                       className="relative group shrink-0"
                       onClick={() => {
@@ -850,7 +888,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                         }
                       }}
                     >
-                      <div className={`w-16 h-16 rounded-full border-2 border-slate-100 shadow-sm overflow-hidden bg-slate-50 flex items-center justify-center transition-all ${photoPreview || (photo && !imgError) ? 'cursor-pointer hover:scale-105' : (drawerMode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')} ${drawerMode === "view" ? '' : 'group-hover:border-red-100'}`}>
+                      <div className={`w-12 h-12 rounded-full border border-slate-200 shadow-2xs overflow-hidden bg-slate-50 flex items-center justify-center transition-all ${photoPreview || (photo && !imgError) ? 'cursor-pointer hover:scale-105' : (drawerMode !== "view" ? 'cursor-pointer hover:bg-slate-100' : '')} ${drawerMode === "view" ? '' : 'group-hover:border-red-100'}`}>
                         {(photoPreview || (photo && !imgError)) ? (
                           <SafeImage 
                             src={photoPreview || (typeof photo === 'string' ? photo : undefined)} 
@@ -859,25 +897,25 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                             onError={() => setImgError(true)}
                           />
                         ) : (
-                          <User className="w-7 h-7 text-slate-300" />
+                          <User className="w-5 h-5 text-slate-400" />
                         )}
                       </div>
                     </div>
                     
-                    <div className="flex-1 flex flex-col gap-2 justify-center">
+                    <div className="flex-1 flex flex-col gap-1 justify-center">
                       {drawerMode !== "view" && (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                           <button 
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-md hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-1.5"
+                            className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 text-[11px] font-semibold rounded-md hover:bg-slate-50 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
                           >
-                            <Upload className="w-3.5 h-3.5" />
+                            <Upload className="w-3 h-3 text-slate-500" />
                             Change Photo
                           </button>
                         </div>
                       )}
-                      <p className="text-[11px] text-slate-400 font-medium">PNG, JPG or WEBP · Maximum 5MB</p>
+                      <p className="text-[10px] text-slate-400">PNG, JPG or WEBP · Max 5MB</p>
                       <input 
                         ref={fileInputRef}
                         type="file" 
@@ -900,51 +938,51 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                   </div>
 
                   {/* Form Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">First Name <span className="text-red-500">*</span></label>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">First Name <span className="text-red-500">*</span></label>
                       <input 
                         type="text" 
                         placeholder="e.g. John"
                         value={formData.firstName || ''}
                         disabled={drawerMode === "view"}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Last Name <span className="text-red-500">*</span></label>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Last Name <span className="text-red-500">*</span></label>
                       <input 
                         type="text" 
                         placeholder="e.g. Doe"
                         value={formData.lastName || ''}
                         disabled={drawerMode === "view"}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Address <span className="text-red-500">*</span></label>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Email Address <span className="text-red-500">*</span></label>
                       <input 
                         type="email" 
                         placeholder="e.g. agent@example.com"
                         value={formData.email || ''}
                         disabled={drawerMode === "view"}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number <span className="text-red-500">*</span></label>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Phone Number <span className="text-red-500">*</span></label>
                       <input 
                         type="tel" 
                         placeholder="e.g. +1 234 567 8900"
                         value={formData.phone || ''}
                         disabled={drawerMode === "view"}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
+                        className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:ring-1 focus:ring-slate-200 transition-all shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : ''}`}
                       />
                     </div>
                   </div>
@@ -952,11 +990,11 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
               </div>
 
               {/* Status Section */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-5 flex items-center justify-between">
+              <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+                <div className="p-3 flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-900">Account Status</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Enable or disable this agent account.</p>
+                    <h4 className="text-xs font-bold text-slate-900">Account Status</h4>
+                    <p className="text-[10px] text-slate-500">Enable or disable this agent account.</p>
                   </div>
                   <SectionActiveToggle 
                     checked={formData.active !== undefined ? formData.active : true} 
@@ -967,41 +1005,41 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
               </div>
 
               {/* Agent Details Section */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-visible">
-                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-600 shadow-sm">
-                      <Briefcase className="w-4 h-4" />
+              <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-visible">
+                <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 rounded-t-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 bg-white border border-slate-200 rounded-md text-slate-600 shadow-2xs">
+                      <Briefcase className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-900">Agent Details</h4>
-                      <p className="text-xs text-slate-500 mt-0.5">Role, location, and skills.</p>
+                      <h4 className="text-xs font-bold text-slate-900">Agent Details</h4>
+                      <p className="text-[10px] text-slate-500">Role, location, and skills.</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="p-3 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div className="relative">
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Gender <span className="text-red-500">*</span></label>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Gender <span className="text-red-500">*</span></label>
                       <button 
                         type="button" 
                         disabled={drawerMode === "view"} 
                         onClick={() => { setIsGenderOpen(!isGenderOpen); setIsEmirateOpen(false); setIsCityOpen(false); setIsSkillsOpen(false); }} 
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-slate-300 focus:ring-1 focus:ring-slate-200'}`}
+                        className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-left flex justify-between items-center transition-all shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-slate-300 focus:ring-1 focus:ring-slate-200'}`}
                       >
                         <span className={!formData.gender ? 'text-slate-400' : 'text-slate-900 font-medium'}>
                           {formData.gender || 'Select Gender'}
                         </span>
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                       </button>
                       {isGenderOpen && (
-                        <div className="absolute top-full mt-1.5 z-40 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
+                        <div className="absolute top-full mt-1 z-40 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1">
                           {['Male', 'Female', 'Other'].map(s => (
                             <button 
                               type="button" 
                               key={s} 
                               onClick={() => { setFormData({...formData, gender: s}); setIsGenderOpen(false); }} 
-                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                              className="w-full px-2.5 py-1.5 text-left hover:bg-red-50 text-xs font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
                             >
                               {s}
                             </button>
@@ -1011,7 +1049,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                     </div>
 
                     <div className="relative">
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password {drawerMode === "register" && <span className="text-red-500">*</span>}</label>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Password {drawerMode === "register" && <span className="text-red-500">*</span>}</label>
                       <div className="relative">
                         <input 
                           type={showPassword ? "text" : "password"} 
@@ -1019,79 +1057,106 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                           value={formData.password || ''} 
                           onChange={(e) => drawerMode !== "view" && setFormData({...formData, password: e.target.value})} 
                           disabled={drawerMode === "view"}
-                          className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 transition-all pr-10 ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : 'focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500'}`} 
+                          className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 transition-all pr-8 shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50' : 'focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500'}`} 
                         />
                         <button 
-                            type="button" 
-                            onClick={() => setShowPassword(!showPassword)} 
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                          >
-                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </button>
+                          type="button" 
+                          onClick={() => setShowPassword(!showPassword)} 
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-0.5"
+                        >
+                          {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
                       </div>
                     </div>
 
-                    <div className="relative">
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Emirate <span className="text-red-500">*</span></label>
+                    <div className="relative" ref={emirateDropdownRef}>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Emirate <span className="text-red-500">*</span></label>
                       <button 
                         type="button" 
                         disabled={drawerMode === "view"} 
                         onClick={() => { setIsEmirateOpen(!isEmirateOpen); setIsGenderOpen(false); setIsCityOpen(false); setIsSkillsOpen(false); }} 
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                        className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border rounded-lg text-xs text-left flex justify-between items-center transition-all shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900 border-slate-200' : isEmirateOpen ? 'border-red-500 ring-1 ring-red-500 bg-white cursor-pointer' : 'border-slate-200 cursor-pointer hover:border-slate-300'}`}
                       >
                         <span className={!formData.emirate ? 'text-slate-400' : 'text-slate-900 font-medium'}>
                           {formData.emirate || 'Select Emirate'}
                         </span>
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isEmirateOpen ? 'rotate-180 text-red-600' : 'text-slate-400'}`} />
                       </button>
                       {isEmirateOpen && (
-                        <div className="absolute top-full mt-1.5 z-40 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
-                          {availableEmirates.map(e => (
-                            <button 
-                              type="button" 
-                              key={e} 
-                              onClick={() => { handleEmirateChange(e); setIsEmirateOpen(false); }} 
-                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
-                            >
-                              {e}
-                            </button>
-                          ))}
+                        <div className="absolute top-full mt-1 z-50 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1">
+                          {availableEmirates.map(e => {
+                            const isSelected = formData.emirate?.toLowerCase() === e.toLowerCase();
+                            return (
+                              <button 
+                                type="button" 
+                                key={e} 
+                                onClick={() => { handleEmirateChange(e); setIsEmirateOpen(false); }} 
+                                className={`w-full px-2.5 py-1.5 text-left text-xs rounded-lg transition-colors cursor-pointer flex items-center justify-between ${
+                                  isSelected ? 'bg-red-50 text-red-600 font-semibold' : 'text-slate-700 hover:bg-red-50 hover:text-red-600 font-medium'
+                                }`}
+                              >
+                                <span>{e}</span>
+                                {isSelected && <Check className="w-3.5 h-3.5 text-red-600" />}
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
 
-                    <div className="relative">
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">City <span className="text-red-500">*</span></label>
+                    <div className="relative" ref={cityDropdownRef}>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">City <span className="text-red-500">*</span></label>
                       <button 
                         type="button" 
                         disabled={drawerMode === "view"} 
                         onClick={() => { setIsCityOpen(!isCityOpen); setIsGenderOpen(false); setIsEmirateOpen(false); setIsSkillsOpen(false); }} 
-                        className={`w-full px-3 py-2 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                        className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border rounded-lg text-xs text-left flex justify-between items-center transition-all shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900 border-slate-200' : isCityOpen ? 'border-red-500 ring-1 ring-red-500 bg-white cursor-pointer' : 'border-slate-200 cursor-pointer hover:border-slate-300'}`}
                       >
                         <span className={!formData.city ? 'text-slate-400' : 'text-slate-900 font-medium'}>
                           {formData.city || 'Select City'}
                         </span>
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCityOpen ? 'rotate-180 text-red-600' : 'text-slate-400'}`} />
                       </button>
                       {isCityOpen && (
-                        <div className="absolute top-full mt-1.5 z-40 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar p-1.5">
-                          {getCitiesForEmirate(formData.emirate || '').map(c => (
-                            <button 
-                              type="button" 
-                              key={c} 
-                              onClick={() => { setFormData({...formData, city: c}); setIsCityOpen(false); }} 
-                              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm font-medium text-slate-700 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
-                            >
-                              {c}
-                            </button>
-                          ))}
+                        <div className="absolute top-full mt-1 z-50 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-52 overflow-y-auto custom-scrollbar p-1">
+                          {(cityMasterList.length > 0 ? cityMasterList : DEFAULT_CITIES_LIST)
+                            .slice()
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(c => {
+                              const isSelected = formData.city?.toLowerCase() === c.name.toLowerCase();
+                              return (
+                                <button 
+                                  type="button" 
+                                  key={c.name} 
+                                  onClick={() => { 
+                                    setFormData(prev => ({
+                                      ...prev, 
+                                      city: c.name,
+                                      emirate: c.emirate || prev.emirate || 'Dubai'
+                                    })); 
+                                    setIsCityOpen(false); 
+                                  }} 
+                                  className={`w-full px-2.5 py-1.5 text-left text-xs rounded-lg transition-colors cursor-pointer flex items-center justify-between ${
+                                    isSelected 
+                                      ? 'bg-red-50 text-red-600 font-semibold' 
+                                      : 'text-slate-700 hover:bg-red-50 hover:text-red-600 font-medium'
+                                  }`}
+                                >
+                                  <span>{c.name}</span>
+                                  <div className="flex items-center gap-1">
+                                    {c.emirate && <span className="text-[10px] text-slate-400 font-normal">({c.emirate})</span>}
+                                    {isSelected && <Check className="w-3.5 h-3.5 text-red-600 shrink-0 ml-1" />}
+                                  </div>
+                                </button>
+                              );
+                            })}
                         </div>
                       )}
                     </div>
                     
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Skills <span className="text-red-500">*</span></label>
-                      <div className="relative">
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Skills <span className="text-red-500">*</span></label>
+                      <div className="relative" ref={skillsDropdownRef}>
                         {(() => {
                           const skillsArr = parseSkillsArray(selectedSkills);
                           const filteredSkills = availableSkills.filter(s => 
@@ -1102,11 +1167,11 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                             <>
                               {/* Selected Skills Chips */}
                               {skillsArr.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                <div className="flex flex-wrap gap-1 mb-1.5">
                                   {skillsArr.map((skill) => (
                                     <span
                                       key={skill}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 border border-red-200 shadow-2xs"
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200 shadow-2xs"
                                     >
                                       {skill}
                                       {drawerMode !== 'view' && (
@@ -1131,31 +1196,31 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                                 type="button" 
                                 disabled={drawerMode === "view"} 
                                 onClick={() => { setIsSkillsOpen(!isSkillsOpen); setIsGenderOpen(false); setIsEmirateOpen(false); setIsCityOpen(false); }} 
-                                className={`w-full px-3 py-2.5 bg-[#F8FAFC] border border-slate-200 rounded-lg text-sm text-left flex justify-between items-center transition-all ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
+                                className={`w-full h-8 px-2.5 py-1 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs text-left flex justify-between items-center transition-all shadow-2xs ${drawerMode === "view" ? 'opacity-80 cursor-default bg-slate-50 text-slate-900' : 'cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-500'}`}
                               >
                                 <span className={skillsArr.length === 0 ? 'text-slate-400' : 'text-slate-900 font-medium'}>
                                   {skillsArr.length === 0 ? 'Select Skills' : `+ Add / Manage Skills (${skillsArr.length} selected)`}
                                 </span>
-                                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isSkillsOpen ? 'rotate-180 text-red-600' : ''}`} />
+                                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isSkillsOpen ? 'rotate-180 text-red-600' : ''}`} />
                               </button>
 
                               {/* Dropdown Menu */}
                               {isSkillsOpen && (
-                                <div className="absolute top-full mt-1.5 z-50 w-full bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-hidden flex flex-col p-1.5">
+                                <div className="absolute top-full mt-1 z-50 w-full bg-white border border-slate-200 rounded-xl shadow-2xl max-h-56 overflow-hidden flex flex-col p-1">
                                   {/* Quick Search inside dropdown */}
-                                  <div className="p-1 border-b border-slate-100 mb-1">
+                                  <div className="p-1 border-b border-slate-100 mb-0.5">
                                     <input
                                       type="text"
                                       placeholder="Search skills..."
                                       value={skillSearch}
                                       onChange={(e) => setSkillSearch(e.target.value)}
                                       onClick={(e) => e.stopPropagation()}
-                                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-red-500"
+                                      className="w-full h-7 px-2 bg-slate-50 border border-slate-200 rounded-md text-[11px] font-medium text-slate-800 focus:outline-none focus:border-red-500"
                                     />
                                   </div>
 
                                   {/* Skills Options List */}
-                                  <div className="overflow-y-auto max-h-48 custom-scrollbar space-y-0.5">
+                                  <div className="overflow-y-auto max-h-44 custom-scrollbar space-y-0.5">
                                     {filteredSkills.map((s) => {
                                       const isSelected = skillsArr.includes(s);
                                       return (
@@ -1169,20 +1234,20 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                                               setSelectedSkills([...skillsArr, s]);
                                             }
                                           }} 
-                                          className={`w-full px-3 py-2 text-left text-sm font-medium rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                                          className={`w-full px-2.5 py-1.5 text-left text-xs font-medium rounded-md transition-colors flex items-center justify-between cursor-pointer ${
                                             isSelected 
                                               ? 'bg-red-50 text-red-700 font-bold' 
                                               : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900'
                                           }`}
                                         >
                                           <span>{s}</span>
-                                          {isSelected && <Check className="w-4 h-4 text-red-600" />}
+                                          {isSelected && <Check className="w-3.5 h-3.5 text-red-600" />}
                                         </button>
                                       );
                                     })}
 
                                     {filteredSkills.length === 0 && (
-                                      <div className="p-3 text-center text-xs text-slate-400">
+                                      <div className="p-2 text-center text-[11px] text-slate-400">
                                         No matching skills found
                                       </div>
                                     )}
@@ -1200,11 +1265,11 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
             </div>
 
             {/* Footer Actions */}
-            <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-end gap-3 shrink-0">
+            <div className="px-4 py-2.5 border-t border-slate-200 bg-white flex items-center justify-end gap-2 shrink-0">
               <button 
                 type="button" 
                 onClick={() => setIsDrawerOpen(false)} 
-                className="px-6 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-sm shadow-sm"
+                className="h-8 px-3.5 border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors text-xs shadow-2xs cursor-pointer"
               >
                 {drawerMode === "view" ? "Close" : "Cancel"}
               </button>
@@ -1212,9 +1277,9 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                 <button
                   type="button"
                   onClick={() => setDrawerMode("edit")}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm"
+                  className="flex items-center gap-1.5 h-8 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-2xs transition-colors text-xs cursor-pointer"
                 >
-                  <Edit2 className="w-4 h-4" /> Edit Agent
+                  <Edit2 className="w-3.5 h-3.5" /> Edit Agent
                 </button>
               )}
               {drawerMode !== "view" && (
@@ -1222,11 +1287,11 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                   type="button" 
                   onClick={handleSubmit} 
                   disabled={loading || !(formData.firstName?.trim() && formData.lastName?.trim() && formData.email?.trim() && formData.phone?.trim() && (drawerMode === 'edit' || (Boolean(formData.gender?.trim()) && Boolean(formData.emirate?.trim()) && Boolean(formData.city?.trim()) && selectedSkills.length > 0 && Boolean(formData.password?.trim()))))}
-                  className="flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                  className="flex items-center justify-center gap-1.5 h-8 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-2xs transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none cursor-pointer"
                 >
                   {loading ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-1.5 h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -1234,7 +1299,7 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4" /> 
+                      <Save className="w-3.5 h-3.5" /> 
                       {drawerMode === "edit" ? "Update Agent" : "Register Agent"}
                     </>
                   )}
