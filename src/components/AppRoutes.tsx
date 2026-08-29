@@ -116,7 +116,12 @@ const ReportsManagerRoute = () => {
   // Extract report type from URL if possible
   const location = useLocation();
   const pathParts = location.pathname.split('/');
-  const currentView = pathParts.length > 2 ? `report-${pathParts[2]}` : 'reports';
+  const sub = pathParts[2] || '';
+  let currentView = 'reports';
+  if (sub === 'users' || sub === 'user') currentView = 'report-users';
+  else if (sub === 'agents' || sub === 'agent') currentView = 'report-agents';
+  else if (sub === 'revenue') currentView = 'report-revenue';
+  else if (sub) currentView = `report-${sub}`;
   return <ReportsManager currentView={currentView} />;
 };
 
@@ -189,9 +194,13 @@ export function AppRoutes() {
         <Route path="/help" element={<HelpCentre />} />
         
         {/* Reports */}
-        <Route path="/reports" element={<ReportsManagerRoute />} />
+        <Route path="/reports" element={<Navigate to="/reports/users" replace />} />
         <Route path="/reports/users" element={<ReportsManagerRoute />} />
+        <Route path="/reports/user" element={<ReportsManagerRoute />} />
         <Route path="/reports/agents" element={<ReportsManagerRoute />} />
+        <Route path="/reports/agent" element={<ReportsManagerRoute />} />
+        <Route path="/reports/revenue" element={<ReportsManagerRoute />} />
+        <Route path="/reports/dashboard" element={<Navigate to="/reports/users" replace />} />
         {/* Website CMS Management */}
         <Route path="/website" element={<WebsiteWorkspace initialTab="home-services" />} />
         <Route path="/website/home-services" element={<WebsiteWorkspace initialTab="home-services" />} />

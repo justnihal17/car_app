@@ -51,16 +51,16 @@ export function SubscriptionForm({ plan, onClose, onSuccess }: SubscriptionFormP
   // Form State
   const [formData, setFormData] = useState<SubscriptionFormData>({
     name: '',
-    description: ['Home/Office service', 'Priority booking', '10% discount on additional services'],
-    duration: 3,
+    description: [],
+    duration: 1,
     durationUnit: 'MONTH',
-    price: 1599,
-    totalCredits: 12,
+    price: 0,
+    totalCredits: 0,
     frequency: 'MONTHLY',
     applicableServices: [],
-    priorityBooking: true,
-    additionalServiceDiscount: 10,
-    benefits: ['Home/Office service', 'Priority booking'],
+    priorityBooking: false,
+    additionalServiceDiscount: 0,
+    benefits: [],
     isActive: true,
   });
 
@@ -387,8 +387,8 @@ export function SubscriptionForm({ plan, onClose, onSuccess }: SubscriptionFormP
                   type="number"
                   min="0"
                   step="0.01"
-                  placeholder="1599"
-                  value={formData.price || ''}
+                  placeholder="0.00"
+                  value={formData.price > 0 ? formData.price : ''}
                   onChange={(e) => {
                     setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }));
                     if (errors.price) setErrors(prev => ({ ...prev, price: '' }));
@@ -409,8 +409,8 @@ export function SubscriptionForm({ plan, onClose, onSuccess }: SubscriptionFormP
               <input
                 type="number"
                 min="1"
-                placeholder="12"
-                value={formData.totalCredits || ''}
+                placeholder="e.g. 10"
+                value={formData.totalCredits > 0 ? formData.totalCredits : ''}
                 onChange={(e) => {
                   setFormData(prev => ({ ...prev, totalCredits: parseInt(e.target.value, 10) || 0 }));
                   if (errors.totalCredits) setErrors(prev => ({ ...prev, totalCredits: '' }));
@@ -431,8 +431,8 @@ export function SubscriptionForm({ plan, onClose, onSuccess }: SubscriptionFormP
                 <input
                   type="number"
                   min="1"
-                  placeholder="3"
-                  value={formData.duration || ''}
+                  placeholder="e.g. 1"
+                  value={formData.duration > 0 ? formData.duration : ''}
                   onChange={(e) => {
                     setFormData(prev => ({ ...prev, duration: parseInt(e.target.value, 10) || 0 }));
                     if (errors.duration) setErrors(prev => ({ ...prev, duration: '' }));
@@ -478,8 +478,8 @@ export function SubscriptionForm({ plan, onClose, onSuccess }: SubscriptionFormP
                   type="number"
                   min="0"
                   max="100"
-                  placeholder="10"
-                  value={formData.additionalServiceDiscount ?? 0}
+                  placeholder="0"
+                  value={formData.additionalServiceDiscount && formData.additionalServiceDiscount > 0 ? formData.additionalServiceDiscount : ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, additionalServiceDiscount: parseFloat(e.target.value) || 0 }))}
                   className="w-full h-8.5 pl-3 pr-8 py-1.5 bg-[#F8FAFC] border border-slate-200 rounded-lg text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-red-500 transition-all shadow-2xs"
                 />
