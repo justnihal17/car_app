@@ -73,12 +73,52 @@ export interface Order {
     note: string;
     created_at: string;
   }>;
-  completionPhotos?: Array<{
-    url: string;
-    public_id?: string;
-    uploadedAt?: string;
-  }>;
   createdAt?: string;
   updatedAt?: string;
+  version?: number;
   [key: string]: any;
+}
+
+export interface AgentRef {
+  _id: string;
+  id?: string;
+  agentId?: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  active: boolean;
+  blocked: boolean;
+  rating?: number;
+  profileImage?: string;
+}
+
+export interface OrderTrackMeta {
+  previous_agent_id?: string | null;
+  previous_agent_name?: string | null;
+  new_agent_id?: string;
+  new_agent_name?: string;
+  reassign_reason?: string;
+  is_reassignment?: boolean;
+}
+
+export interface OrderTrackItem {
+  _id: string;
+  order_id: string;
+  action: 'ORDER_CREATED' | 'AGENT_ASSIGNED' | 'AGENT_REASSIGNED' | 'STATUS_CHANGED' | 'PAYMENT_UPDATED' | 'CUSTOMER_CANCELLED' | 'ADMIN_CANCELLED' | string;
+  old_status?: string;
+  new_status?: string;
+  updated_by?: {
+    id?: string;
+    role?: string;
+    name?: string;
+  };
+  meta?: OrderTrackMeta;
+  createdAt: string;
+}
+
+export interface ReassignAgentPayload {
+  agent_id: string;
+  reason: string;
+  version?: number;
 }

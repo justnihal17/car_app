@@ -39,7 +39,28 @@ export const OrderService = {
   },
 
   getOrderById: async (id: string) => {
-    const response = await api.get(`/admin/order/${id}`);
+    try {
+      const response = await api.get(`/admin/order/${id}`);
+      if (response.data?.success && response.data?.data) return response.data;
+      if (response.data && (response.data._id || response.data.order_number)) return response.data;
+    } catch (e: any) {
+      if (e.response?.status !== 404 && e.response?.data?.success) throw e;
+    }
+
+    try {
+      const response = await api.get(`/admin/orders/${id}`);
+      if (response.data?.success && response.data?.data) return response.data;
+      if (response.data && (response.data._id || response.data.order_number)) return response.data;
+    } catch (e) {}
+
+    try {
+      const response = await api.get(`/order/admin/orders/${id}`);
+      if (response.data?.success && response.data?.data) return response.data;
+    } catch (e) {}
+
+    const response = await api.get('/admin/order', {
+      params: { search: id, order_number: id, limit: 10 }
+    });
     return response.data;
   },
 
@@ -63,6 +84,19 @@ export const OrderService = {
   assignAgent: async (id: string, agent_id: string) => {
     const response = await api.patch(`/admin/order/${id}/assign`, { agent_id });
     return response.data;
+  },
+
+  reassignAgent: async (id: string, payload: { agent_id: string; reason: string; version?: number }) => {
+    const response = await api.patch(`/admin/order/${id}/reassign`, payload);
+    return response.data;
+  },
+
+  getActiveEligibleAgents: async () => {
+    const response = await api.get('/agent/agent', {
+      params: { limit: 100, page: 1 }
+    });
+    const agents: any[] = response.data?.data || response.data || [];
+    return agents.filter((a: any) => a.active === true && a.blocked !== true && a.isDeleted !== true);
   },
 
   cancelOrder: async (id: string, cancel_reason: string) => {

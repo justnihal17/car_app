@@ -21,11 +21,18 @@ export function UpdatePaymentModal({ order, isOpen, onClose }: UpdatePaymentModa
 
   useEffect(() => {
     if (isOpen && order) {
+      document.body.style.overflow = 'hidden';
       setStatus(order.payment?.status || 'pending');
       setMethod(order.payment?.method?.toLowerCase() || 'cash');
       setTransactionId(order.payment?.transaction_id || '');
       setError(null);
+    } else {
+      document.body.style.overflow = 'unset';
     }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen, order]);
 
   if (!isOpen || !order) return null;

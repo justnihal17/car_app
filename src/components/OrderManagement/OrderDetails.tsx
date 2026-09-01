@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Clock, MapPin, User, Car, CheckCircle, FileText, XCircle, CreditCard, Star, Phone, Mail, Award, Activity, Edit2, Camera, X as CloseIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  ArrowLeft, Clock, MapPin, User, Car, CheckCircle, FileText, 
+  XCircle, CreditCard, Star, Phone, Mail, Award, Activity, 
+  Edit2, Camera, X as CloseIcon, ChevronLeft, ChevronRight,
+  ArrowRightLeft, UserCheck, ShieldAlert
+} from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { fetchOrderById, clearSelectedOrder } from '../../store/orderSlice';
 import { EditOrderModal } from './Modals/EditOrderModal';
 import { CancelOrderModal } from './Modals/CancelOrderModal';
 import { UpdatePaymentModal } from './Modals/UpdatePaymentModal';
-import { AssignAgentModal } from './Modals/AssignAgentModal';
+import { ReassignAgentModal } from './Modals/ReassignAgentModal';
 import { SafeImage } from '../common/SafeImage';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -37,7 +42,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
     return () => { dispatch(clearSelectedOrder()); };
   }, [dispatch, orderId]);
 
-  if (loading || !selectedOrder) {
+  if (loading) {
     return (
       <div className="p-6 md:p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center">
@@ -48,14 +53,21 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
     );
   }
 
-  if (error) {
+  if (error || !selectedOrder) {
     return (
       <div className="p-6 md:p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center text-center">
-          <XCircle className="w-12 h-12 text-red-500 mb-4" />
-          <h2 className="text-lg font-bold text-slate-900 mb-2">Failed to load order</h2>
-          <p className="text-slate-500 mb-6">{error}</p>
-          <button onClick={onBack} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg">Go Back</button>
+        <div className="flex flex-col items-center text-center max-w-md bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
+          <XCircle className="w-12 h-12 text-red-500 mb-3" />
+          <h2 className="text-lg font-bold text-slate-900 mb-1">Order Not Found</h2>
+          <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+            {error || 'This order (ID: ' + orderId + ') does not exist or has been removed from database.'}
+          </p>
+          <button 
+            onClick={onBack} 
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-all cursor-pointer"
+          >
+            Go Back to Orders
+          </button>
         </div>
       </div>
     );
@@ -110,13 +122,23 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
           >
             <Edit2 className="w-3.5 h-3.5 text-slate-500" /> Edit Order
           </button>
-          {orderStatus === 'pending' && (
-            <button 
-              onClick={() => setIsAssignModalOpen(true)}
-              className="px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-semibold rounded-lg text-xs shadow-xs transition-all flex items-center gap-1.5 h-8 cursor-pointer"
-            >
-              <User className="w-3.5 h-3.5" /> Assign Agent
-            </button>
+
+          {orderStatus !== 'cancelled' && orderStatus !== 'completed' && (
+            order.agent_id ? (
+              <button 
+                onClick={() => setIsAssignModalOpen(true)}
+                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg text-xs shadow-xs transition-all flex items-center gap-1.5 h-8 cursor-pointer"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5" /> Change Agent
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsAssignModalOpen(true)}
+                className="px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-red-700 text-white font-semibold rounded-lg text-xs shadow-xs transition-all flex items-center gap-1.5 h-8 cursor-pointer"
+              >
+                <User className="w-3.5 h-3.5" /> Assign Agent
+              </button>
+            )
           )}
 
           {orderStatus !== 'cancelled' && orderStatus !== 'completed' && (
@@ -332,34 +354,83 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
           {history.length > 0 && (
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 max-h-96 overflow-y-auto custom-scrollbar transition-all">
               <h3 className="text-xs font-semibold text-slate-800 tracking-wider mb-4 flex items-center gap-2">
-                <div className="p-1 bg-slate-100 rounded-md"><Activity className="w-3.5 h-3.5 text-slate-600" /></div> Timeline
+                <div className="p-1 bg-slate-100 rounded-md"><Activity className="w-3.5 h-3.5 text-slate-600" /></div> Timeline & Audit Log
               </h3>
               <div className="space-y-0">
                 {history.map((step: any, idx: number) => {
                   const isLast = idx === history.length - 1;
+                  const isReassigned = step.action === 'AGENT_REASSIGNED';
+                  const isAssigned = step.action === 'AGENT_ASSIGNED';
+
                   return (
-                    <div key={step._id} className="flex gap-3 relative">
+                    <div key={step._id || idx} className="flex gap-3 relative">
                       {!isLast && (
                         <div className="absolute left-2.5 top-6 w-px h-[calc(100%-8px)] bg-slate-100"></div>
                       )}
                       <div className="relative z-10 flex flex-col items-center mt-0.5">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 bg-white ${idx === 0 ? 'border-red-500 text-red-500 shadow-2xs' : 'border-slate-200 text-slate-300'}`}>
-                          <CheckCircle className={`w-3 h-3 ${idx === 0 ? 'text-red-500' : 'text-slate-300'}`} />
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 bg-white ${
+                          isReassigned 
+                            ? 'border-amber-500 text-amber-600 shadow-2xs' 
+                            : isAssigned 
+                            ? 'border-emerald-500 text-emerald-600 shadow-2xs'
+                            : idx === 0 
+                            ? 'border-red-500 text-red-500 shadow-2xs' 
+                            : 'border-slate-200 text-slate-300'
+                        }`}>
+                          {isReassigned ? (
+                            <ArrowRightLeft className="w-3 h-3 text-amber-500" />
+                          ) : (
+                            <CheckCircle className={`w-3 h-3 ${isAssigned ? 'text-emerald-500' : idx === 0 ? 'text-red-500' : 'text-slate-300'}`} />
+                          )}
                         </div>
                       </div>
-                      <div className="pb-4">
-                        <div className={`text-xs font-semibold ${idx === 0 ? 'text-slate-900' : 'text-slate-600'}`}>
-                          {capitalize(step.action.replace(/_/g, ' '))}
+                      <div className="pb-4 flex-1">
+                        <div className={`text-xs font-bold ${
+                          isReassigned ? 'text-amber-700' : isAssigned ? 'text-emerald-700' : idx === 0 ? 'text-slate-900' : 'text-slate-600'
+                        }`}>
+                          {isReassigned ? 'Agent Reassigned' : isAssigned ? 'Agent Assigned' : capitalize(step.action?.replace(/_/g, ' '))}
                         </div>
-                        <div className="text-[10px] text-slate-400 mt-0.5 font-normal">
-                          {new Date(step.createdAt).toLocaleString()}
+
+                        {/* Reassignment visual details */}
+                        {isReassigned && (
+                          <div className="my-1 text-xs">
+                            <span className="line-through text-slate-400">
+                              {step.meta?.previous_agent_name || 'Previous Agent'}
+                            </span>
+                            <span className="text-slate-400 font-bold mx-1.5">➔</span>
+                            <strong className="text-blue-600">
+                              {step.meta?.new_agent_name || 'New Agent'}
+                            </strong>
+                          </div>
+                        )}
+
+                        {/* Initial Assignment details */}
+                        {isAssigned && !isReassigned && step.meta?.new_agent_name && (
+                          <div className="my-1 text-xs text-slate-700">
+                            Assigned to: <strong className="text-emerald-700">{step.meta.new_agent_name}</strong>
+                          </div>
+                        )}
+
+                        {/* Reassignment reason banner */}
+                        {step.meta?.reassign_reason && (
+                          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-[11px] p-2 rounded-lg my-1.5 leading-relaxed">
+                            <strong>Reason:</strong> {step.meta.reassign_reason}
+                          </div>
+                        )}
+
+                        <div className="text-[10px] text-slate-400 mt-0.5 font-normal flex items-center gap-1.5">
+                          {step.updated_by?.role && (
+                            <span>By: <strong className="capitalize">{step.updated_by.role}</strong> •</span>
+                          )}
+                          <span>{new Date(step.createdAt).toLocaleString()}</span>
                         </div>
+
                         {step.meta?.status && (
                           <div className="text-[9px] mt-1.5 font-medium text-slate-500 uppercase tracking-wider bg-slate-50 inline-block px-1.5 py-0.5 rounded border border-slate-100">
                             Status: {step.meta.status}
                           </div>
                         )}
-                        {step.meta?.note && (
+                        {step.meta?.note && !step.meta?.reassign_reason && (
                           <div className="text-[10px] mt-1 font-normal text-slate-500 italic bg-slate-50 p-1.5 rounded border border-slate-100/50 leading-relaxed">
                             "{step.meta.note}"
                           </div>
@@ -400,20 +471,37 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
             </div>
           </div>
 
-          {/* Agent Card */}
+          {/* Assigned Agent Card */}
           <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 transition-all">
-            <h3 className="text-xs font-semibold text-slate-800 tracking-wider mb-3 flex items-center gap-2">
-              <div className="p-1 bg-slate-100 rounded-md"><Car className="w-3.5 h-3.5 text-slate-600" /></div> Assigned Agent
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-slate-800 tracking-wider flex items-center gap-2">
+                <div className="p-1 bg-slate-100 rounded-md"><Car className="w-3.5 h-3.5 text-slate-600" /></div> Assigned Agent
+              </h3>
+              {orderStatus !== 'cancelled' && orderStatus !== 'completed' && order.agent_id && (
+                <button
+                  onClick={() => setIsAssignModalOpen(true)}
+                  className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 hover:bg-amber-50 px-2 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer border border-amber-200/60 shadow-2xs"
+                >
+                  <ArrowRightLeft className="w-3 h-3" /> Change
+                </button>
+              )}
+            </div>
+
             {order.agent_id ? (
               <>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center text-red-600 font-semibold text-sm shrink-0 border border-red-100 shadow-inner">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 font-bold text-sm shrink-0 border border-red-100 shadow-inner">
                     {order.agent_id.firstName?.[0] || 'A'}
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900 text-xs">{order.agent_id.firstName} {order.agent_id.lastName}</div>
-                    <div className="text-[10px] text-slate-500 font-medium mt-0.5 tracking-wider uppercase">ID: {order.agent_id.agentId || 'N/A'}</div>
+                    <div className="font-bold text-slate-900 text-xs">{order.agent_id.firstName} {order.agent_id.lastName}</div>
+                    <div className="text-[10.5px] text-slate-500 font-medium mt-0.5 tracking-wider uppercase flex items-center gap-1.5">
+                      <span>ID: {order.agent_id.agentId || 'N/A'}</span>
+                      <span>•</span>
+                      <span className="text-amber-600 font-bold flex items-center gap-0.5">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {order.agent_id.rating || '5.0'}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-2 text-xs pt-2.5 border-t border-slate-100">
@@ -421,10 +509,14 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
                     <Phone className="w-3.5 h-3.5 text-slate-400" />
                     <span className="text-slate-700 font-medium">{order.agent_id.phone || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-500">
-                    <Car className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-slate-700 font-medium">Assigned Vehicle</span>
-                  </div>
+                  {order.assigned_at && (
+                    <div className="flex items-center gap-2 text-slate-500">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-slate-600 text-[11px]">
+                        Assigned on {new Date(order.assigned_at).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -461,7 +553,7 @@ export function OrderDetails({ orderId, onBack }: { orderId: string; onBack: () 
         order={order} 
       />
 
-      <AssignAgentModal 
+      <ReassignAgentModal 
         isOpen={isAssignModalOpen} 
         onClose={() => setIsAssignModalOpen(false)} 
         order={order} 

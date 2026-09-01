@@ -33,11 +33,18 @@ export function EditOrderModal({ order, isOpen, onClose }: EditOrderModalProps) 
 
   useEffect(() => {
     if (order && isOpen) {
+      document.body.style.overflow = 'hidden';
       const initialDate = order.scheduled_at || order.order_date || order.createdAt;
       setScheduledAt(toLocalDatetimeString(initialDate));
       setCustomerNote(order.customer_note || '');
       setError(null);
+    } else {
+      document.body.style.overflow = 'unset';
     }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [order, isOpen]);
 
   if (!isOpen || !order) return null;

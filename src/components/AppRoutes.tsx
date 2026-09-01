@@ -43,6 +43,7 @@ const AgentProfileWorkspace = React.lazy(() => import('./AgentManagement/AgentPr
 const ReportsManager = React.lazy(() => import('./ReportsManagement/ReportsManager').then(m => ({ default: m.ReportsManager })));
 const PromotionsModule = React.lazy(() => import('./PromotionsManagement/PromotionsModule'));
 const SubscriptionManagement = React.lazy(() => import('./SubscriptionManagement').then(m => ({ default: m.SubscriptionManagement })));
+const SlotManagement = React.lazy(() => import('./SlotManagement/SlotManagement').then(m => ({ default: m.SlotManagement })));
 const WebsiteWorkspace = React.lazy(() => import('./WebsiteManagement/WebsiteWorkspace').then(m => ({ default: m.WebsiteWorkspace })));
 const HelpCentre = React.lazy(() => import('./HelpCentre').then(m => ({ default: m.HelpCentre })));
 
@@ -187,6 +188,11 @@ export function AppRoutes() {
         <Route path="/promotions" element={<PromotionsModule />} />
         <Route path="/subscriptions" element={<SubscriptionManagement />} />
         <Route path="/subscription" element={<SubscriptionManagement />} />
+        <Route path="/slots" element={<SlotManagement />} />
+        <Route path="/master/slots" element={<SlotManagement />} />
+        <Route path="/admin/slots" element={<Navigate to="/master/slots" replace />} />
+        <Route path="/holidays" element={<SlotManagement />} />
+        <Route path="/admin/holidays" element={<Navigate to="/master/slots" replace />} />
         <Route path="/order" element={<OrderListRoute />} />
         <Route path="/order/:id" element={<OrderDetailsRoute />} />
         <Route path="/payments" element={<PaymentManager />} />

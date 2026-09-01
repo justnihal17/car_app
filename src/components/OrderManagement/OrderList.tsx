@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Download, Plus, ChevronLeft, ChevronRight, Clock, MapPin, RefreshCw, AlertCircle, ShoppingBag, Truck, CheckCircle2, XCircle, Activity } from 'lucide-react';
+import { 
+  Search, Filter, Download, Plus, ChevronLeft, ChevronRight, 
+  Clock, MapPin, RefreshCw, AlertCircle, ShoppingBag, Truck, 
+  CheckCircle2, XCircle, Activity, ArrowRightLeft, UserCheck 
+} from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { fetchOrders, setFilters, fetchLiveOverview, getOrderTimestamp } from '../../store/orderSlice';
 import { SafeImage } from '../common/SafeImage';
+import { ReassignAgentModal } from './Modals/ReassignAgentModal';
 
 const STATUS_COLORS: Record<string, string> = {
   'Pending': 'bg-[#FEF3C7] text-[#B45309] border-[#FEF3C7]',
@@ -32,6 +37,7 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
 
   const [activeTab, setActiveTab] = useState('orders');
   const [searchInput, setSearchInput] = useState('');
+  const [reassignOrder, setReassignOrder] = useState<any | null>(null);
 
   useEffect(() => {
     dispatch(fetchOrders(filters));
@@ -365,17 +371,37 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
                       </td>
                       <td className="px-3.5 py-2.5">
                         {order.agent_id ? (
-                          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/60 px-2 py-1 rounded-md w-fit">
-                            <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                          <div 
+                            className="flex items-center gap-1.5 bg-slate-50 hover:bg-amber-50/80 border border-slate-200/60 hover:border-amber-300 px-2 py-1 rounded-md w-fit transition-all cursor-pointer group/agent"
+                            title={!['completed', 'cancelled', 'rejected'].includes(getOrderStatus(order)) ? "Click to Reassign Agent" : undefined}
+                            onClick={(e) => {
+                              if (!['completed', 'cancelled', 'rejected'].includes(getOrderStatus(order))) {
+                                e.stopPropagation();
+                                setReassignOrder(order);
+                              }
+                            }}
+                          >
+                            <div className="w-5 h-5 rounded-full bg-slate-200 group-hover/agent:bg-amber-500 group-hover/agent:text-white text-slate-600 flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors">
                               {order.agent_id.firstName?.[0]}{order.agent_id.lastName?.[0]}
                             </div>
                             <span className="font-medium text-slate-800 text-xs">{order.agent_id.firstName} {order.agent_id.lastName}</span>
+                            {!['completed', 'cancelled', 'rejected'].includes(getOrderStatus(order)) && (
+                              <ArrowRightLeft className="w-2.5 h-2.5 text-slate-400 group-hover/agent:text-amber-600 ml-0.5 opacity-0 group-hover/agent:opacity-100 transition-opacity" />
+                            )}
                           </div>
                         ) : (
-                          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#FEF3C7] border border-[#FEF3C7] text-[#B45309] rounded-md text-[10px] font-semibold">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReassignOrder(order);
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#FEF3C7] hover:bg-[#FDE68A] border border-[#FEF3C7] text-[#B45309] rounded-md text-[10px] font-semibold transition-all cursor-pointer shadow-2xs"
+                            title="Click to Assign Agent"
+                          >
                             <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse"></span>
                             Unassigned
-                          </div>
+                          </button>
                         )}
                       </td>
                       <td className="px-3.5 py-2.5">
@@ -479,6 +505,15 @@ export function OrderList({ onSelectOrder }: { onSelectOrder: (id: string) => vo
           </div>
         )}
       </div>
+
+      {/* Reassign Agent Modal */}
+      {reassignOrder && (
+        <ReassignAgentModal
+          isOpen={Boolean(reassignOrder)}
+          order={reassignOrder}
+          onClose={() => setReassignOrder(null)}
+        />
+      )}
     </div>
   );
 }

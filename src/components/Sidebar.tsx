@@ -1,6 +1,6 @@
 import { 
   LayoutDashboard, Users, Wrench, FileText, 
-  CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight, Car, MessageSquare, Crown, Globe, Home, ShieldAlert, ArrowLeft
+  CreditCard, Bell, BarChart3, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, ChevronDown, UserPlus, Shield, MapPin, Palette, Tags, ChevronsLeft, ChevronsRight, Car, MessageSquare, Crown, Globe, Home, ShieldAlert, ArrowLeft, Clock
 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -32,6 +32,7 @@ const MENU_ITEMS = [
     { id: 'master-city', path: '/master/city', label: 'City', icon: MapPin },
     { id: 'master-service', path: '/master/service', label: 'Service', icon: Wrench },
     { id: 'master-subservice', path: '/master/subservice', label: 'Sub Service', icon: Wrench },
+    { id: 'master-slots', path: '/master/slots', label: 'Time Slots', icon: Clock },
     { id: 'master-color', path: '/master/color', label: 'Color', icon: Palette },
     { id: 'master-make', path: '/master/make', label: 'Brand', icon: Car },
     { id: 'master-model', path: '/master/model', label: 'Model', icon: Car },

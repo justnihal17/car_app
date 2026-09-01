@@ -19,9 +19,16 @@ export function CancelOrderModal({ order, isOpen, onClose }: CancelOrderModalPro
 
   useEffect(() => {
     if (isOpen) {
+      document.body.style.overflow = 'hidden';
       setCancelReason('');
       setError(null);
+    } else {
+      document.body.style.overflow = 'unset';
     }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
   if (!isOpen || !order) return null;
