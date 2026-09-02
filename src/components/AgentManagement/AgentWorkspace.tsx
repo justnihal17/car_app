@@ -477,7 +477,8 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
   const handleEdit = (e: React.MouseEvent, agent: any) => {
       e.stopPropagation();
       setDrawerMode("edit");
-      setEditingAgentId(agent.id);
+      setEditingAgentId(agent.id || agent._id);
+      const resolvedAgentId = agent.agentId || agent.employeeCode || agent.userId || (agent._id ? (typeof agent._id === 'string' ? agent._id : '') : (agent.id || ''));
       const editFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
       const editLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
       const parsedSkills = parseSkillsArray(agent.skills);
@@ -486,12 +487,13 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
       const defaultGender = agent.gender || 'Male';
       const agentPass = getSavedAgentPassword(agent) || agent.password || agent.plainPassword || '';
       setFormData({
+          agentId: resolvedAgentId,
           fullName: agent.name || '',
           firstName: editFirstName,
           lastName: editLastName,
           email: agent.email || '',
           phone: agent.phone || '',
-          employeeCode: agent.employeeCode || '',
+          employeeCode: agent.employeeCode || resolvedAgentId,
           role: agent.role || 'service_agent',
           gender: defaultGender,
           userId: agent.userId || '',
@@ -500,7 +502,8 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
           emirate: defaultEmirate,
           city: defaultCity,
           country: agent.country || 'UAE',
-          joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+          joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          active: agent.active !== undefined ? agent.active : (agent.status !== 'Blocked' && agent.status !== 'Inactive')
       });
       const agentPhoto = agent.profileImage || agent.profileUrl || agent.imageUrl || null;
       setPhoto(agentPhoto);
@@ -512,17 +515,19 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
   const handleViewDrawer = (e: React.MouseEvent, agent: any) => {
       e?.stopPropagation();
       setDrawerMode("view");
-      setEditingAgentId(agent.id);
+      setEditingAgentId(agent.id || agent._id);
+      const resolvedAgentId = agent.agentId || agent.employeeCode || agent.userId || (agent._id ? (typeof agent._id === 'string' ? agent._id : '') : (agent.id || ''));
       const viewFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
       const viewLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
       const agentPass = getSavedAgentPassword(agent) || agent.password || agent.plainPassword || '';
       setFormData({
+          agentId: resolvedAgentId,
           fullName: agent.name || '',
           firstName: viewFirstName,
           lastName: viewLastName,
           email: agent.email || '',
           phone: agent.phone || '',
-          employeeCode: agent.employeeCode || '',
+          employeeCode: agent.employeeCode || resolvedAgentId,
           role: agent.role || 'service_agent',
           gender: agent.gender || '',
           userId: agent.userId || '',
@@ -530,7 +535,8 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
           confirmPassword: '',
           emirate: agent.emirate || agent.state || 'Dubai',
           city: agent.city || 'Dubai',
-          joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+          joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          active: agent.active !== undefined ? agent.active : (agent.status !== 'Blocked' && agent.status !== 'Inactive')
       });
       setPhoto(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
       setPhotoPreview(agent.profileImage || agent.profileUrl || agent.imageUrl || null);
@@ -542,7 +548,7 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
     setDrawerMode("register");
     setEditingAgentId(null);
     setFormData({
-        fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', gender: '', userId: '', password: '', confirmPassword: '', emirate: 'Dubai', city: 'Dubai', joiningDate: new Date().toISOString().split('T')[0]
+        agentId: '', fullName: '', firstName: '', lastName: '', email: '', phone: '', employeeCode: '', gender: '', userId: '', password: '', confirmPassword: '', emirate: 'Dubai', city: 'Dubai', joiningDate: new Date().toISOString().split('T')[0], active: true
     });
     setPhoto(null);
     setPhotoPreview(null);
@@ -903,10 +909,15 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
                   <Car className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold tracking-tight text-slate-900 capitalize leading-tight">
+                  <h3 className="text-sm font-bold tracking-tight text-slate-900 capitalize leading-tight flex items-center gap-2">
                     {(drawerMode === "view" || drawerMode === "edit")
                       ? (`${formData.firstName || ''} ${formData.lastName || ''}`.trim() || "Edit Agent")
                       : "Create Agent"}
+                    {(drawerMode === "view" || drawerMode === "edit") && (formData.agentId || formData.employeeCode) && (
+                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 uppercase">
+                        ID: {formData.agentId || formData.employeeCode}
+                      </span>
+                    )}
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     {drawerMode === "view" ? 'View agent details.' : (drawerMode === "edit" ? 'Manage agent details and skills.' : 'Add a new agent to the system.')}
@@ -1078,6 +1089,44 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
                 </div>
                 <div className="p-3 space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Agent ID Field */}
+                    <div>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <label className="block text-[11px] font-medium text-slate-700">Agent ID</label>
+                        {(formData.agentId || formData.employeeCode) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(formData.agentId || formData.employeeCode || '');
+                              toast.success('Agent ID copied to clipboard!');
+                            }}
+                            className="text-[10px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Copy Agent ID"
+                          >
+                            <Copy className="w-2.5 h-2.5" /> Copy
+                          </button>
+                        )}
+                      </div>
+                      <input 
+                        disabled={true} 
+                        value={formData.agentId || formData.employeeCode || (drawerMode === 'view' ? 'N/A' : 'Auto-generated on creation')} 
+                        type="text" 
+                        placeholder="Auto-generated" 
+                        className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-slate-50 text-slate-700 font-mono font-medium disabled:bg-slate-50 disabled:text-slate-600 transition-colors select-all shadow-2xs" 
+                      />
+                    </div>
+
+                    {/* Role Field */}
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Role</label>
+                      <input 
+                        disabled={true} 
+                        value={formData.role === 'service_agent' ? 'Service Agent' : (formData.role || 'Service Agent')} 
+                        type="text" 
+                        className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-slate-50 text-slate-700 font-medium disabled:bg-slate-50 disabled:text-slate-600 transition-colors shadow-2xs" 
+                      />
+                    </div>
+
                     <div className="relative">
                       <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Gender <span className="text-red-500">*</span></label>
                       <button 
