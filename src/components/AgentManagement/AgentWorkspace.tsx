@@ -55,37 +55,65 @@ export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) 
 
 const getSavedAgentPassword = (agent: any): string => {
   if (!agent) return '';
-  if (agent.password && typeof agent.password === 'string' && !agent.password.startsWith('$2b$') && !agent.password.startsWith('$2a$') && agent.password !== '[protected]') {
-    return agent.password;
-  }
   if (agent.plainPassword) return agent.plainPassword;
   if (agent.plain_password) return agent.plain_password;
+  if (agent.tempPassword) return agent.tempPassword;
+  if (agent.originalPassword) return agent.originalPassword;
+  if (agent.password && typeof agent.password === 'string' && !agent.password.startsWith('$2b$') && !agent.password.startsWith('$2a$') && agent.password !== '[protected]' && agent.password !== '••••••••') {
+    return agent.password;
+  }
   try {
     const raw = localStorage.getItem('agent_saved_passwords_cache');
     if (raw) {
       const map = JSON.parse(raw);
+      const fullName = (agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`).toLowerCase().trim();
       const keys = [
         agent._id,
         agent.id,
         agent.userId,
         agent.email?.toLowerCase().trim(),
         agent.phone?.replace(/\D/g, ''),
+        agent.phone?.trim(),
         agent.employeeCode,
-        agent.agentId
+        agent.agentId,
+        agent.firstName?.toLowerCase().trim(),
+        fullName
       ].filter(Boolean);
       for (const k of keys) {
-        if (map[k]) return map[k];
+        if (map[k] && map[k] !== '[protected]' && !map[k].startsWith('$2b$') && !map[k].startsWith('$2a$')) {
+          return map[k];
+        }
       }
     }
   } catch (e) {}
-  return agent.password || '';
-};
 
-const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) => {
-  if (!pass) return;
+  // Standard fallback password used on agent registration
+  const defaultPass = 'Agent@123';
   try {
     const raw = localStorage.getItem('agent_saved_passwords_cache');
     const map = raw ? JSON.parse(raw) : {};
+    const keysToSeed = [
+      agent._id,
+      agent.id,
+      agent.agentId,
+      agent.employeeCode,
+      agent.email?.toLowerCase().trim(),
+      agent.phone?.replace(/\D/g, '')
+    ].filter(Boolean);
+    keysToSeed.forEach(k => {
+      if (!map[k]) map[k] = defaultPass;
+    });
+    localStorage.setItem('agent_saved_passwords_cache', JSON.stringify(map));
+  } catch (e) {}
+  return defaultPass;
+};
+
+const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) => {
+  if (!pass || pass.startsWith('$2b$') || pass.startsWith('$2a$') || pass === '[protected]') return;
+  try {
+    const raw = localStorage.getItem('agent_saved_passwords_cache');
+    const map = raw ? JSON.parse(raw) : {};
+    const fullName = (agentData?.name || `${agentData?.firstName || ''} ${agentData?.lastName || ''}`).toLowerCase().trim();
     const keys = [
       newId,
       agentData?._id,
@@ -93,8 +121,11 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
       agentData?.userId,
       agentData?.email?.toLowerCase().trim(),
       agentData?.phone?.replace(/\D/g, ''),
+      agentData?.phone?.trim(),
       agentData?.employeeCode,
-      agentData?.agentId
+      agentData?.agentId,
+      agentData?.firstName?.toLowerCase().trim(),
+      fullName
     ].filter(Boolean);
     keys.forEach(k => {
       map[k] = pass;
@@ -429,11 +460,22 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
         if (editingAgentId) {
           const response = await api.put(`/agent/agent/${editingAgentId}`, payload);
           if (formData.password) {
-            saveAgentPasswordToCache(formData.password, payload, editingAgentId);
+            saveAgentPasswordToCache(formData.password, {
+              ...payload,
+              _id: editingAgentId,
+              id: editingAgentId,
+              agentId: formData.agentId || formData.employeeCode,
+              email: formData.email,
+              phone: formData.phone,
+              name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim(),
+              firstName: formData.firstName,
+              lastName: formData.lastName
+            }, editingAgentId);
           }
           toast.success(response.data?.message || 'Agent updated successfully');
         } else {
-          if (!payload.password) payload.password = "Agent@123";
+          const passToSave = formData.password || payload.password || "Agent@123";
+          if (!payload.password) payload.password = passToSave;
           let response;
           try {
             response = await api.post('/agent/agent/register', payload);
@@ -444,10 +486,20 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
               throw e;
             }
           }
-          const createdId = response.data?.data?._id || response.data?.data?.id || response.data?._id;
-          if (formData.password) {
-            saveAgentPasswordToCache(formData.password, payload, createdId);
-          }
+          const createdAgent = response.data?.data || response.data?.agent || response.data;
+          const createdId = createdAgent?._id || createdAgent?.id || response.data?._id;
+          const createdAgentId = createdAgent?.agentId || createdAgent?.employeeCode;
+          saveAgentPasswordToCache(passToSave, {
+            ...payload,
+            _id: createdId,
+            id: createdId,
+            agentId: createdAgentId,
+            email: formData.email,
+            phone: formData.phone,
+            name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim(),
+            firstName: formData.firstName,
+            lastName: formData.lastName
+          }, createdId);
           toast.success(response.data?.message || 'Agent registered successfully');
         }
         
@@ -1083,49 +1135,40 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-slate-900">Agent Details</h4>
-                      <p className="text-[10px] text-slate-500">Role, location, and skills.</p>
+                      <p className="text-[10px] text-slate-500">Location, credentials, and skills.</p>
                     </div>
                   </div>
                 </div>
                 <div className="p-3 space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {/* Agent ID Field */}
-                    <div>
-                      <div className="flex items-center justify-between mb-0.5">
-                        <label className="block text-[11px] font-medium text-slate-700">Agent ID</label>
-                        {(formData.agentId || formData.employeeCode) && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard.writeText(formData.agentId || formData.employeeCode || '');
-                              toast.success('Agent ID copied to clipboard!');
-                            }}
-                            className="text-[10px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
-                            title="Copy Agent ID"
-                          >
-                            <Copy className="w-2.5 h-2.5" /> Copy
-                          </button>
-                        )}
+                    {/* Agent ID Field (Only shown for View / Edit) */}
+                    {(drawerMode === "view" || drawerMode === "edit") && (
+                      <div>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <label className="block text-[11px] font-medium text-slate-700">Agent ID</label>
+                          {(formData.agentId || formData.employeeCode) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(formData.agentId || formData.employeeCode || '');
+                                toast.success('Agent ID copied to clipboard!');
+                              }}
+                              className="text-[10px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Copy Agent ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> Copy
+                            </button>
+                          )}
+                        </div>
+                        <input 
+                          disabled={true} 
+                          value={formData.agentId || formData.employeeCode || 'N/A'} 
+                          type="text" 
+                          placeholder="Auto-generated" 
+                          className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-slate-50 text-slate-700 font-mono font-medium disabled:bg-slate-50 disabled:text-slate-600 transition-colors select-all shadow-2xs" 
+                        />
                       </div>
-                      <input 
-                        disabled={true} 
-                        value={formData.agentId || formData.employeeCode || (drawerMode === 'view' ? 'N/A' : 'Auto-generated on creation')} 
-                        type="text" 
-                        placeholder="Auto-generated" 
-                        className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-slate-50 text-slate-700 font-mono font-medium disabled:bg-slate-50 disabled:text-slate-600 transition-colors select-all shadow-2xs" 
-                      />
-                    </div>
-
-                    {/* Role Field */}
-                    <div>
-                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Role</label>
-                      <input 
-                        disabled={true} 
-                        value={formData.role === 'service_agent' ? 'Service Agent' : (formData.role || 'Service Agent')} 
-                        type="text" 
-                        className="w-full h-8 px-2.5 py-1 border border-slate-200 rounded-lg text-xs bg-slate-50 text-slate-700 font-medium disabled:bg-slate-50 disabled:text-slate-600 transition-colors shadow-2xs" 
-                      />
-                    </div>
+                    )}
 
                     <div className="relative">
                       <label className="block text-[11px] font-medium text-slate-700 mb-0.5">Gender <span className="text-red-500">*</span></label>

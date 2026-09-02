@@ -66,11 +66,8 @@ export function AgentRegistrationPage() {
                 </FormCard>
 
                 <FormCard title="Employment">
-                    <div className="grid grid-cols-2 gap-6">
-                        <select className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-                            <option>Role</option>
-                        </select>
-                        <input type="date" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl" />
+                    <div>
+                        <input type="date" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700" />
                     </div>
                 </FormCard>
 
