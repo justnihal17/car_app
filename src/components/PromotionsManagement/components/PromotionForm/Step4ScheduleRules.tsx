@@ -13,12 +13,6 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
   const hasNoExpiry = !formData.endDate;
   const isAvailableAllDay = !formData.validTimeFrom && !formData.validTimeTo;
 
-  const isAllDaysSelected =
-    Boolean(
-      formData.validDays?.includes('ALL') ||
-      (formData.validDays && formData.validDays.length === DAYS_OF_WEEK.length)
-    );
-
   const toggleDay = (day: string) => {
     const isAll = (formData.validDays || []).includes('ALL');
     const current = isAll ? [...DAYS_OF_WEEK] : (formData.validDays || []);
@@ -93,20 +87,6 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
           <div className="flex items-center gap-2 text-xs font-medium">
             <button
               type="button"
-              onClick={() => {
-                if (isAllDaysSelected) {
-                  onChange({ validDays: [] });
-                } else {
-                  onChange({ validDays: ['ALL'] });
-                }
-              }}
-              className="font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
-            >
-              {isAllDaysSelected ? 'Unselect All' : 'Select All'}
-            </button>
-            <span className="text-slate-300">|</span>
-            <button
-              type="button"
               onClick={() => selectDayGroup('weekdays')}
               className="text-slate-600 hover:text-red-600 hover:underline cursor-pointer"
             >
@@ -120,14 +100,18 @@ export function Step4ScheduleRules({ formData, onChange, errors }: Step4Props) {
             >
               Weekends
             </button>
-            <span className="text-slate-300">|</span>
-            <button
-              type="button"
-              onClick={() => onChange({ validDays: ['ALL'] })}
-              className="text-slate-600 hover:text-red-600 hover:underline cursor-pointer"
-            >
-              All Days
-            </button>
+            {(formData.validDays && formData.validDays.length > 0) && (
+              <>
+                <span className="text-slate-300">|</span>
+                <button
+                  type="button"
+                  onClick={() => onChange({ validDays: [] })}
+                  className="text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                >
+                  Clear
+                </button>
+              </>
+            )}
           </div>
         </div>
 

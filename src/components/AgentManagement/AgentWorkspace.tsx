@@ -20,6 +20,77 @@ import { getCompactDrawerClass, SectionActiveToggle } from '../SubAdminManagemen
 import { getLoggedInAdminName } from '../SubAdminManagement/subAdminDrawerUtils';
 import { SafeImage } from '../common/SafeImage';
 
+const DEFAULT_EMIRATES = [
+  'Abu Dhabi', 'Ajman', 'Dubai', 'Fujairah', 'Ras Al Khaimah', 'Sharjah', 'Umm Al Quwain'
+];
+
+const DEFAULT_CITIES_LIST: { name: string; emirate: string }[] = [
+  { name: 'Al Ain', emirate: 'Abu Dhabi' },
+  { name: 'Al Aqah', emirate: 'Fujairah' },
+  { name: 'Al Bidyah', emirate: 'Fujairah' },
+  { name: 'Al Hamriyah', emirate: 'Sharjah' },
+  { name: 'Al Jazirah Al Hamra', emirate: 'Ras Al Khaimah' },
+  { name: 'Al Manama', emirate: 'Ajman' },
+  { name: 'Al Raas', emirate: 'Umm Al Quwain' },
+  { name: 'Al Rams', emirate: 'Ras Al Khaimah' },
+  { name: 'Al Salamah', emirate: 'Umm Al Quwain' },
+  { name: 'Dibba Al-fujairah', emirate: 'Fujairah' },
+  { name: 'Dibba Al-hisn', emirate: 'Sharjah' },
+  { name: 'Dubai City', emirate: 'Dubai' },
+  { name: 'Falaj Al Mualla', emirate: 'Umm Al Quwain' },
+  { name: 'Hatta', emirate: 'Dubai' },
+  { name: 'Jebel Ali', emirate: 'Dubai' },
+  { name: 'Khatt', emirate: 'Ras Al Khaimah' },
+  { name: 'Khor Fakkan', emirate: 'Sharjah' },
+  { name: 'Madinat Zayed', emirate: 'Abu Dhabi' },
+  { name: 'Masfout', emirate: 'Ajman' },
+  { name: 'Ruwais', emirate: 'Abu Dhabi' },
+];
+
+const EMIRATE_CITIES_MAP: Record<string, string[]> = {
+  'Abu Dhabi': ['Abu Dhabi', 'Al Ain', 'Madinat Zayed', 'Ruwais', 'Al Dhafra'],
+  'Ajman': ['Ajman', 'Al Manama', 'Masfout'],
+  'Dubai': ['Dubai City', 'Dubai', 'Jebel Ali', 'Hatta'],
+  'Fujairah': ['Fujairah', 'Al Aqah', 'Al Bidyah', 'Dibba Al-fujairah'],
+  'Ras Al Khaimah': ['Ras Al Khaimah', 'Al Jazirah Al Hamra', 'Al Rams', 'Khatt', 'Digdaga'],
+  'Sharjah': ['Sharjah', 'Al Hamriyah', 'Dibba Al-hisn', 'Khor Fakkan', 'Kalba'],
+  'Umm Al Quwain': ['Umm Al Quwain', 'Al Raas', 'Al Salamah', 'Falaj Al Mualla'],
+};
+
+const resolveAgentEmirate = (agent: any): string => {
+  if (!agent) return 'Dubai';
+  let em = agent.emirate || agent.state || agent.address?.emirate || agent.address?.state || agent.location?.emirate || agent.location?.state;
+  if (em && em !== '-' && em !== 'N/A' && em !== 'undefined' && em !== 'null' && em !== '""') {
+    const matched = DEFAULT_EMIRATES.find(e => e.toLowerCase() === em.toLowerCase().trim());
+    if (matched) return matched;
+    return em;
+  }
+  const ct = agent.city || agent.address?.city || agent.location?.city || agent.area || '';
+  if (ct && ct !== '-' && ct !== 'N/A') {
+    const matchedCity = DEFAULT_CITIES_LIST.find(
+      c => c.name.toLowerCase().trim() === ct.toLowerCase().trim()
+    );
+    if (matchedCity?.emirate) {
+      return matchedCity.emirate;
+    }
+    for (const [eName, cities] of Object.entries(EMIRATE_CITIES_MAP)) {
+      if (cities.some(c => c.toLowerCase().trim() === ct.toLowerCase().trim())) {
+        return eName;
+      }
+    }
+  }
+  return 'Dubai';
+};
+
+const resolveAgentCity = (agent: any): string => {
+  if (!agent) return 'Dubai';
+  let ct = agent.city || agent.address?.city || agent.location?.city || agent.area || '';
+  if (ct && ct !== '-' && ct !== 'N/A' && ct !== 'undefined' && ct !== 'null' && ct !== '""') {
+    return ct;
+  }
+  return 'Dubai';
+};
+
 export function AgentWorkspace({ onAgentSelect }: { onAgentSelect: (id: string) => void }) {
   const loggedInAdminName = getLoggedInAdminName();
   const [agentsList, setAgentsList] = useState<any[]>([]);
@@ -152,6 +223,8 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
         const autoAgentId = a.agentId || a.employeeCode || `AGT-${1001 + idx}`;
         const autoPassword = a.plainPassword || a.plain_password || getSavedAgentPassword(a) || a.password || '';
         const formattedRole = a.role === 'service_agent' ? 'Service Agent' : (a.role || 'Service Agent');
+        const resolvedEmirate = resolveAgentEmirate(a);
+        const resolvedCity = resolveAgentCity(a);
         return {
           ...a,
           id: a._id,
@@ -159,14 +232,14 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
           name: a.name || `${a.firstName || ''} ${a.lastName || ''}`.trim() || 'Agent',
           phone: a.phone || '-',
           email: a.email || '-',
-          emirate: a.emirate || a.state || '-',
-          city: a.city || '-',
+          emirate: resolvedEmirate,
+          city: resolvedCity,
           password: autoPassword,
           role: formattedRole,
-          gender: a.gender || '-',
+          gender: a.gender && a.gender !== '-' ? a.gender : 'Male',
           joiningDate: a.joiningDate ? new Date(a.joiningDate).toISOString().split('T')[0] : (a.createdAt ? new Date(a.createdAt).toISOString().split('T')[0] : '-'),
-          skills: Array.isArray(a.skills) && a.skills.length > 0 ? a.skills.join(', ') : (typeof a.skills === 'string' && a.skills ? a.skills : '-'),
-          area: a.city || a.area || a.state || '-',
+          skills: Array.isArray(a.skills) && a.skills.length > 0 ? a.skills.join(', ') : (typeof a.skills === 'string' && a.skills ? a.skills : 'Car Wash'),
+          area: resolvedCity,
           vehicle: a.vehicle || a.vehicleType || '-',
           jobs: a.jobsCompleted || a.jobs || 0,
           rating: a.rating ?? 0,
@@ -211,43 +284,6 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
   const [isGenderOpen, setIsGenderOpen] = useState(false);
   const [isEmirateOpen, setIsEmirateOpen] = useState(false);
   const [isCityOpen, setIsCityOpen] = useState(false);
-
-  const DEFAULT_EMIRATES = [
-    'Abu Dhabi', 'Ajman', 'Dubai', 'Fujairah', 'Ras Al Khaimah', 'Sharjah', 'Umm Al Quwain'
-  ];
-
-  const DEFAULT_CITIES_LIST: { name: string; emirate: string }[] = [
-    { name: 'Al Ain', emirate: 'Abu Dhabi' },
-    { name: 'Al Aqah', emirate: 'Fujairah' },
-    { name: 'Al Bidyah', emirate: 'Fujairah' },
-    { name: 'Al Hamriyah', emirate: 'Sharjah' },
-    { name: 'Al Jazirah Al Hamra', emirate: 'Ras Al Khaimah' },
-    { name: 'Al Manama', emirate: 'Ajman' },
-    { name: 'Al Raas', emirate: 'Umm Al Quwain' },
-    { name: 'Al Rams', emirate: 'Ras Al Khaimah' },
-    { name: 'Al Salamah', emirate: 'Umm Al Quwain' },
-    { name: 'Dibba Al-fujairah', emirate: 'Fujairah' },
-    { name: 'Dibba Al-hisn', emirate: 'Sharjah' },
-    { name: 'Dubai City', emirate: 'Dubai' },
-    { name: 'Falaj Al Mualla', emirate: 'Umm Al Quwain' },
-    { name: 'Hatta', emirate: 'Dubai' },
-    { name: 'Jebel Ali', emirate: 'Dubai' },
-    { name: 'Khatt', emirate: 'Ras Al Khaimah' },
-    { name: 'Khor Fakkan', emirate: 'Sharjah' },
-    { name: 'Madinat Zayed', emirate: 'Abu Dhabi' },
-    { name: 'Masfout', emirate: 'Ajman' },
-    { name: 'Ruwais', emirate: 'Abu Dhabi' },
-  ];
-
-  const EMIRATE_CITIES_MAP: Record<string, string[]> = {
-    'Abu Dhabi': ['Abu Dhabi', 'Al Ain', 'Madinat Zayed', 'Ruwais', 'Al Dhafra'],
-    'Ajman': ['Ajman', 'Al Manama', 'Masfout'],
-    'Dubai': ['Dubai City', 'Dubai', 'Jebel Ali', 'Hatta'],
-    'Fujairah': ['Fujairah', 'Al Aqah', 'Al Bidyah', 'Dibba Al-fujairah'],
-    'Ras Al Khaimah': ['Ras Al Khaimah', 'Al Jazirah Al Hamra', 'Al Rams', 'Khatt', 'Digdaga'],
-    'Sharjah': ['Sharjah', 'Al Hamriyah', 'Dibba Al-hisn', 'Khor Fakkan', 'Kalba'],
-    'Umm Al Quwain': ['Umm Al Quwain', 'Al Raas', 'Al Salamah', 'Falaj Al Mualla'],
-  };
 
   const [availableEmirates, setAvailableEmirates] = useState<string[]>(DEFAULT_EMIRATES);
   const [cityMasterList, setCityMasterList] = useState<{ name: string; emirate: string }[]>(DEFAULT_CITIES_LIST);
@@ -534,9 +570,9 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
       const editFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
       const editLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
       const parsedSkills = parseSkillsArray(agent.skills);
-      const defaultEmirate = agent.emirate || agent.state || 'Dubai';
-      const defaultCity = agent.city || 'Dubai';
-      const defaultGender = agent.gender || 'Male';
+      const defaultEmirate = resolveAgentEmirate(agent);
+      const defaultCity = resolveAgentCity(agent);
+      const defaultGender = agent.gender && agent.gender !== '-' ? agent.gender : 'Male';
       const agentPass = getSavedAgentPassword(agent) || agent.password || agent.plainPassword || '';
       setFormData({
           agentId: resolvedAgentId,
@@ -571,6 +607,9 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
       const resolvedAgentId = agent.agentId || agent.employeeCode || agent.userId || (agent._id ? (typeof agent._id === 'string' ? agent._id : '') : (agent.id || ''));
       const viewFirstName = agent.firstName || (agent.name ? agent.name.split(' ')[0] : '');
       const viewLastName = agent.lastName || (agent.name ? agent.name.split(' ').slice(1).join(' ') : '');
+      const viewEmirate = resolveAgentEmirate(agent);
+      const viewCity = resolveAgentCity(agent);
+      const viewGender = agent.gender && agent.gender !== '-' ? agent.gender : 'Male';
       const agentPass = getSavedAgentPassword(agent) || agent.password || agent.plainPassword || '';
       setFormData({
           agentId: resolvedAgentId,
@@ -581,12 +620,12 @@ const saveAgentPasswordToCache = (pass: string, agentData: any, newId?: string) 
           phone: agent.phone || '',
           employeeCode: agent.employeeCode || resolvedAgentId,
           role: agent.role || 'service_agent',
-          gender: agent.gender || '',
+          gender: viewGender,
           userId: agent.userId || '',
           password: agentPass,
           confirmPassword: '',
-          emirate: agent.emirate || agent.state || 'Dubai',
-          city: agent.city || 'Dubai',
+          emirate: viewEmirate,
+          city: viewCity,
           joiningDate: agent.joiningDate ? new Date(agent.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           active: agent.active !== undefined ? agent.active : (agent.status !== 'Blocked' && agent.status !== 'Inactive')
       });
